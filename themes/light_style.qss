@@ -1,0 +1,54 @@
+/* MENU */
+#menu .QPushButton {
+    background-color: rgb(255,255,255);
+    border: none;
+    border-radius: 10;
+    max-width: 200px;
+
+    color: rgb(40,40,40);
+    font-family: "montserrat";
+    text-align: left;
+    font-size: 15px;
+    font-weight: 400;
+
+    padding: 15px;
+
+    icon-size: 25px;
+}
+
+#menu .QPushButton:hover {
+    background-color: rgb(240,240,240);
+}
+
+/* HEADER */
+#control_buttons .QPushButton {
+    border: none;
+    padding: 5px;
+    icon-size: 15px;
+}
+
+#control_buttons .QPushButton:hover {
+    background-color: rgb(255,255,255);
+    border-radius: 5;
+}
+
+#title .QLabel {
+    text-align: left;
+    font-family: "montserrat";
+    font-size: 15px;
+    font-weight: 600;
+    color: rgb(40,40,40);
+}
+
+#title {
+    max-width: 200px;
+    min-width: 200px;
+    padding: 0 10px 0 10px;
+}
+
+#header {
+    max-height: 55px;
+    min-height: 55px;
+    margin: 5px 0 0 0;
+}
+/* FILE LIST */
