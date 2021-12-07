@@ -1,4 +1,8 @@
 /* MENU */
+QWidget {
+    font-family: "montserrat";
+}
+
 #menu .QPushButton {
     background-color: rgb(255,255,255);
     border: none;
@@ -6,9 +10,8 @@
     max-width: 200px;
 
     color: rgb(40,40,40);
-    font-family: "montserrat";
     text-align: left;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 400;
 
     padding: 15px;
@@ -34,7 +37,6 @@
 
 #title .QLabel {
     text-align: left;
-    font-family: "montserrat";
     font-size: 15px;
     font-weight: 600;
     color: rgb(40,40,40);
@@ -51,4 +53,15 @@
     min-height: 55px;
     margin: 5px 0 0 0;
 }
+
+/* COLLAPSE BUTTON */
+#collapse_button {
+    border: none;
+    text-align: left;
+}
+
 /* FILE LIST */
+#files_view .QListWidget{
+    
+}
+
