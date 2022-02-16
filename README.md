@@ -1,4 +1,2 @@
-# Raman Microspectroscopy Data Processing
-
-- bakalářka
+# Raman Microspectroscopy Data Processing App
 
