@@ -61,7 +61,9 @@ QWidget {
 }
 
 /* FILE LIST */
-#files_view .QListWidget{
+/*
+    Set style for list, button (change folder), scrollbar, label (cwd)
+*/
+#files_view .QListWidget {
     
 }
-

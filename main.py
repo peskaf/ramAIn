@@ -5,12 +5,12 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("  Spectra Observer")
+        self.setWindowTitle("  " + "RamAIn")
         self.setWindowIcon(QtGui.QIcon("icons/icon.svg"))
 
         # self.setWindowFlag(Qt.FramelessWindowHint) # hide windows frame
 
-        # tell how whole app will look like
+        # tell how the whole app will look like
         layout = QVBoxLayout()
         layout.addWidget(Header(self))
 
@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         layout2.addWidget(ManualPreprocessing(self))
 
         layout.addLayout(layout2)
-
+    
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
