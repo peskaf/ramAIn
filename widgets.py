@@ -1,6 +1,5 @@
-from re import X
 from PySide6 import QtGui
-from PySide6.QtWidgets import QFileDialog, QFrame, QGraphicsSceneHoverEvent, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QStackedLayout, QVBoxLayout, QGraphicsRectItem
+from PySide6.QtWidgets import QFileDialog, QFrame ,QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QStackedLayout, QVBoxLayout, QGraphicsRectItem
 from PySide6.QtCore import QRectF, Qt, QSize, Signal
 import pyqtgraph as pg
 
@@ -9,8 +8,10 @@ import os
 
 from data import Data
 
+# TODO: divide individual widgets to separate files in folder widgets
+
 # PLACEHOLDER
-class Color(QFrame): # placeholder widget
+class Color(QFrame):
     def __init__(self, color, parent=None):
         super().__init__(parent)
         self.setObjectName("color")
@@ -94,7 +95,7 @@ class Header(QFrame):
         layout = QHBoxLayout()
 
         layout.addWidget(Title(self))
-        layout.addWidget(Color(QtGui.QColor(240,240,240)))
+        layout.addStretch()
         layout.addWidget(ControlButtons(self))
 
         layout.setAlignment(Qt.AlignLeft)
@@ -178,14 +179,12 @@ class FilesView(QFrame):
 
 # PLOTS AND PICTURES
 class PlotMode():
-    NONE = 0
+    VIEW = 0
     CROPPING = 1
     COSMIC_RAY_REMOVAL = 2
     BACKGROUND_REMOVAL = 3
 
-class Plot(QFrame):
-    region_changed = Signal(str, str) # region x and y changed
-
+class SpectralPlot(QFrame):
     def __init__(self, x, y, parent=None):
         super().__init__(parent)
 
@@ -197,7 +196,8 @@ class Plot(QFrame):
         # STYLING
         self.plot_widget.setBackground((240,240,240))
         
-        styles = { "font-family" : "montserrat", "color" : "#1A4645", "font-size": "14px" } # to qss TODO: HOW?! # style for labels only
+        # to qss TODO: HOW?! # style for labels only
+        styles = { "font-family" : "montserrat", "color" : "#1A4645", "font-size": "14px" }
 
         axis_pen = pg.mkPen(color="#051821")
         plot_pen = pg.mkPen(color="#266867", width=1.1)
@@ -222,13 +222,18 @@ class Plot(QFrame):
         self.crosshair_v = pg.InfiniteLine(angle=90, movable=False, pen=crosshair_pen)
         self.plot_widget.addItem(self.crosshair_v, ignoreBounds=True)
         self.mouse_movement_proxy = pg.SignalProxy(self.plot_widget.scene().sigMouseMoved, rateLimit=60, slot=self.update_crosshair)
+        self._crosshair_visible = True
 
         # LAYOUT
         layout = QHBoxLayout(self)
         layout.addWidget(self.plot_widget)
 
-        # CLICKING MODES
-        self.mode = PlotMode.NONE
+        # SET INIT MODE - VIEW
+        self.mode = PlotMode.VIEW
+
+        # MISC
+        self.linear_region = None
+
 
     def update_data(self, new_x, new_y):
         self.x_data, self.y_data  = new_x, new_y
@@ -244,27 +249,40 @@ class Plot(QFrame):
     def hide_crosshair(self):
         self.crosshair_v.hide()
         self.mouse_movement_proxy.blockSignal = True
+        self._crosshair_visible = False
     
     def show_crosshair(self):
         self.crosshair_v.show()
         self.mouse_movement_proxy.blockSignal = False
+        self._crosshair_visible = True
 
-    def change_mode(self, new_mode):
+    def set_mode(self, new_mode : PlotMode):
         if new_mode == self.mode: # no change
             return
 
-        if new_mode == PlotMode.CROPPING:
-            self.hide_crosshair()
-            self.add_selection_region()
-        elif new_mode == PlotMode.NONE:
-            # TODO: checknout jestli opravdu item linear region neni uz reomved a jestli crosshair uz neni ukazany
-            self.show_crosshair()
-            self.plot_widget.removeItem(self.linear_region)
+        if new_mode == PlotMode.VIEW:
+            self._set_view_mode()
+        elif new_mode == PlotMode.CROPPING:
+            self._set_cropping_mode()
         else:
-            pass
+            # invalid mode -> do nothing
+            return 
 
         self.mode = new_mode
-    
+
+    def _set_view_mode(self):
+        if self.linear_region is not None:
+            self.plot_widget.removeItem(self.linear_region)
+            self.linear_region = None
+        if not self._crosshair_visible:
+            self.show_crosshair()
+
+    def _set_cropping_mode(self):
+        if self._crosshair_visible:
+            self.hide_crosshair()
+        if self.linear_region is None:
+            self.add_selection_region()
+
     def add_selection_region(self):
         # PENS AND BRUSHES
         brush = pg.mkBrush(color=(38,104,103,50))
@@ -296,7 +314,7 @@ class RectRegion(QGraphicsRectItem):
         QGraphicsRectItem.mouseReleaseEvent(self, event)
     
 
-class Picture(QFrame):
+class SpectralMap(QFrame):
     def __init__(self, data, parent=None):
         super().__init__(parent)
         self.win = pg.GraphicsLayoutWidget()
@@ -326,14 +344,18 @@ class Picture(QFrame):
         self.crosshair_h = pg.InfiniteLine(angle=0, movable=False)
         self.image_view.addItem(self.crosshair_v, ignoreBounds=True)
         self.image_view.addItem(self.crosshair_h, ignoreBounds=True)
+        self._crosshair_visible = True
 
         self.mouse_movement_proxy = pg.SignalProxy(self.image_view.getView().scene().sigMouseMoved, rateLimit=60, slot=self.update_crosshair)
 
         layout = QHBoxLayout(self)
         layout.addWidget(self.image_view)
 
-        # CLICKING MODES
-        self.mode = PlotMode.NONE
+        # SET INIT MODE
+        self.mode = PlotMode.VIEW
+
+        # MISC
+        self.ROI = None
 
     def update_crosshair(self, event):
         pos = event[0]
@@ -358,57 +380,97 @@ class Picture(QFrame):
             self.image_view.getView().setLimits(xMin=0, xMax=img.width(), yMin=-offset, yMax=img.width()-offset)
     
     def hide_crosshair(self):
+        # proxy signal not blocked here -> it is needed for x y mousepoint update
         self.crosshair_v.hide()
         self.crosshair_h.hide()
-        # cannot block proxy signal here -> needed for x y mousepoint update
-    
+        self._crosshair_visible = False
+
     def show_crosshair(self):
         self.crosshair_v.show()
         self.crosshair_h.show()
+        self._crosshair_visible = True
 
-    def change_mode(self, new_mode):
+    def set_mode(self, new_mode : PlotMode):
         if new_mode == self.mode: # no change
             return
 
-        if new_mode == PlotMode.CROPPING:
-            self.hide_crosshair()
-            self.add_selection_region()
-        elif new_mode == PlotMode.NONE:
-            # TODO: checknout jestli opravdu dany item neni uz removed a jestli crosshair uz neni ukazany
-            self.show_crosshair()
-            self.image_view.removeItem(self.ROI)
+        if new_mode == PlotMode.VIEW:
+            self._set_view_mode()
+        elif new_mode == PlotMode.CROPPING:
+            self._set_cropping_mode()
         else:
-            pass
+            # invalid mode -> do nothing
+            return 
 
         self.mode = new_mode
 
+    def _set_view_mode(self):
+        if self.ROI is not None:
+            self.image_view.removeItem(self.ROI)
+            self.ROI = None
+        if not self._crosshair_visible:
+            self.show_crosshair()
+
+    def _set_cropping_mode(self):
+        if self._crosshair_visible:
+            self.hide_crosshair()
+        if self.ROI is None:
+            self.add_selection_region()
+
     def add_selection_region(self):
-        # prozatim odkomentovana verze s ROI, pak chci zmenit na RectRegion
-        brush = pg.mkBrush(color=(38,104,103,50))
-        hoverBrush = pg.mkBrush(color=(38,104,103,70))
-        pen = pg.mkPen(color="#F58800")
-        hoverPen = pg.mkPen(color="#F8BC24")
-        """
-        self.rectangle = RectRegion(0, 0, self.image_view.getImageItem().width(), self.image_view.getImageItem().height())
-        self.rectangle.setFlag(self.rectangle.ItemIsMovable)
-        #self.rectangle.setFlag(self.rectangle.ItemIsFocusable)
-        self.rectangle.setCursor(Qt.OpenHandCursor)
-        self.rectangle.setPen(pg.mkPen(color="#F58800"))
-        self.rectangle.setBrush(pg.mkBrush(color=(245, 136, 0, 50)))
 
-        self.image_view.addItem(self.rectangle)
-        self.hide_crosshair()
-        """
+        pen = pg.mkPen(color="#F58800", width=2)
+        hoverPen = pg.mkPen(color="#F8BC24", width=2)
 
-        self.ROI = pg.RectROI(
+        self.ROI = BigHandlesROI(
             pos=(0,0),
             size=(self.image_view.getImageItem().width(), self.image_view.getImageItem().height()),
             maxBounds=QRectF(0, 0, self.image_view.getImageItem().width(), self.image_view.getImageItem().height()),
             sideScalers=True,
+            rotatable=False,
             pen=pen,
-            hoverPen=hoverPen)
+            hoverPen=hoverPen,
+            # handle pen, handle hover pen, 
+            )
 
+        # rest of handles around the ROI
+        self.ROI.addScaleHandle((1,1), (0,0))
+        self.ROI.addScaleHandle((0,0), (1,1))
+        self.ROI.addScaleHandle((0,1), (1,0))
+        self.ROI.addScaleHandle((1,0), (0,1))
+        self.ROI.addScaleHandle((0,0.5), (1,0.5))
+        self.ROI.addScaleHandle((0.5,0), (0.5,1))
+        
         self.image_view.addItem(self.ROI)
+    
+    def update_ROI(self, new_pos : tuple, new_size : tuple):
+        # validation
+        if new_pos[0] < 0:
+            new_pos = (0, new_pos[1])
+        if new_pos[0] > self.image_view.getImageItem().width():
+            new_pos = (self.image_view.getImageItem().width(), new_pos[1])
+        if new_pos[1] < 0:
+            new_pos = (new_pos[0], 0)
+        if new_pos[1] > self.image_view.getImageItem().height():
+            new_pos = (new_pos[0], self.image_view.getImageItem().height())
+        
+        if new_size[0] < 0:
+            new_size = (0, new_size[1])
+        if new_size[0] > self.image_view.getImageItem().width():
+            new_size = (self.image_view.getImageItem().width(), new_size[1])
+        if new_size[1] < 0:
+            new_size = (new_size[0], 0)
+        if new_size[1] > self.image_view.getImageItem().height():
+            new_size = (new_size[0], self.image_view.getImageItem().height())
+
+        self.ROI.setPos(new_pos)
+        self.ROI.setSize(new_size)
+
+# custom ROI
+class BigHandlesROI(pg.RectROI):
+    def addHandle(self, *args, **kwargs):
+        self.handleSize = 10
+        super(BigHandlesROI, self).addHandle(*args, **kwargs)
 
 # METHODS
 class Methods(QFrame):
@@ -428,7 +490,7 @@ class Methods(QFrame):
         self.list.setCurrentItem(self.list.item(0))
         self.list.setSortingEnabled(False) # do not sort list items (methods)
 
-        self.cropping = Cropping()
+        self.cropping = ParametersCropping()
         
         self.methods_layout = QStackedLayout()
         self.methods_layout.addWidget(Color(QtGui.QColor(240,240,240)))
@@ -443,68 +505,73 @@ class Methods(QFrame):
     def set_current_widget(self, mode):
         if mode == PlotMode.CROPPING:
             self.methods_layout.setCurrentIndex(1)
-        elif mode == PlotMode.NONE:
+        elif mode == PlotMode.VIEW:
             self.methods_layout.setCurrentIndex(0)
         # TODO: dopsat lepe
+    
+    # resets to init mode - view
+    def reset(self):
+        self.list.setCurrentItem(self.list.item(0))
 
 
-class Cropping(QFrame):
-    plot_x_changed = Signal(str)
-    plot_y_changed = Signal(str)
+
+class ParametersCropping(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
         layout = QGridLayout()
 
-        text_pic = QLabel("Picture Cropping")
-        text_plot = QLabel("Plot Cropping")
+        # TODO: pridat validator vstupu
 
-        text1 = QLabel("Upper left corner")
-        text2 = QLabel("Lower right corner")
-        text3 = QLabel("X")
-        text4 = QLabel("Y")
+        # Spectral map cropping parameters
+        layout.addWidget(QLabel("Spectral Map Cropping"), 0, 0)
+        layout.addWidget(QLabel("Upper Left Corner"), 2, 0)
+        layout.addWidget(QLabel("Lower Right Corner"), 3, 0)
+        layout.addWidget(QLabel("X"), 1, 1)
+        layout.addWidget(QLabel("Y"), 1, 2)
 
-        self.inputULX = QLineEdit("0")
-        self.inputLRX = QLineEdit("0")
-        self.inputULY = QLineEdit("0")
-        self.inputLRY = QLineEdit("0")
+        self.input_map_ULX = QLineEdit("0")
+        self.input_map_ULY = QLineEdit("0")
+        self.input_map_LRX = QLineEdit("0")
+        self.input_map_LRY = QLineEdit("0")
 
-        text5 = QLabel("X")
-        text6 = QLabel("Y")
+        layout.addWidget(self.input_map_ULX, 2, 1)
+        layout.addWidget(self.input_map_ULY, 2, 2)
+        layout.addWidget(self.input_map_LRX, 3, 1)
+        layout.addWidget(self.input_map_LRY, 3, 2)
 
-        self.inputX = QLineEdit("0")
-        self.inputY = QLineEdit("0")
+        # Spectral plot cropping parameters
+        layout.addWidget(QLabel("Spectral Plot Cropping"), 4, 0)
+
+        layout.addWidget(QLabel("Start Position"), 5, 0)
+        layout.addWidget(QLabel("End Position"), 6, 0)
+
+        self.input_plot_start = QLineEdit("0")
+        self.input_plot_end = QLineEdit("0")
+
+        layout.addWidget(self.input_plot_start, 5, 1)
+        layout.addWidget(self.input_plot_end, 6, 1)
 
         self.button = QPushButton("Apply")
-
-        layout.addWidget(text_pic, 0, 0)
-
-        layout.addWidget(text1, 2, 0)
-        layout.addWidget(text2, 3, 0)
-        layout.addWidget(text3, 1, 1)
-        layout.addWidget(text4, 1, 2)
-        layout.addWidget(self.inputULX, 2, 1)
-        layout.addWidget(self.inputULY, 2, 2)
-        layout.addWidget(self.inputLRX, 3, 1)
-        layout.addWidget(self.inputLRY, 3, 2)
-
-        layout.addWidget(text_plot, 4, 0)
-
-        layout.addWidget(text5, 5, 0)
-        layout.addWidget(text6, 6, 0)
-        layout.addWidget(self.inputX, 5, 1)
-        layout.addWidget(self.inputY, 6, 1)
-
         layout.addWidget(self.button, 6, 2)
 
         self.setLayout(layout)
 
-        # TODO: pridat validovani inputu apod. !!! (min a max by nemely byt nutne, to se nastavi samo podle bounds)
-
-    def update_region(self, new_region): # set changed values to given line edits
+    # set changed values to given QLineEdit objects
+    def update_crop_plot_region(self, new_region):
         lo, hi = new_region.getRegion()
-        self.inputX.setText(f"{lo:.2f}")
-        self.inputY.setText(f"{hi:.2f}")
+        self.input_plot_start.setText(f"{lo:.2f}")
+        self.input_plot_end.setText(f"{hi:.2f}")
+    
+    def update_crop_pic_region(self, new_roi):
+        upper_left_corner = new_roi.pos()
+        lower_right_corner = new_roi.pos() + new_roi.size()
+
+        self.input_map_ULX.setText(f"{np.ceil(upper_left_corner[0])}")
+        self.input_map_ULY.setText(f"{np.ceil(upper_left_corner[1])}")
+        self.input_map_LRX.setText(f"{np.ceil(lower_right_corner[0])}")
+        self.input_map_LRY.setText(f"{np.ceil(lower_right_corner[1])}")
+    
 
 # MANUAL PREPROCESSING PAGE
 class ManualPreprocessing(QFrame):
@@ -518,14 +585,14 @@ class ManualPreprocessing(QFrame):
         self.curr_file = None
         self.curr_data = None
 
-
+        # set placeholders for spectral map and plot
         self.pic = Color("#F0F0F0")
-        self.pic.setFixedSize(QSize(700,300))
+        self.pic.setFixedSize(QSize(700,300)) #TODO: ??
 
         self.plot = Color("#F0F0F0")
-        self.plot.setFixedSize(QSize(300,300))
+        self.plot.setFixedSize(QSize(300,300)) #TODO: ??
 
-        self.files_view.list.currentItemChanged.connect(self.update_file) #change of file -> update picture
+        self.files_view.list.currentItemChanged.connect(self.update_file) # change of file -> update picture
         self.files_view.folder_changed.connect(self.update_folder)
 
         layout = QVBoxLayout()
@@ -549,13 +616,15 @@ class ManualPreprocessing(QFrame):
 
     def update_pic(self):
         if isinstance(self.pic, Color): # init state
-            self.pic = Picture(self.curr_data.averages, self)
-            self.pic.setFixedSize(QSize(300,300))
+            self.pic = SpectralMap(self.curr_data.averages, self)
+            self.pic.setFixedSize(QSize(300,300)) # TODO: ??
 
-            self.plot = Plot(self.curr_data.x_axis, self.curr_data.data[0,0], self) # initially show [0,0] data
-            self.plot.setFixedSize(QSize(700,300))
+            # initially show [0,0] data
+            self.plot = SpectralPlot(self.curr_data.x_axis, self.curr_data.data[0,0], self)
+            self.plot.setFixedSize(QSize(700,300)) # TODO: ??
 
-            self.pic.image_view.getView().scene().sigMouseClicked.connect(self.update_plot_from_mouse_point) # click on picture -> update plot
+            # click on picture -> update plot
+            self.pic.image_view.getView().scene().sigMouseClicked.connect(self.update_plot_from_mouse_point)
 
             # remove placeholders -> needs to be backwards -> widgets would shift to lower position
             for i in reversed(range(self.pic_plot_layout.count())): 
@@ -579,32 +648,57 @@ class ManualPreprocessing(QFrame):
         self.curr_file = file.text()
         self.curr_data = Data(os.path.join(self.curr_folder, self.curr_file))
         self.update_pic()
+        self.methods.reset()
+        self.update_plot_mode(self.methods.list.currentItem())
 
     def update_folder(self, new_folder):
         self.curr_folder = new_folder
 
+    # TODO: rename
     def send_new_data(self):
-        new_region = (float(self.methods.cropping.inputX.text()), float(self.methods.cropping.inputY.text()))
-        self.plot.update_region(new_region)
+        try:
+            new_region = (float(self.methods.cropping.input_plot_start.text()), float(self.methods.cropping.input_plot_end.text()))
+            self.plot.update_region(new_region)
+        except ValueError:
+            pass
+
+    def send_map_data(self):
+        try:
+            new_pos = (float(self.methods.cropping.input_map_ULX.text()), float(self.methods.cropping.input_map_ULY.text()))
+            new_size = (float(self.methods.cropping.input_map_LRX.text()) - new_pos[0], float(self.methods.cropping.input_map_LRY.text()) - new_pos[1])
+            self.pic.update_ROI(new_pos, new_size)
+        except ValueError:
+            pass
 
     def update_plot_mode(self, new_mode : QListWidgetItem):
         # nejen plot mode ale celkove vse
 
-        if new_mode.text() == "Cropping":
-            # napad! TODO: region vlastne nemazat ale jen schovat na jiné Z aby nebyl vidět -> pak se za vezme dopředu -> takto tam muze byt celou dobu propojeny uz od vytvoreni
-            self.plot.change_mode(PlotMode.CROPPING)
-            self.pic.change_mode(PlotMode.CROPPING)
+        if new_mode.text().lower() == "cropping":
+            self.plot.set_mode(PlotMode.CROPPING)
+            self.pic.set_mode(PlotMode.CROPPING)
             self.methods.set_current_widget(PlotMode.CROPPING)
 
-            self.plot.linear_region.sigRegionChanged.connect(self.methods.cropping.update_region)
-            self.methods.cropping.inputX.editingFinished.connect(self.send_new_data)
-            self.methods.cropping.inputY.editingFinished.connect(self.send_new_data)
+            # plot connection to inputs
+            self.plot.linear_region.sigRegionChanged.connect(self.methods.cropping.update_crop_plot_region)
+            self.methods.cropping.input_plot_start.editingFinished.connect(self.send_new_data)
+            self.methods.cropping.input_plot_end.editingFinished.connect(self.send_new_data)
 
-            self.plot.linear_region.sigRegionChanged.emit(self.plot.linear_region) # send curr region to inputs
+            # send init linear region start and end to input lines
+            self.plot.linear_region.sigRegionChanged.emit(self.plot.linear_region)
 
-        elif new_mode.text() == "View":
-            self.plot.change_mode(PlotMode.NONE)
-            self.pic.change_mode(PlotMode.NONE)
-            self.methods.set_current_widget(PlotMode.NONE)
+            # map connection to inputs
+            self.pic.ROI.sigRegionChanged.connect(self.methods.cropping.update_crop_pic_region)
+            self.methods.cropping.input_map_ULX.editingFinished.connect(self.send_map_data)
+            self.methods.cropping.input_map_ULY.editingFinished.connect(self.send_map_data)
+            self.methods.cropping.input_map_LRX.editingFinished.connect(self.send_map_data)
+            self.methods.cropping.input_map_LRY.editingFinished.connect(self.send_map_data)
+
+            # send init ROI position and size to input lines
+            self.pic.ROI.sigRegionChanged.emit(self.pic.ROI)
+
+        elif new_mode.text().lower() == "view":
+            self.plot.set_mode(PlotMode.VIEW)
+            self.pic.set_mode(PlotMode.VIEW)
+            self.methods.set_current_widget(PlotMode.VIEW)
         else:
             pass
