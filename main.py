@@ -1,12 +1,16 @@
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QWidget
-from widgets import *
+from PySide6.QtGui import QIcon, QFontDatabase
+from PySide6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QWidget, QVBoxLayout
+
+from widgets.menu import Menu
+from widgets.header import Header
+from widgets.manual_preprocessing import ManualPreprocessing
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("  " + "RamAIn")
-        self.setWindowIcon(QtGui.QIcon("icons/icon.svg"))
+        self.setWindowIcon(QIcon("icons/icon.svg"))
 
         # self.setWindowFlag(Qt.FramelessWindowHint) # hide windows frame
 
@@ -26,7 +30,7 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
-        QtGui.QFontDatabase.addApplicationFont("fonts/montserrat.ttf")
+        QFontDatabase.addApplicationFont("fonts/montserrat.ttf")
 
         with open("themes/light_style.qss") as f:
             self.setStyleSheet(f.read())
