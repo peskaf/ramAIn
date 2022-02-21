@@ -52,7 +52,9 @@ class Cropping(QFrame):
         upper_left_corner = new_roi.pos()
         lower_right_corner = new_roi.pos() + new_roi.size()
 
-        self.input_map_ULX.setText(f"{np.ceil(upper_left_corner[0])}")
-        self.input_map_ULY.setText(f"{np.ceil(upper_left_corner[1])}")
+        # floor upper left corner -> both coordinates decrease in the top-left direction; prevents cutting more than intended 
+        self.input_map_ULX.setText(f"{np.floor(upper_left_corner[0])}")
+        self.input_map_ULY.setText(f"{np.floor(upper_left_corner[1])}")
+        # ceil lower right corner -> both coordinates increase in the bottom-right direction
         self.input_map_LRX.setText(f"{np.ceil(lower_right_corner[0])}")
         self.input_map_LRY.setText(f"{np.ceil(lower_right_corner[1])}")
