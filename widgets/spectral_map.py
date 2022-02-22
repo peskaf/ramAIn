@@ -138,7 +138,7 @@ class SpectralMap(QFrame):
         self.image_view.addItem(self.ROI)
     
     def update_ROI(self, new_pos : tuple, new_size : tuple):
-        # validation
+        # new_pos validation
         if new_pos[0] < 0:
             new_pos = (0, new_pos[1])
         elif new_pos[0] > self.image_view.getImageItem().width():
@@ -149,6 +149,7 @@ class SpectralMap(QFrame):
         elif new_pos[1] > self.image_view.getImageItem().height():
             new_pos = (new_pos[0], self.image_view.getImageItem().height())
         
+        # new_size validation
         if new_size[0] < 0:
             new_size = (0, new_size[1])
         elif new_size[0] > self.image_view.getImageItem().width():
