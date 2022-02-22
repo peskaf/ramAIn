@@ -111,6 +111,7 @@ class ManualPreprocessing(QFrame):
             pass
 
     def update_plot_mode(self, new_mode : QListWidgetItem):
+        # TODO: mode change only if some plot and map present -> if placeholder -> do nothing
         # nejen plot mode ale celkove vse
 
         if new_mode.text().lower() == "cropping":

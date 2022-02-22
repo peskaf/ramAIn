@@ -141,20 +141,22 @@ class SpectralMap(QFrame):
         # validation
         if new_pos[0] < 0:
             new_pos = (0, new_pos[1])
-        if new_pos[0] > self.image_view.getImageItem().width():
+        elif new_pos[0] > self.image_view.getImageItem().width():
             new_pos = (self.image_view.getImageItem().width(), new_pos[1])
+
         if new_pos[1] < 0:
             new_pos = (new_pos[0], 0)
-        if new_pos[1] > self.image_view.getImageItem().height():
+        elif new_pos[1] > self.image_view.getImageItem().height():
             new_pos = (new_pos[0], self.image_view.getImageItem().height())
         
         if new_size[0] < 0:
             new_size = (0, new_size[1])
-        if new_size[0] > self.image_view.getImageItem().width():
+        elif new_size[0] > self.image_view.getImageItem().width():
             new_size = (self.image_view.getImageItem().width(), new_size[1])
+
         if new_size[1] < 0:
             new_size = (new_size[0], 0)
-        if new_size[1] > self.image_view.getImageItem().height():
+        elif new_size[1] > self.image_view.getImageItem().height():
             new_size = (new_size[0], self.image_view.getImageItem().height())
 
         self.ROI.setPos(new_pos)
