@@ -92,6 +92,10 @@ class SpectralMap(QFrame):
             self._set_view_mode()
         elif new_mode == PlotMode.CROPPING:
             self._set_cropping_mode()
+        elif new_mode == PlotMode.COSMIC_RAY_REMOVAL:
+            self._set_crr_mode()
+        elif new_mode == PlotMode.BACKGROUND_REMOVAL:
+            self._set_bg_removal_mode()
         else:
             # invalid mode -> do nothing
             return 
@@ -110,6 +114,12 @@ class SpectralMap(QFrame):
             self.hide_crosshair()
         if self.ROI is None:
             self.add_selection_region()
+
+    def _set_bg_removal_mode(self):
+        self._set_view_mode()
+
+    def _set_crr_mode(self):
+        self._set_view_mode()
 
     def add_selection_region(self):
 

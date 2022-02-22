@@ -143,9 +143,13 @@ class ManualPreprocessing(QFrame):
             self.methods.set_current_widget(PlotMode.VIEW)
 
         elif new_mode.text().lower() == "cosmic ray removal":
+            self.plot.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
+            self.pic.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
             self.methods.set_current_widget(PlotMode.COSMIC_RAY_REMOVAL)
         
         elif new_mode.text().lower() == "background removal":
+            self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)
+            self.pic.set_mode(PlotMode.BACKGROUND_REMOVAL)
             self.methods.set_current_widget(PlotMode.BACKGROUND_REMOVAL)
 
         else:

@@ -6,6 +6,6 @@ class BackgroundRemoval(QFrame):
 
         layout = QGridLayout()
 
-        layout.addWidget(QLabel("BG Removal"), 0, 0)
+        layout.addWidget(QLabel("TBD"), 0, 0)
 
         self.setLayout(layout)

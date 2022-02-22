@@ -1,16 +1,15 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QRadioButton, QComboBox, QWidget, QStackedWidget, QFormLayout
+from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QRadioButton, QComboBox, QWidget, QStackedWidget, QFormLayout, QCheckBox
 
+# TODO: show maxima -> change spectral map to display maximal values from data; if manual removal -> show linear region in plot and connect it to the inputs
 class CosmicRayRemoval(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
         layout = QGridLayout()
 
-        layout.addWidget(QLabel("Cosmic Ray Removal"), 0, 0)
-
         self.auto_removal_btn = QRadioButton("Automatic removal")
         self.auto_removal_btn.setChecked(True)
-        layout.addWidget(self.auto_removal_btn, 2, 0)
+        layout.addWidget(self.auto_removal_btn, 0, 0)
 
         self.auto_methods = QComboBox()
         self.auto_methods.addItems(["Savitzky-Golay", "Median", "Average", "CRR"])
@@ -27,8 +26,8 @@ class CosmicRayRemoval(QFrame):
         self.CRR_paramsUI()
 
         
-        layout.addWidget(QLabel("Method Selection"), 3, 0)
-        layout.addWidget(self.auto_methods, 3, 1)
+        layout.addWidget(QLabel("Method Selection"), 1, 0)
+        layout.addWidget(self.auto_methods, 1, 1)
 
         # individual methods parameters
         self.auto_methods_params = QStackedWidget(self)
@@ -37,23 +36,26 @@ class CosmicRayRemoval(QFrame):
         self.auto_methods_params.addWidget(self.ave_params)
         self.auto_methods_params.addWidget(self.CRR_params)
 
-        layout.addWidget(self.auto_methods_params, 4, 0, 1, 2) # span set -> position (4,0) span 1 row 2 cols
+        layout.addWidget(self.auto_methods_params, 2, 0, 1, 2) # span set -> position (4,0) span 1 row 2 cols
         layout.rowStretch(4)
 
 
         self.manual_removal_btn = QRadioButton("Manual removal")
-        layout.addWidget(self.manual_removal_btn, 5, 0)
+        layout.addWidget(self.manual_removal_btn, 3, 0)
 
-        layout.addWidget(QLabel("Start Position"), 6, 0)
+        layout.addWidget(QLabel("Start Position"), 4, 0)
         self.input_man_start = QLineEdit("0")
-        layout.addWidget(self.input_man_start, 6, 1)
-        layout.addWidget(QLabel("End Position"), 7, 0)
+        layout.addWidget(self.input_man_start, 4, 1)
+        layout.addWidget(QLabel("End Position"), 5, 0)
         self.input_man_end = QLineEdit("0")
-        layout.addWidget(self.input_man_end, 7, 1)
+        layout.addWidget(self.input_man_end, 5, 1)
 
+        self.show_maxima = QCheckBox()
+        layout.addWidget(self.show_maxima, 6, 1)
+        layout.addWidget(QLabel("Show Maxima"), 6, 0)
 
         self.button = QPushButton("Apply")
-        layout.addWidget(self.button, 8, 1)
+        layout.addWidget(self.button, 7, 1)
 
         self.setLayout(layout)
 
