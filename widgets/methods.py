@@ -11,6 +11,7 @@ class Methods(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        # name for qss styling
         self.setObjectName("methods")
 
         layout = QHBoxLayout()
@@ -29,7 +30,9 @@ class Methods(QFrame):
         self.background_removal = BackgroundRemoval()
         
         self.methods_layout = QStackedLayout()
-        self.methods_layout.addWidget(Color(QColor(240,240,240)))
+
+        bg_color = QColor(240,240,240)
+        self.methods_layout.addWidget(Color(bg_color))
         self.methods_layout.addWidget(self.cropping)
         self.methods_layout.addWidget(self.cosmic_ray_removal)
         self.methods_layout.addWidget(self.background_removal)
@@ -49,10 +52,7 @@ class Methods(QFrame):
             self.methods_layout.setCurrentIndex(2)
         elif mode == PlotMode.BACKGROUND_REMOVAL:
             self.methods_layout.setCurrentIndex(3)
-
-
-        # TODO: dopsat lepe ??
     
-    # resets to init mode - view
+    # resets to init mode - first method (view)
     def reset(self):
         self.list.setCurrentItem(self.list.item(0))

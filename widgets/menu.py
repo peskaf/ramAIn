@@ -2,12 +2,15 @@ from PySide6.QtGui import QIcon, QCursor
 from PySide6.QtWidgets import QFrame, QPushButton, QVBoxLayout
 from PySide6.QtCore import Qt
 
-# MENU
+# OK
 class Menu(QFrame):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        super(Menu, self).__init__()
+
+        # set name for qss styling
         self.setObjectName("menu")
 
+        # TODO: add relevant icons to the menu items
         icon = QIcon("icons/icon.svg")
         buttons = [
             QPushButton("   Manual Preprocessing", icon=icon), # spaces because of spacing between icon and text
@@ -24,7 +27,7 @@ class Menu(QFrame):
             button.setCursor(QCursor(Qt.PointingHandCursor))
             layout.addWidget(button)
 
-
+        # buttons should be aligned to the top of the layout
         layout.setAlignment(Qt.AlignTop)
 
         self.setLayout(layout)

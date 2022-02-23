@@ -1,54 +1,61 @@
-from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QFrame, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QListWidget, QFileDialog
 from PySide6.QtCore import Signal
 
 import os
 
+# OK
 class FilesView(QFrame):
-    folder_changed = Signal(str) # custom signal to tell others that folder has changed
+    folder_changed = Signal(str) # custom signal that folder has changed
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        super(FilesView, self).__init__()
+
+        # name for qss styling
         self.setObjectName("files_view")
 
-        # TODO: pro debug nasledujici radka zakomentovana -> rovnou do data file
-        # self.data_folder = os.getcwd() # initially set to current working directory
-        self.data_folder = os.getcwd() + "\data" # pro debug
-
-        layout = QVBoxLayout()
+        # folder where to look for the data files
+        self.data_folder = os.getcwd() + "\data" # TODO: look at \data folder -> it does not have to be there, here for debug only
+        # .mat files in curr data folder
+        self.file_list = QListWidget()
+        # widget to display 
+        self.currFolderWidget = QLabel(f"Current directory: {self.data_folder}") # os.path.basename()
 
         # .mat files in given folder
         files = [file for file in os.listdir(self.data_folder) if file.endswith(".mat")]
-
-        self.list = QListWidget()
-        self.list.addItems(files)
-
-
-        self.currFolderWidget = QLabel(f"Current directory: {self.data_folder}") # os.path.basename()
+        self.file_list.addItems(files)
 
         button = QPushButton("Change directory")
+        # connect action to be made when button is clicked
         button.clicked.connect(self.change_folder)
 
-        layout.addWidget(self.list)
-
+        # layout with curr folder and button to change it
         folder_layout = QHBoxLayout()
+        
         folder_layout.addWidget(self.currFolderWidget)
+        # fill the area between the widgets
         folder_layout.addStretch()
         folder_layout.addWidget(button)
 
+        # main layout
+        layout = QVBoxLayout()
+
+        layout.addWidget(self.file_list)
         layout.addLayout(folder_layout)
 
         self.setLayout(layout)
 
     def change_folder(self):
-        self.data_folder = QFileDialog.getExistingDirectory(self, "Select directory") # os dialog -> will manage that valid directory will be chosen
+        # os dialog -> will manage that valid directory will be chosen
+        self.data_folder = QFileDialog.getExistingDirectory(self, "Select directory")
 
-        if self.data_folder != "": # no folder selected (user exited dialog without selection)
+        # some folder selected
+        if self.data_folder:
             self.update_list()
             self.folder_changed.emit(self.data_folder)
 
     def update_list(self):
+        # get .mat files in cw dir
         files = [file for file in os.listdir(self.data_folder) if file.endswith(".mat")]
-        self.list.clear()
-        self.list.addItems(files)
+        self.file_list.clear()
+        self.file_list.addItems(files)
         self.currFolderWidget.setText(f"Current directory: {self.data_folder}")

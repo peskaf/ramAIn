@@ -11,18 +11,18 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("  " + "RamAIn")
         self.setWindowIcon(QIcon("icons/icon.svg"))
-
+        
         # self.setWindowFlag(Qt.FramelessWindowHint) # hide windows frame
 
         # tell how the whole app will look like
         layout = QVBoxLayout()
-        layout.addWidget(Header(self))
+        layout.addWidget(Header())
 
         layout2 = QHBoxLayout()
-        layout2.addWidget(Menu(self))
+        layout2.addWidget(Menu())
 
         # sem pak widget layout kde jsou za sebou ta okna a poradi se meni pomoci tlacitek v menu
-        layout2.addWidget(ManualPreprocessing(self))
+        layout2.addWidget(ManualPreprocessing())
 
         layout.addLayout(layout2)
     

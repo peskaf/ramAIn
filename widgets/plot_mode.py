@@ -1,3 +1,4 @@
+# OK
 class PlotMode():
     VIEW = 0
     CROPPING = 1

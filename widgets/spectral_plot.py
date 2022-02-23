@@ -22,7 +22,8 @@ class SpectralPlot(QFrame):
 
         axis_pen = pg.mkPen(color="#051821")
         plot_pen = pg.mkPen(color="#266867", width=1.1)
-        crosshair_pen = pg.mkPen(color="black")
+
+        # shading of the plot
         cm = pg.ColorMap(pos=np.linspace(0.0, 1.0, 2), color=[(38, 104, 103, 0), (38, 104, 103, 50)], mapping="diverging") # color same as for plot but in rgba with opacity going from 50 to 0
         brush = cm.getBrush(span=(np.min(self.y_data), np.max(self.y_data)))
         
@@ -39,11 +40,7 @@ class SpectralPlot(QFrame):
         self.plot_widget.getPlotItem().setLabel("left", "Intensity (a.u.)", **styles)
         self.plot_widget.getPlotItem().setLabel("bottom", "Raman shift (1/cm)", **styles) # jednotky ?
 
-        # CROSSHAIR
-        self.crosshair_v = pg.InfiniteLine(angle=90, movable=False, pen=crosshair_pen)
-        self.plot_widget.addItem(self.crosshair_v, ignoreBounds=True)
-        self.mouse_movement_proxy = pg.SignalProxy(self.plot_widget.scene().sigMouseMoved, rateLimit=60, slot=self.update_crosshair)
-        self._crosshair_visible = True
+        self._make_crosshair()
 
         # LAYOUT
         layout = QHBoxLayout(self)
@@ -55,6 +52,12 @@ class SpectralPlot(QFrame):
         # MISC
         self.linear_region = None
 
+    def _make_crosshair(self):
+        crosshair_pen = pg.mkPen(color="black")
+        self.crosshair_v = pg.InfiniteLine(angle=90, movable=False, pen=crosshair_pen)
+        self.plot_widget.addItem(self.crosshair_v, ignoreBounds=True)
+        self.mouse_movement_proxy = pg.SignalProxy(self.plot_widget.scene().sigMouseMoved, rateLimit=60, slot=self.update_crosshair)
+        self._crosshair_visible = True
 
     def update_data(self, new_x, new_y):
         self.x_data, self.y_data  = new_x, new_y
@@ -97,8 +100,7 @@ class SpectralPlot(QFrame):
 
     def _set_view_mode(self):
         if self.linear_region is not None:
-            self.plot_widget.removeItem(self.linear_region)
-            self.linear_region = None
+            self.hide_selection_region()
         if not self._crosshair_visible:
             self.show_crosshair()
 
@@ -106,7 +108,7 @@ class SpectralPlot(QFrame):
         if self._crosshair_visible:
             self.hide_crosshair()
         if self.linear_region is None:
-            self.add_selection_region()
+            self.show_selection_region()
 
     def _set_bg_removal_mode(self):
         self._set_view_mode()
@@ -114,7 +116,7 @@ class SpectralPlot(QFrame):
     def _set_crr_mode(self):
         self._set_view_mode()
 
-    def add_selection_region(self):
+    def show_selection_region(self):
         # PENS AND BRUSHES
         brush = pg.mkBrush(color=(38,104,103,50))
         hoverBrush = pg.mkBrush(color=(38,104,103,70))
@@ -131,5 +133,9 @@ class SpectralPlot(QFrame):
 
         self.plot_widget.addItem(self.linear_region)
     
+    def hide_selection_region(self):
+        self.plot_widget.removeItem(self.linear_region)
+        self.linear_region = None
+
     def update_region(self, new_region):
         self.linear_region.setRegion(new_region)

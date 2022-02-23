@@ -5,6 +5,7 @@ from PySide6.QtCore import QRectF
 import pyqtgraph as pg
 import numpy as np
 
+from widgets.settings import VIRIDIS_COLOR_MAP
 from widgets.plot_mode import PlotMode
 from widgets.adjustable_handles_roi import AdjustableHandlesROI
 
@@ -21,50 +22,52 @@ class SpectralMap(QFrame):
         self.image_view.ui.roiBtn.hide()
         self.image_view.ui.menuBtn.hide()
 
-        # matplotlib's viridis colormap (6 colors)
-        viridis = [(68.0, 1.0, 84.0), (64.0, 67.0, 135.0), (41.0, 120.0, 142.0), (34.0, 167.0, 132.0), (121.0, 209.0, 81.0), (253.0, 231.0, 36.0)]
-        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=viridis)
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=VIRIDIS_COLOR_MAP)
         self.image_view.setColorMap(cmap)
 
         self.image_view.setImage(self.data, autoRange=False)
 
-        self.set_limits() # set limits for image manipulation (scrolling, moving)
+        self._set_limits() # set limits for image manipulation (scrolling, moving)
         
         self.image_view.getView().setDefaultPadding(0)
         self.image_view.getView().setBackgroundColor(QColor(240,240,240))
 
-        # Add crosshair lines.
-        self.crosshair_v = pg.InfiniteLine(angle=90, movable=False)
-        self.crosshair_h = pg.InfiniteLine(angle=0, movable=False)
-        self.image_view.addItem(self.crosshair_v, ignoreBounds=True)
-        self.image_view.addItem(self.crosshair_h, ignoreBounds=True)
-        self._crosshair_visible = True
-
-        self.mouse_movement_proxy = pg.SignalProxy(self.image_view.getView().scene().sigMouseMoved, rateLimit=60, slot=self.update_crosshair)
+        self._make_crosshair()
 
         layout = QHBoxLayout(self)
         layout.addWidget(self.image_view)
 
-        # SET INIT MODE
+        # init mode is view
         self.mode = PlotMode.VIEW
 
         # MISC
         self.ROI = None
 
+    def _make_crosshair(self):
+        # Add crosshair lines.
+        self._crosshair_v = pg.InfiniteLine(angle=90, movable=False)
+        self._crosshair_h = pg.InfiniteLine(angle=0, movable=False)
+        self.image_view.addItem(self._crosshair_v, ignoreBounds=True)
+        self.image_view.addItem(self._crosshair_h, ignoreBounds=True)
+        self._crosshair_visible = True
+
+        # update crosshair on mouse move
+        self.mouse_movement_proxy = pg.SignalProxy(self.image_view.getView().scene().sigMouseMoved, rateLimit=60, slot=self.update_crosshair)
+
     def update_crosshair(self, event):
         pos = event[0]
         self.mouse_point = self.image_view.getView().mapSceneToView(pos)
 
-        self.crosshair_v.setPos(self.mouse_point.x())
-        self.crosshair_h.setPos(self.mouse_point.y())
+        self._crosshair_v.setPos(self.mouse_point.x())
+        self._crosshair_h.setPos(self.mouse_point.y())
 
     def update_image(self, new_data):
         self.data = new_data
         self.image_view.setImage(self.data)
-        self.set_limits()
+        self._set_limits()
         self.image_view.getView().enableAutoRange() # reset view zoom if zoomed
 
-    def set_limits(self):
+    def _set_limits(self):
         img = self.image_view.getImageItem()
         offset = np.absolute(img.height()-img.width())/2
 
@@ -75,13 +78,13 @@ class SpectralMap(QFrame):
     
     def hide_crosshair(self):
         # proxy signal not blocked here -> it is needed for x y mousepoint update
-        self.crosshair_v.hide()
-        self.crosshair_h.hide()
+        self._crosshair_v.hide()
+        self._crosshair_h.hide()
         self._crosshair_visible = False
 
     def show_crosshair(self):
-        self.crosshair_v.show()
-        self.crosshair_h.show()
+        self._crosshair_v.show()
+        self._crosshair_h.show()
         self._crosshair_visible = True
 
     def set_mode(self, new_mode : PlotMode):

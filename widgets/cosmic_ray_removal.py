@@ -1,7 +1,12 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QRadioButton, QComboBox, QWidget, QStackedWidget, QFormLayout, QCheckBox
+from PySide6.QtCore import Signal
 
-# TODO: show maxima -> change spectral map to display maximal values from data; if manual removal -> show linear region in plot and connect it to the inputs
+# TODO: reset everyting to init state when exiting mode CRR
 class CosmicRayRemoval(QFrame):
+    # custom signal that user selected manual removal
+    manual_removal_toggled = Signal(bool)
+    show_maxima_sig = Signal(bool)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -41,18 +46,27 @@ class CosmicRayRemoval(QFrame):
 
 
         self.manual_removal_btn = QRadioButton("Manual removal")
+        self.manual_removal_btn.toggled.connect(self.fire_manual_removal_toggled)
         layout.addWidget(self.manual_removal_btn, 3, 0)
 
         layout.addWidget(QLabel("Start Position"), 4, 0)
         self.input_man_start = QLineEdit("0")
+        # self.input_man_start.setEnabled(False) # allow to type sth only when given radiobtn is checked -> prevents accidents
         layout.addWidget(self.input_man_start, 4, 1)
+
         layout.addWidget(QLabel("End Position"), 5, 0)
         self.input_man_end = QLineEdit("0")
+        # self.input_man_end.setEnabled(False)
         layout.addWidget(self.input_man_end, 5, 1)
 
         self.show_maxima = QCheckBox()
+        self.show_maxima.toggled.connect(self.fire_show_maxima)
         layout.addWidget(self.show_maxima, 6, 1)
         layout.addWidget(QLabel("Show Maxima"), 6, 0)
+
+        self.input_man_end.setEnabled(False)
+        self.input_man_start.setEnabled(False)
+        self.show_maxima.setEnabled(False)
 
         self.button = QPushButton("Apply")
         layout.addWidget(self.button, 7, 1)
@@ -61,49 +75,44 @@ class CosmicRayRemoval(QFrame):
 
     def SG_paramsUI(self):
         params_layout = QFormLayout()
-        params_layout.addRow("Param SG 1",QLineEdit())
-        params_layout.addRow("Param SG 2",QLineEdit())
+        params_layout.addRow("Param SG 1", QLineEdit())
+        params_layout.addRow("Param SG 2", QLineEdit())
         self.SG_params.setLayout(params_layout)
 
     def med_paramsUI(self):
         params_layout = QFormLayout()
-        params_layout.addRow("Param med 1",QLineEdit())
-        params_layout.addRow("Param med 2",QLineEdit())
+        params_layout.addRow("Param med 1", QLineEdit())
+        params_layout.addRow("Param med 2", QLineEdit())
         self.med_params.setLayout(params_layout)
 
     def ave_paramsUI(self):
         params_layout = QFormLayout()
-        params_layout.addRow("Param ave 1",QLineEdit())
-        params_layout.addRow("Param ave 2",QLineEdit())
+        params_layout.addRow("Param ave 1", QLineEdit())
+        params_layout.addRow("Param ave 2", QLineEdit())
         self.ave_params.setLayout(params_layout)
 
     def CRR_paramsUI(self):
         params_layout = QFormLayout()
-        params_layout.addRow("Param CRR 1",QLineEdit())
-        params_layout.addRow("Param CRR 2",QLineEdit())
+        params_layout.addRow("Param CRR 1", QLineEdit())
+        params_layout.addRow("Param CRR 2", QLineEdit())
         self.CRR_params.setLayout(params_layout)
 
     def change_params(self, item_number):
         print(item_number)
         self.auto_methods_params.setCurrentIndex(item_number)
+
+    # TODO: rename
+    def fire_manual_removal_toggled(self):
+        is_checked = self.manual_removal_btn.isChecked()
+        self.input_man_end.setEnabled(is_checked)
+        self.input_man_start.setEnabled(is_checked)
+        self.show_maxima.setEnabled(is_checked)
+        self.manual_removal_toggled.emit(is_checked)
         
-
-"""
-    # set changed values to given QLineEdit objects
-    def update_crop_plot_region(self, new_region):
+    def update_manual_input_region(self, new_region):
         lo, hi = new_region.getRegion()
-        self.input_plot_start.setText(f"{lo:.2f}")
-        self.input_plot_end.setText(f"{hi:.2f}")
-    
-    def update_crop_pic_region(self, new_roi):
-        upper_left_corner = new_roi.pos()
-        lower_right_corner = new_roi.pos() + new_roi.size()
+        self.input_man_start.setText(f"{lo:.2f}")
+        self.input_man_end.setText(f"{hi:.2f}")
 
-        # floor upper left corner -> both coordinates decrease in the top-left direction; prevents cutting more than intended 
-        self.input_map_ULX.setText(f"{np.floor(upper_left_corner[0])}")
-        self.input_map_ULY.setText(f"{np.floor(upper_left_corner[1])}")
-        # ceil lower right corner -> both coordinates increase in the bottom-right direction
-        self.input_map_LRX.setText(f"{np.ceil(lower_right_corner[0])}")
-        self.input_map_LRY.setText(f"{np.ceil(lower_right_corner[1])}")
-
-"""
+    def fire_show_maxima(self):
+        self.show_maxima_sig.emit(self.show_maxima.isChecked())
