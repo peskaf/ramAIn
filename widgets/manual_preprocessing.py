@@ -14,7 +14,8 @@ from widgets.data import Data
 import numpy as np
 import os
 
-#◘ TODO: pri kliknuti na apply -> z dane tridy poslat signal, zde ho chytit a poslat parametry a danou funkci datum (Data), ktere se upravi
+# TODO: pri kliknuti na apply -> z dane tridy poslat signal, zde ho chytit a poslat parametry a danou funkci datum (Data), ktere se upravi
+# TODO: coz udelat tak, ze kazda metoda ma signal pro apply -> zde ho chytam do funkce a podle toho provedu cinnost
 class ManualPreprocessing(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -28,10 +29,10 @@ class ManualPreprocessing(QFrame):
 
         # set placeholders for spectral map and plot
         self.pic = Color("#F0F0F0")
-        self.pic.setFixedSize(QSize(700,300)) #TODO: ??
+        self.pic.setFixedSize(QSize(800,400)) #TODO: ??
 
         self.plot = Color("#F0F0F0")
-        self.plot.setFixedSize(QSize(300,300)) #TODO: ??
+        self.plot.setFixedSize(QSize(400,400)) #TODO: ??
 
         self.files_view.file_list.currentItemChanged.connect(self.update_file) # change of file -> update picture
         self.files_view.folder_changed.connect(self.update_folder)
