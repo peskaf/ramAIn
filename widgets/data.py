@@ -27,6 +27,7 @@ class Data:
             matlab_data = matlab_data[name][0,0]
 
             data = matlab_data[7]
+            self.pure_data = data # TODO: delete :))
             image_size = tuple(matlab_data[5][0]) # (Y size, X size) => num of rows, num of cols
             # units = matlab_data[9][1][1]
 
