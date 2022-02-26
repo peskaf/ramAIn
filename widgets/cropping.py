@@ -64,5 +64,5 @@ class Cropping(QFrame):
         self.input_map_LRY.setText(f"{np.ceil(lower_right_corner[1])}")
 
     def get_params(self):
-        return float(self.input_plot_start.text()), float(self.input_plot_end.text()), float(self.input_map_ULX.text()), \
-         float(self.input_map_ULY.text()), float(self.input_map_LRX.text()), float(self.input_map_LRY.text())
+        return float(self.input_plot_start.text()), float(self.input_plot_end.text()), int(np.floor(float(self.input_map_ULX.text()))), \
+         int(np.floor(float(self.input_map_ULY.text()))), int(np.ceil(float(self.input_map_LRX.text()))), int(np.ceil(float(self.input_map_LRY.text())))

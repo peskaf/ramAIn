@@ -60,6 +60,10 @@ class ManualPreprocessing(QFrame):
         layout.setAlignment(Qt.AlignTop)
         self.setLayout(layout)
 
+        ##
+        self.methods.cropping.button.clicked.connect(self.crop)
+
+
     def update_pic(self):
         if isinstance(self.pic, Color): # init state
             self.pic = SpectralMap(self.curr_data.averages, self)
@@ -187,3 +191,11 @@ class ManualPreprocessing(QFrame):
             self.pic.update_image(self.curr_data.maxima)
         else:
             self.pic.update_image(self.curr_data.averages)
+    
+    def crop(self):
+        self.curr_data.crop(*self.methods.cropping.get_params())
+        self.pic.update_image(self.curr_data.averages)
+        self.update_plot(0, 0)
+        # TODO: jinak
+        self.update_plot_mode(QListWidgetItem("view"))
+        self.update_plot_mode(QListWidgetItem("cropping"))
