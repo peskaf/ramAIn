@@ -26,6 +26,8 @@ class Methods(QFrame):
         self.list.setSortingEnabled(False) # do not sort list items (methods)
 
         self.cropping = Cropping()
+        self.cropping.button.clicked.connect(self.print_cropping_params)
+
         self.cosmic_ray_removal = CosmicRayRemoval()
         self.background_removal = BackgroundRemoval()
         
@@ -56,3 +58,6 @@ class Methods(QFrame):
     # resets to init mode - first method (view)
     def reset(self):
         self.list.setCurrentItem(self.list.item(0))
+    
+    def print_cropping_params(self):
+        print(self.cropping.get_params())

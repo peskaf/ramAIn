@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit
+from PySide6.QtGui import QRegularExpressionValidator
 
 import numpy as np
 
@@ -15,10 +16,12 @@ class Cropping(QFrame):
         layout.addWidget(QLabel("X"), 1, 1)
         layout.addWidget(QLabel("Y"), 1, 2)
 
-        self.input_map_ULX = QLineEdit("0")
-        self.input_map_ULY = QLineEdit("0")
-        self.input_map_LRX = QLineEdit("0")
-        self.input_map_LRY = QLineEdit("0")
+        real = "-?[0-9]+(.[0-9]+)?"
+
+        self.input_map_ULX = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_ULY = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_LRX = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_LRY = QLineEdit("0", validator=QRegularExpressionValidator(real))
 
         layout.addWidget(self.input_map_ULX, 2, 1)
         layout.addWidget(self.input_map_ULY, 2, 2)
@@ -31,8 +34,9 @@ class Cropping(QFrame):
         layout.addWidget(QLabel("Start Position"), 5, 0)
         layout.addWidget(QLabel("End Position"), 6, 0)
 
-        self.input_plot_start = QLineEdit("0")
-        self.input_plot_end = QLineEdit("0")
+        
+        self.input_plot_start = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_plot_end = QLineEdit("0", validator=QRegularExpressionValidator(real))
 
         layout.addWidget(self.input_plot_start, 5, 1)
         layout.addWidget(self.input_plot_end, 6, 1)
@@ -58,3 +62,7 @@ class Cropping(QFrame):
         # ceil lower right corner -> both coordinates increase in the bottom-right direction
         self.input_map_LRX.setText(f"{np.ceil(lower_right_corner[0])}")
         self.input_map_LRY.setText(f"{np.ceil(lower_right_corner[1])}")
+
+    def get_params(self):
+        return float(self.input_plot_start.text()), float(self.input_plot_end.text()), float(self.input_map_ULX.text()), \
+         float(self.input_map_ULY.text()), float(self.input_map_LRX.text()), float(self.input_map_LRY.text())

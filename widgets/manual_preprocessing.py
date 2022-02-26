@@ -29,10 +29,10 @@ class ManualPreprocessing(QFrame):
 
         # set placeholders for spectral map and plot
         self.pic = Color("#F0F0F0")
-        self.pic.setFixedSize(QSize(800,400)) #TODO: ??
+        self.pic.setFixedSize(QSize(700,300)) #TODO: ??
 
         self.plot = Color("#F0F0F0")
-        self.plot.setFixedSize(QSize(400,400)) #TODO: ??
+        self.plot.setFixedSize(QSize(300,300)) #TODO: ??
 
         self.files_view.file_list.currentItemChanged.connect(self.update_file) # change of file -> update picture
         self.files_view.folder_changed.connect(self.update_folder)
@@ -120,6 +120,7 @@ class ManualPreprocessing(QFrame):
             new_pos = (float(self.methods.cropping.input_map_ULX.text()), float(self.methods.cropping.input_map_ULY.text()))
             new_size = (float(self.methods.cropping.input_map_LRX.text()) - new_pos[0], float(self.methods.cropping.input_map_LRY.text()) - new_pos[1])
             self.pic.update_ROI(new_pos, new_size)
+            self.pic.ROI.sigRegionChanged.emit(self.pic.ROI) # ROI does not have to change on invalid input -> send curr ROI info to QLineEdits
         except ValueError:
             pass
 
