@@ -32,7 +32,7 @@ class Data:
             # units = matlab_data[9][1][1]
             # set attributes
             self.x_axis = matlab_data[9][1][0][0]
-            self.data = np.reshape(data,(image_size[0], image_size[1], data.shape[1]), order='F')
+            self.data = np.reshape(data,(image_size[1], image_size[0], data.shape[1]), order='C')
             self.maxima = np.max(self.data, axis=2) # good for looking at cosmic rays
             self.averages = np.mean(self.data, axis=2)
         except:
@@ -56,7 +56,7 @@ class Data:
             self._mdict[name][0,0][9][1][0][0] = self.x_axis
 
             # set data
-            self._mdict[name][0,0][7] = np.reshape(self.data,(self.data.shape[0] * self.data.shape[1], self.data.shape[2]), order='F')
+            self._mdict[name][0,0][7] = np.reshape(self.data,(self.data.shape[0] * self.data.shape[1], self.data.shape[2]), order='C')
 
             # set spectral map size
             self._mdict[name][0,0][5][0] = self.data.shape[:2]
