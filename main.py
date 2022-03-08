@@ -5,8 +5,6 @@ from widgets.menu import Menu
 from widgets.header import Header
 from widgets.manual_preprocessing import ManualPreprocessing
 
-from widgets.settings import get_colors
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()

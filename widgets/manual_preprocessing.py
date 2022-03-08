@@ -14,8 +14,6 @@ from widgets.data import Data
 import numpy as np
 import os
 
-# TODO: pri kliknuti na apply -> z dane tridy poslat signal, zde ho chytit a poslat parametry a danou funkci datum (Data), ktere se upravi
-# TODO: coz udelat tak, ze kazda metoda ma signal pro apply -> zde ho chytam do funkce a podle toho provedu cinnost
 class ManualPreprocessing(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -26,6 +24,8 @@ class ManualPreprocessing(QFrame):
         self.curr_folder = self.files_view.data_folder
         self.curr_file = None
         self.curr_data = None
+
+        self.curr_mode = None
 
         # set placeholders for spectral map and plot
         self.pic = Color("#F0F0F0")
@@ -61,7 +61,7 @@ class ManualPreprocessing(QFrame):
         self.setLayout(layout)
 
         ##
-        self.methods.cropping.button.clicked.connect(self.crop)
+        self.methods.cropping.apply_clicked.connect(self.crop)
 
 
     def update_pic(self):
@@ -132,6 +132,12 @@ class ManualPreprocessing(QFrame):
         # TODO: mode change only if some plot and map present -> if placeholder -> do nothing
         # nejen plot mode ale celkove vse
 
+        if isinstance(self.pic, Color): # no file selected yet
+            return
+
+        if self.curr_mode == "cosmic ray removal":
+            self.methods.cosmic_ray_removal.reset()
+
         if new_mode.text().lower() == "cropping":
             self.plot.set_mode(PlotMode.CROPPING)
             self.pic.set_mode(PlotMode.CROPPING)
@@ -172,6 +178,8 @@ class ManualPreprocessing(QFrame):
 
         else:
             pass
+
+        self.curr_mode = new_mode.text().lower()
 
     def display_linear_region(self, show):
         if show:

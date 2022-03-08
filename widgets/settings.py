@@ -7,11 +7,12 @@ CIVIDIS_COLOR_MAP = [(0.0, 34.0, 78.0), (53.0, 69.0, 108.0), (102.0, 105.0, 112.
 
 # UTILS
 
-def get_colors(): # get colors from cmap
+# get colors from cmap
+def get_colors(colormap_name : str, clrs_cnt : int): 
     import matplotlib
     from matplotlib import cm
 
-    cmap = cm.get_cmap('cividis', 6)
+    cmap = cm.get_cmap(colormap_name, clrs_cnt)
 
     for i in range(cmap.N):
         rgba = cmap(i)

@@ -1,7 +1,6 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QRadioButton, QComboBox, QWidget, QStackedWidget, QFormLayout, QCheckBox
 from PySide6.QtCore import Signal
 
-# TODO: reset everyting to init state when exiting mode CRR
 class CosmicRayRemoval(QFrame):
     # custom signal that user selected manual removal
     manual_removal_toggled = Signal(bool)
@@ -17,17 +16,10 @@ class CosmicRayRemoval(QFrame):
         layout.addWidget(self.auto_removal_btn, 0, 0)
 
         self.auto_methods = QComboBox()
-        self.auto_methods.addItems(["Savitzky-Golay", "Median", "Average", "CRR"])
+        self.auto_methods.addItems(["CRR"])
         self.auto_methods.currentIndexChanged.connect(self.change_params)
 
-        self.SG_params = QWidget()
-        self.med_params = QWidget()
-        self.ave_params = QWidget()
         self.CRR_params = QWidget()
-
-        self.SG_paramsUI()
-        self.med_paramsUI()
-        self.ave_paramsUI()
         self.CRR_paramsUI()
 
         
@@ -36,9 +28,6 @@ class CosmicRayRemoval(QFrame):
 
         # individual methods parameters
         self.auto_methods_params = QStackedWidget(self)
-        self.auto_methods_params.addWidget(self.SG_params)
-        self.auto_methods_params.addWidget(self.med_params)
-        self.auto_methods_params.addWidget(self.ave_params)
         self.auto_methods_params.addWidget(self.CRR_params)
 
         layout.addWidget(self.auto_methods_params, 2, 0, 1, 2) # span set -> position (4,0) span 1 row 2 cols
@@ -73,24 +62,6 @@ class CosmicRayRemoval(QFrame):
 
         self.setLayout(layout)
 
-    def SG_paramsUI(self):
-        params_layout = QFormLayout()
-        params_layout.addRow("Param SG 1", QLineEdit())
-        params_layout.addRow("Param SG 2", QLineEdit())
-        self.SG_params.setLayout(params_layout)
-
-    def med_paramsUI(self):
-        params_layout = QFormLayout()
-        params_layout.addRow("Param med 1", QLineEdit())
-        params_layout.addRow("Param med 2", QLineEdit())
-        self.med_params.setLayout(params_layout)
-
-    def ave_paramsUI(self):
-        params_layout = QFormLayout()
-        params_layout.addRow("Param ave 1", QLineEdit())
-        params_layout.addRow("Param ave 2", QLineEdit())
-        self.ave_params.setLayout(params_layout)
-
     def CRR_paramsUI(self):
         params_layout = QFormLayout()
         params_layout.addRow("Param CRR 1", QLineEdit())
@@ -98,7 +69,6 @@ class CosmicRayRemoval(QFrame):
         self.CRR_params.setLayout(params_layout)
 
     def change_params(self, item_number):
-        print(item_number)
         self.auto_methods_params.setCurrentIndex(item_number)
 
     # TODO: rename
@@ -116,3 +86,16 @@ class CosmicRayRemoval(QFrame):
 
     def fire_show_maxima(self):
         self.show_maxima_sig.emit(self.show_maxima.isChecked())
+    
+    def reset(self):
+        self.auto_removal_btn.setChecked(True)
+        self.manual_removal_btn.setChecked(False)
+        self.auto_methods.setCurrentIndex(0)
+        # self.change_params(0) # show first auto method
+
+        # make sure "show maxima" is false and maxima are not being displayed
+        self.show_maxima.setChecked(False)
+        self.fire_show_maxima()
+
+
+

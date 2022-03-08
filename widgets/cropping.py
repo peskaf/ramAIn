@@ -1,27 +1,36 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit
 from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtCore import Signal
 
 import numpy as np
 
 class Cropping(QFrame):
+    apply_clicked = Signal() # custom signal that apply button has been clicked on
+
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        real = "-?[0-9]+(.[0-9]+)?"
+
+        self.input_plot_start = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_plot_end = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_ULX = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_ULY = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_LRX = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_LRY = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.apply_button = QPushButton("Apply")
+
+        self.apply_button.clicked.connect(self.apply_clicked.emit) # emit apply clicked on apply button click (just for encaps.)
 
         layout = QGridLayout()
 
         # Spectral map cropping parameters
         layout.addWidget(QLabel("Spectral Map Cropping"), 0, 0)
+
         layout.addWidget(QLabel("Upper Left Corner"), 2, 0)
         layout.addWidget(QLabel("Lower Right Corner"), 3, 0)
         layout.addWidget(QLabel("X"), 1, 1)
         layout.addWidget(QLabel("Y"), 1, 2)
-
-        real = "-?[0-9]+(.[0-9]+)?"
-
-        self.input_map_ULX = QLineEdit("0", validator=QRegularExpressionValidator(real))
-        self.input_map_ULY = QLineEdit("0", validator=QRegularExpressionValidator(real))
-        self.input_map_LRX = QLineEdit("0", validator=QRegularExpressionValidator(real))
-        self.input_map_LRY = QLineEdit("0", validator=QRegularExpressionValidator(real))
 
         layout.addWidget(self.input_map_ULX, 2, 1)
         layout.addWidget(self.input_map_ULY, 2, 2)
@@ -34,15 +43,10 @@ class Cropping(QFrame):
         layout.addWidget(QLabel("Start Position"), 5, 0)
         layout.addWidget(QLabel("End Position"), 6, 0)
 
-        
-        self.input_plot_start = QLineEdit("0", validator=QRegularExpressionValidator(real))
-        self.input_plot_end = QLineEdit("0", validator=QRegularExpressionValidator(real))
-
         layout.addWidget(self.input_plot_start, 5, 1)
         layout.addWidget(self.input_plot_end, 6, 1)
 
-        self.button = QPushButton("Apply")
-        layout.addWidget(self.button, 6, 2)
+        layout.addWidget(self.apply_button, 6, 2)
 
         self.setLayout(layout)
 

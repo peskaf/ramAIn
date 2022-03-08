@@ -1,16 +1,14 @@
 import numpy as np
 import scipy.io
 
-# OK
 # TODO: move somewhere else -> is not a widget
 class Data:
     def __init__(self, in_file):
-        # attributes
+
         self._mdict = {}
         self.x_axis = None
         self.data = None
         self.maxima = None
-        self.minima = None
         self.averages = None
         
         self.load_data(in_file)
@@ -27,7 +25,7 @@ class Data:
             matlab_data = matlab_data[name][0,0]
 
             data = matlab_data[7]
-            self.pure_data = data # TODO: data before reshaping
+            self.pure_data = data # TODO: data before reshaping -> only for current method testing
             image_size = tuple(matlab_data[5][0]) # (Y size, X size) => num of rows, num of cols
             # units = matlab_data[9][1][1]
             # set attributes
@@ -67,6 +65,6 @@ class Data:
         x_axis_start = np.argmin(np.abs(self.x_axis - spectra_start))
         x_axis_end = np.argmin(np.abs(self.x_axis - spectra_end))
         self.x_axis = self.x_axis[x_axis_start:x_axis_end+1]
-        self.data = self.data[ULC_x:LRC_x, ULC_y:LRC_y, x_axis_start:x_axis_end+1] # TODO: podivat se na to ; +1 -> orezavalo by to navic
+        self.data = self.data[ULC_x:LRC_x, ULC_y:LRC_y, x_axis_start:x_axis_end+1] # +1 -> upper bound is exclusive
         self.maxima = np.max(self.data, axis=2) # good for looking at cosmic rays
         self.averages = np.mean(self.data, axis=2)
