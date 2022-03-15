@@ -26,11 +26,11 @@ class Data:
 
             data = matlab_data[7]
             self.pure_data = data # TODO: data before reshaping -> only for current method testing
-            image_size = tuple(matlab_data[5][0]) # (Y size, X size) => num of rows, num of cols
+            image_size = tuple(matlab_data[5][0]) # num of rows, num of cols
             # units = matlab_data[9][1][1]
             # set attributes
             self.x_axis = matlab_data[9][1][0][0]
-            self.data = np.reshape(data,(image_size[1], image_size[0], data.shape[1]), order='C')
+            self.data = np.reshape(data,(image_size[1], image_size[0], -1))
             self.maxima = np.max(self.data, axis=2) # good for looking at cosmic rays
             self.averages = np.mean(self.data, axis=2)
         except:
