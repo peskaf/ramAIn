@@ -194,11 +194,8 @@ class SpectralMap(QFrame):
         # data for y-axis; add 0.5 to center the points
         y_data = [float(i[1] + 0.5) for i in positions]
  
-        # adding spots to the scatter plot
         self.scatter.addPoints(x_data, y_data)
  
-        # add item to plot window
-        # adding scatter plot item to the plot window
         self.image_view.addItem(self.scatter)
     
     def _remove_scatter(self):
