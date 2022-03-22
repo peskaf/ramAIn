@@ -4,17 +4,16 @@ import scipy.io
 # TODO: move somewhere else -> is not a widget
 class Data:
     def __init__(self, in_file):
-
         self._mdict = {}
         self.x_axis = None
         self.data = None
         self.maxima = None
         self.averages = None
+        self.Z_scores = None
         
         self.load_data(in_file)
 
     def load_data(self, in_file):
-
         # load only .mat data with expected structure
         try:
             # load from file
@@ -37,7 +36,6 @@ class Data:
             print("Invalid file format or structure.")
 
     def save_data(self, out_file):
-        
         # save as .mat file -> app looks for .mat extensions when looking for data files
         if not out_file.endswith(".mat"):
             out_file = out_file + ".mat"
@@ -68,3 +66,18 @@ class Data:
         self.data = self.data[ULC_x:LRC_x, ULC_y:LRC_y, x_axis_start:x_axis_end+1] # +1 -> upper bound is exclusive
         self.maxima = np.max(self.data, axis=2) # good for looking at cosmic rays
         self.averages = np.mean(self.data, axis=2)
+    
+    def _calculate_Z_scores(self):
+        diff = np.diff(self.data, axis=2)
+        M = np.median(diff, axis=2)
+        wide_M = np.repeat(M[:,:,np.newaxis], diff.shape[2], 2)
+        MAD = np.median(np.abs(diff-wide_M), axis=2)
+        self.Z_scores = 0.6745 * (diff - wide_M) / np.repeat(MAD[:,:,np.newaxis], diff.shape[2], 2)
+        self.Z_vlues = np.reshape(self.Z_scores, (np.prod(self.Z_scores.shape),)) # for histogram, maybe deleted TODO
+
+    def get_spikes_positions(self, threshold):
+        if self.Z_scores is None:
+            self._calculate_Z_scores()
+        spikes_positions = np.unique(np.vstack(np.where(np.abs(self.Z_scores) > threshold)[:2]).T, axis=0)
+        return spikes_positions
+

@@ -127,6 +127,11 @@ class ManualPreprocessing(QFrame):
             self.pic.ROI.sigRegionChanged.emit(self.pic.ROI) # ROI does not have to change on invalid input -> send curr ROI info to QLineEdits
         except ValueError:
             pass
+    
+    # TODO rename
+    def change_threshold(self, value):
+        if self.curr_mode == "cosmic ray removal":
+            self.pic.scatter_spikes(self.curr_data.get_spikes_positions(threshold=value))
 
     def update_plot_mode(self, new_mode : QListWidgetItem):
         # TODO: mode change only if some plot and map present -> if placeholder -> do nothing
@@ -169,7 +174,9 @@ class ManualPreprocessing(QFrame):
         elif new_mode.text().lower() == "cosmic ray removal":
             self.plot.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
             self.pic.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
+            self.pic.scatter_spikes(self.curr_data.get_spikes_positions(threshold=10))
             self.methods.set_current_widget(PlotMode.COSMIC_RAY_REMOVAL)
+            self.methods.cosmic_ray_removal.slider_slided.connect(self.change_threshold)
         
         elif new_mode.text().lower() == "background removal":
             self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)

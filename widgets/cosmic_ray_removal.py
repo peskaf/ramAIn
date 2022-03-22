@@ -1,10 +1,11 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QRadioButton, QComboBox, QWidget, QStackedWidget, QFormLayout, QCheckBox
-from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QRadioButton, QComboBox, QWidget, QStackedWidget, QFormLayout, QCheckBox, QSlider
+from PySide6.QtCore import Signal, Qt
 
 class CosmicRayRemoval(QFrame):
     # custom signal that user selected manual removal
     manual_removal_toggled = Signal(bool)
     show_maxima_sig = Signal(bool)
+    slider_slided = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -15,24 +16,22 @@ class CosmicRayRemoval(QFrame):
         self.auto_removal_btn.setChecked(True)
         layout.addWidget(self.auto_removal_btn, 0, 0)
 
-        self.auto_methods = QComboBox()
-        self.auto_methods.addItems(["CRR"])
-        self.auto_methods.currentIndexChanged.connect(self.change_params)
+        self.init_slider_value = 10
+        self.slider = QSlider(Qt.Horizontal)
+        #TODO: minimum 0 is too slow; change is too slow with large maps
+        self.slider.setRange(10, 100)
+        self.slider.setValue(self.init_slider_value) # init value
+        self.slider.setFocusPolicy(Qt.NoFocus)
+        self.slider.setPageStep(5)
 
-        self.CRR_params = QWidget()
-        self.CRR_paramsUI()
+        self.slider.valueChanged.connect(self.update_label)
+        self.slider.valueChanged.connect(self.fire_slider_change)
 
-        
-        layout.addWidget(QLabel("Method Selection"), 1, 0)
-        layout.addWidget(self.auto_methods, 1, 1)
-
-        # individual methods parameters
-        self.auto_methods_params = QStackedWidget(self)
-        self.auto_methods_params.addWidget(self.CRR_params)
-
-        layout.addWidget(self.auto_methods_params, 2, 0, 1, 2) # span set -> position (4,0) span 1 row 2 cols
-        layout.rowStretch(4)
-
+        self.label = QLabel(str(self.init_slider_value))
+        self.label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        # self.label.setMinimumWidth(80)
+        layout.addWidget(self.slider)
+        layout.addWidget(self.label)
 
         self.manual_removal_btn = QRadioButton("Manual removal")
         self.manual_removal_btn.toggled.connect(self.fire_manual_removal_toggled)
@@ -62,11 +61,8 @@ class CosmicRayRemoval(QFrame):
 
         self.setLayout(layout)
 
-    def CRR_paramsUI(self):
-        params_layout = QFormLayout()
-        params_layout.addRow("Param CRR 1", QLineEdit())
-        params_layout.addRow("Param CRR 2", QLineEdit())
-        self.CRR_params.setLayout(params_layout)
+    def update_label(self, value):
+        self.label.setText(str(value))
 
     def change_params(self, item_number):
         self.auto_methods_params.setCurrentIndex(item_number)
@@ -77,6 +73,7 @@ class CosmicRayRemoval(QFrame):
         self.input_man_end.setEnabled(is_checked)
         self.input_man_start.setEnabled(is_checked)
         self.show_maxima.setEnabled(is_checked)
+        self.slider.setEnabled(not is_checked)
         self.manual_removal_toggled.emit(is_checked)
         
     def update_manual_input_region(self, new_region):
@@ -87,11 +84,14 @@ class CosmicRayRemoval(QFrame):
     def fire_show_maxima(self):
         self.show_maxima_sig.emit(self.show_maxima.isChecked())
     
+    def fire_slider_change(self, value):
+        self.slider_slided.emit(value)
+    
     def reset(self):
         self.auto_removal_btn.setChecked(True)
         self.manual_removal_btn.setChecked(False)
-        self.auto_methods.setCurrentIndex(0)
-        # self.change_params(0) # show first auto method
+        
+        self.slider.setValue(self.init_slider_value)
 
         # make sure "show maxima" is false and maxima are not being displayed
         self.show_maxima.setChecked(False)

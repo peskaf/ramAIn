@@ -42,6 +42,7 @@ class SpectralMap(QFrame):
 
         # MISC
         self.ROI = None
+        self.scatter = None
 
     def _make_crosshair(self):
         # Add crosshair lines.
@@ -111,12 +112,16 @@ class SpectralMap(QFrame):
             self.ROI = None
         if not self._crosshair_visible:
             self.show_crosshair()
+        if self.scatter is not None:
+            self._remove_scatter()            
 
     def _set_cropping_mode(self):
         if self._crosshair_visible:
             self.hide_crosshair()
         if self.ROI is None:
             self.add_selection_region()
+        if self.scatter is not None:
+            self._remove_scatter()   
 
     def _set_bg_removal_mode(self):
         self._set_view_mode()
@@ -125,7 +130,6 @@ class SpectralMap(QFrame):
         self._set_view_mode()
 
     def add_selection_region(self):
-
         pen = pg.mkPen(color="#F58800", width=2)
         hoverPen = pg.mkPen(color="#F8BC24", width=2)
 
@@ -175,3 +179,28 @@ class SpectralMap(QFrame):
 
         self.ROI.setPos(new_pos)
         self.ROI.setSize(new_size)
+
+    def scatter_spikes(self, positions):
+        if self.scatter is not None:
+            self.scatter.setData([])
+        else:
+            # TODO vymyslet barvu
+            scatter_brush = pg.mkBrush(30, 255, 35, 255)
+            self.scatter = pg.ScatterPlotItem(size=3, brush=scatter_brush)
+
+        # data for x-axis; add 0.5 to center the points
+        x_data = [float(i[0] + 0.5) for i in positions]
+ 
+        # data for y-axis; add 0.5 to center the points
+        y_data = [float(i[1] + 0.5) for i in positions]
+ 
+        # adding spots to the scatter plot
+        self.scatter.addPoints(x_data, y_data)
+ 
+        # add item to plot window
+        # adding scatter plot item to the plot window
+        self.image_view.addItem(self.scatter)
+    
+    def _remove_scatter(self):
+        self.image_view.removeItem(self.scatter)
+        self.scatter = None
