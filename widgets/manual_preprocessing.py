@@ -27,6 +27,8 @@ class ManualPreprocessing(QFrame):
 
         self.curr_mode = None
 
+        self.curr_plot_indices = None
+
         # set placeholders for spectral map and plot
         self.pic = Color("#F0F0F0")
         self.pic.setFixedSize(QSize(700,300)) #TODO: ??
@@ -56,12 +58,13 @@ class ManualPreprocessing(QFrame):
 
         layout.addWidget(self.methods)
         
-
         layout.setAlignment(Qt.AlignTop)
         self.setLayout(layout)
 
         ##
         self.methods.cropping.apply_clicked.connect(self.crop)
+        self.methods.cosmic_ray_removal.apply_clicked.connect(self.remove_spikes)
+
 
 
     def update_pic(self):
@@ -90,6 +93,7 @@ class ManualPreprocessing(QFrame):
     def update_plot(self, x : int, y : int):
         if x < self.curr_data.averages.shape[0] and x >= 0 and y < self.curr_data.averages.shape[1] and y >= 0:
             self.plot.update_data(self.curr_data.x_axis, self.curr_data.data[x,y])
+            self.curr_plot_indices = (x, y)
 
     def update_plot_from_mouse_point(self): # inter func
         self.update_plot(int(np.floor(self.pic.mouse_point.x())), int(np.floor(self.pic.mouse_point.y())))
@@ -174,7 +178,8 @@ class ManualPreprocessing(QFrame):
         elif new_mode.text().lower() == "cosmic ray removal":
             self.plot.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
             self.pic.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
-            self.pic.scatter_spikes(self.curr_data.get_spikes_positions(threshold=10))
+            self.curr_data._calculate_Z_scores() # get new Z scores (in case something has changed, won't be recalculated until this mode is exited)
+            self.pic.scatter_spikes(self.curr_data.get_spikes_positions(threshold=10)) # TODO add init threshold value
             self.methods.set_current_widget(PlotMode.COSMIC_RAY_REMOVAL)
             self.methods.cosmic_ray_removal.slider_slided.connect(self.change_threshold)
         
@@ -211,6 +216,20 @@ class ManualPreprocessing(QFrame):
         self.curr_data.crop(*self.methods.cropping.get_params())
         self.pic.update_image(self.curr_data.averages)
         self.update_plot(0, 0)
-        # TODO: jinak
+        # TODO: jinak idealne
         self.update_plot_mode(QListWidgetItem("view"))
         self.update_plot_mode(QListWidgetItem("cropping"))
+    
+    def remove_spikes(self):
+        if self.methods.cosmic_ray_removal.manual:
+            self.curr_data.remove_manual(self.curr_plot_indices[0], self.curr_plot_indices[1], *self.methods.cosmic_ray_removal.get_params())
+            self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
+        else: # automatic
+            self.curr_data.remove_spikes(*self.methods.cosmic_ray_removal.get_params())
+            self.update_plot(0, 0)
+
+        self.pic.update_image(self.curr_data.averages)
+
+        # needed ??
+        self.update_plot_mode(QListWidgetItem("view"))
+        self.update_plot_mode(QListWidgetItem("cosmic ray removal"))

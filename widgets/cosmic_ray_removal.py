@@ -6,6 +6,8 @@ class CosmicRayRemoval(QFrame):
     manual_removal_toggled = Signal(bool)
     show_maxima_sig = Signal(bool)
     slider_slided = Signal(int)
+    # custom signal that apply button has been clicked on
+    apply_clicked = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -28,10 +30,15 @@ class CosmicRayRemoval(QFrame):
         self.slider.valueChanged.connect(self.fire_slider_change)
 
         self.label = QLabel(str(self.init_slider_value))
-        self.label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        # self.label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         # self.label.setMinimumWidth(80)
-        layout.addWidget(self.slider)
-        layout.addWidget(self.label)
+        layout.addWidget(self.slider, 1, 0)
+        layout.addWidget(self.label, 1, 1)
+
+        layout.addWidget(QLabel("Window width"), 2, 0)
+        # TODO: add validator
+        self.window_width = QLineEdit("0")
+        layout.addWidget(self.window_width, 2, 1)
 
         self.manual_removal_btn = QRadioButton("Manual removal")
         self.manual_removal_btn.toggled.connect(self.fire_manual_removal_toggled)
@@ -56,9 +63,10 @@ class CosmicRayRemoval(QFrame):
         self.input_man_start.setEnabled(False)
         self.show_maxima.setEnabled(False)
 
-        self.button = QPushButton("Apply")
-        layout.addWidget(self.button, 7, 1)
-
+        self.apply_button = QPushButton("Apply")
+        self.apply_button.clicked.connect(self.apply_clicked.emit) # emit apply clicked on apply button click (just for encaps.)
+        layout.addWidget(self.apply_button, 7, 1)
+        self.manual = False # info whether manual removal is toggled
         self.setLayout(layout)
 
     def update_label(self, value):
@@ -70,10 +78,14 @@ class CosmicRayRemoval(QFrame):
     # TODO: rename
     def fire_manual_removal_toggled(self):
         is_checked = self.manual_removal_btn.isChecked()
+        self.manual = is_checked
+        # manual removal editable widgets
         self.input_man_end.setEnabled(is_checked)
         self.input_man_start.setEnabled(is_checked)
         self.show_maxima.setEnabled(is_checked)
+        # automatic removal editable widgets
         self.slider.setEnabled(not is_checked)
+        self.window_width.setEnabled(not is_checked)
         self.manual_removal_toggled.emit(is_checked)
         
     def update_manual_input_region(self, new_region):
@@ -92,10 +104,16 @@ class CosmicRayRemoval(QFrame):
         self.manual_removal_btn.setChecked(False)
         
         self.slider.setValue(self.init_slider_value)
+        self.window_width.setText("0")
 
         # make sure "show maxima" is false and maxima are not being displayed
         self.show_maxima.setChecked(False)
         self.fire_show_maxima()
 
-
-
+    # params for automatic removal
+    def get_params(self):
+        if self.manual:
+            # params for manual removal
+            return float(self.input_man_start.text()), float(self.input_man_end.text())
+        # params for automatic removal
+        return int(self.slider.value()), int(self.window_width.text())
