@@ -14,10 +14,10 @@ class Cropping(QFrame):
 
         self.input_plot_start = QLineEdit("0", validator=QRegularExpressionValidator(real))
         self.input_plot_end = QLineEdit("0", validator=QRegularExpressionValidator(real))
-        self.input_map_ULX = QLineEdit("0", validator=QRegularExpressionValidator(real))
-        self.input_map_ULY = QLineEdit("0", validator=QRegularExpressionValidator(real))
-        self.input_map_LRX = QLineEdit("0", validator=QRegularExpressionValidator(real))
-        self.input_map_LRY = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_left = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_top = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_right = QLineEdit("0", validator=QRegularExpressionValidator(real))
+        self.input_map_bottom = QLineEdit("0", validator=QRegularExpressionValidator(real))
         self.apply_button = QPushButton("Apply")
 
         self.apply_button.clicked.connect(self.apply_clicked.emit) # emit apply clicked on apply button click (just for encaps.)
@@ -32,10 +32,10 @@ class Cropping(QFrame):
         layout.addWidget(QLabel("X"), 1, 1)
         layout.addWidget(QLabel("Y"), 1, 2)
 
-        layout.addWidget(self.input_map_ULX, 2, 1)
-        layout.addWidget(self.input_map_ULY, 2, 2)
-        layout.addWidget(self.input_map_LRX, 3, 1)
-        layout.addWidget(self.input_map_LRY, 3, 2)
+        layout.addWidget(self.input_map_left, 2, 1)
+        layout.addWidget(self.input_map_top, 2, 2)
+        layout.addWidget(self.input_map_right, 3, 1)
+        layout.addWidget(self.input_map_bottom, 3, 2)
 
         # Spectral plot cropping parameters
         layout.addWidget(QLabel("Spectral Plot Cropping"), 4, 0)
@@ -61,12 +61,13 @@ class Cropping(QFrame):
         lower_right_corner = new_roi.pos() + new_roi.size()
 
         # floor upper left corner -> both coordinates decrease in the top-left direction; prevents cutting more than intended 
-        self.input_map_ULX.setText(f"{np.floor(upper_left_corner[0])}")
-        self.input_map_ULY.setText(f"{np.floor(upper_left_corner[1])}")
+        self.input_map_left.setText(str(np.floor(upper_left_corner[0])))
+        self.input_map_top.setText(str(np.floor(upper_left_corner[1])))
         # ceil lower right corner -> both coordinates increase in the bottom-right direction
-        self.input_map_LRX.setText(f"{np.ceil(lower_right_corner[0])}")
-        self.input_map_LRY.setText(f"{np.ceil(lower_right_corner[1])}")
+        self.input_map_right.setText(str(np.ceil(lower_right_corner[0])))
+        self.input_map_bottom.setText(str(np.ceil(lower_right_corner[1])))
 
     def get_params(self):
-        return float(self.input_plot_start.text()), float(self.input_plot_end.text()), int(np.floor(float(self.input_map_ULX.text()))), \
-         int(np.floor(float(self.input_map_ULY.text()))), int(np.ceil(float(self.input_map_LRX.text()))), int(np.ceil(float(self.input_map_LRY.text())))
+        return float(self.input_plot_start.text()), float(self.input_plot_end.text()), \
+            int(np.floor(float(self.input_map_left.text()))), int(np.floor(float(self.input_map_top.text()))), \
+            int(np.ceil(float(self.input_map_right.text()))), int(np.ceil(float(self.input_map_bottom.text())))

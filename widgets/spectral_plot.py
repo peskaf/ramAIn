@@ -13,7 +13,6 @@ class SpectralPlot(QFrame):
         self.y_data = y
 
         self.plot_widget = pg.PlotWidget(self)
-        # self.plot_widget.enableAutoRange()
 
         # STYLING
         self.plot_widget.setBackground((240,240,240))
@@ -63,7 +62,9 @@ class SpectralPlot(QFrame):
     def update_data(self, new_x, new_y):
         self.x_data, self.y_data  = new_x, new_y
         self.line.setData(self.x_data, self.y_data)
-        self.plot_widget.getPlotItem().autoRange()
+        # if the plot is zoomed somehow, "removes" the zoom
+        self.plot_widget.getPlotItem().autoRange() 
+        # plot kept the lowest range on the lowest range of the first plot encountered -> solution to that
         self.plot_widget.getPlotItem().setYRange(min=np.min(self.y_data), max=np.max(self.y_data))
         
 

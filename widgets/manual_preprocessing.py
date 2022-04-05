@@ -125,8 +125,8 @@ class ManualPreprocessing(QFrame):
 
     def send_map_data(self):
         try:
-            new_pos = (float(self.methods.cropping.input_map_ULX.text()), float(self.methods.cropping.input_map_ULY.text()))
-            new_size = (float(self.methods.cropping.input_map_LRX.text()) - new_pos[0], float(self.methods.cropping.input_map_LRY.text()) - new_pos[1])
+            new_pos = (float(self.methods.cropping.input_map_left.text()), float(self.methods.cropping.input_map_top.text()))
+            new_size = (float(self.methods.cropping.input_map_right.text()) - new_pos[0], float(self.methods.cropping.input_map_bottom.text()) - new_pos[1])
             self.pic.update_ROI(new_pos, new_size)
             self.pic.ROI.sigRegionChanged.emit(self.pic.ROI) # ROI does not have to change on invalid input -> send curr ROI info to QLineEdits
         except ValueError:
@@ -162,10 +162,10 @@ class ManualPreprocessing(QFrame):
 
             # map connection to inputs
             self.pic.ROI.sigRegionChanged.connect(self.methods.cropping.update_crop_pic_region)
-            self.methods.cropping.input_map_ULX.editingFinished.connect(self.send_map_data)
-            self.methods.cropping.input_map_ULY.editingFinished.connect(self.send_map_data)
-            self.methods.cropping.input_map_LRX.editingFinished.connect(self.send_map_data)
-            self.methods.cropping.input_map_LRY.editingFinished.connect(self.send_map_data)
+            self.methods.cropping.input_map_left.editingFinished.connect(self.send_map_data)
+            self.methods.cropping.input_map_top.editingFinished.connect(self.send_map_data)
+            self.methods.cropping.input_map_right.editingFinished.connect(self.send_map_data)
+            self.methods.cropping.input_map_bottom.editingFinished.connect(self.send_map_data)
 
             # send init ROI position and size to input lines
             self.pic.ROI.sigRegionChanged.emit(self.pic.ROI)
