@@ -153,7 +153,7 @@ class ManualPreprocessing(QFrame):
             self.methods.set_current_widget(PlotMode.CROPPING)
 
             # plot connection to inputs
-            self.plot.linear_region.sigRegionChanged.connect(self.methods.cropping.update_crop_plot_region)
+            self.plot.linear_region.sigRegionChanged.connect(self.methods.cropping.update_crop_plot_inputs)
             self.methods.cropping.input_plot_start.editingFinished.connect(self.send_new_data)
             self.methods.cropping.input_plot_end.editingFinished.connect(self.send_new_data)
 
@@ -161,7 +161,7 @@ class ManualPreprocessing(QFrame):
             self.plot.linear_region.sigRegionChanged.emit(self.plot.linear_region)
 
             # map connection to inputs
-            self.pic.ROI.sigRegionChanged.connect(self.methods.cropping.update_crop_pic_region)
+            self.pic.ROI.sigRegionChanged.connect(self.methods.cropping.update_crop_pic_inputs)
             self.methods.cropping.input_map_left.editingFinished.connect(self.send_map_data)
             self.methods.cropping.input_map_top.editingFinished.connect(self.send_map_data)
             self.methods.cropping.input_map_right.editingFinished.connect(self.send_map_data)
