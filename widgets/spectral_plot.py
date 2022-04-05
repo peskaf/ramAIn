@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget
-from PySide6.QtCore import QPointF
+from PySide6.QtCore import QPoint
 
 import pyqtgraph as pg
 import numpy as np
@@ -76,7 +76,7 @@ class SpectralPlot(QFrame):
         self._crosshair_visible = True
         self.plot_widget.addItem(self.crosshair_v, ignoreBounds=True)
 
-        # move crosshair on mouse movement
+        # update crosshair on mouse movement
         self.mouse_movement_proxy = pg.SignalProxy(self.plot_widget.scene().sigMouseMoved, rateLimit=60, slot=self.update_crosshair)
 
     def update_data(self, new_x: np.ndarray, new_y: np.ndarray) -> None:
@@ -103,12 +103,12 @@ class SpectralPlot(QFrame):
         self.plot_widget.getPlotItem().setYRange(min=np.min(self.y_data), max=np.max(self.y_data))
         
 
-    def update_crosshair(self, event: tuple[QPointF, None]) -> None:
+    def update_crosshair(self, event: tuple[QPoint, None]) -> None:
         """
         A function to change crosshair's location on mouse movement.
 
         Parameters:
-            event (tuple[QPointF, None]): Tuple with current mouse coordinates on the first index (auto generated format).
+            event (tuple[QPoint, None]): Tuple with current mouse coordinates on the first index (auto generated format).
         """
 
         coordinates = event[0]
