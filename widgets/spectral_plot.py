@@ -24,8 +24,8 @@ class SpectralPlot(QFrame):
         plot_pen = pg.mkPen(color="#266867", width=1.1)
 
         # shading of the plot
-        cm = pg.ColorMap(pos=np.linspace(0.0, 1.0, 2), color=[(38, 104, 103, 0), (38, 104, 103, 50)], mapping="diverging") # color same as for plot but in rgba with opacity going from 50 to 0
-        brush = cm.getBrush(span=(np.min(self.y_data), np.max(self.y_data)))
+        self.cm = pg.ColorMap(pos=np.linspace(0.0, 1.0, 2), color=[(38, 104, 103, 0), (38, 104, 103, 50)], mapping="diverging") # color same as for plot but in rgba with opacity going from 50 to 0
+        brush = self.cm.getBrush(span=(np.min(self.y_data), np.max(self.y_data)))
         
         axes = ["top", "left", "bottom"]
         for axis in axes:
@@ -61,7 +61,12 @@ class SpectralPlot(QFrame):
 
     def update_data(self, new_x, new_y):
         self.x_data, self.y_data  = new_x, new_y
-        self.line.setData(self.x_data, self.y_data)
+
+        # update plot brush
+        brush = self.cm.getBrush(span=(np.min(self.y_data), np.max(self.y_data)))
+
+        self.line.setData(self.x_data, self.y_data, brush=brush, fillLevel=np.min(self.y_data))
+
         # if the plot is zoomed somehow, "removes" the zoom
         self.plot_widget.getPlotItem().autoRange() 
         # plot kept the lowest range on the lowest range of the first plot encountered -> solution to that

@@ -54,7 +54,7 @@ class ManualPreprocessing(QFrame):
         self.methods.list.currentItemChanged.connect(self.update_plot_mode)
         # on manual CRR -> show LR on plot
         self.methods.cosmic_ray_removal.manual_removal_toggled.connect(self.display_linear_region)
-        self.methods.cosmic_ray_removal.show_maxima_sig.connect(self.display_maxima)
+        self.methods.cosmic_ray_removal.show_maxima_toggled.connect(self.display_maxima)
 
         layout.addWidget(self.methods)
         
@@ -74,6 +74,7 @@ class ManualPreprocessing(QFrame):
 
             # initially show [0,0] data
             self.plot = SpectralPlot(self.curr_data.x_axis, self.curr_data.data[0,0], self)
+            self.curr_plot_indices = (0, 0)
             self.plot.setFixedSize(QSize(700,300)) # TODO: ??
 
             # click on picture -> update plot
@@ -118,7 +119,7 @@ class ManualPreprocessing(QFrame):
     
     def send_crr_new_data(self):
         try:
-            new_region = (float(self.methods.cosmic_ray_removal.input_man_start.text()), float(self.methods.cosmic_ray_removal.input_man_end.text()))
+            new_region = (float(self.methods.cosmic_ray_removal.input_manual_start.text()), float(self.methods.cosmic_ray_removal.input_manual_end.text()))
             self.plot.update_region(new_region)
         except ValueError:
             pass
@@ -181,7 +182,7 @@ class ManualPreprocessing(QFrame):
             self.curr_data._calculate_Z_scores() # get new Z scores (in case something has changed, won't be recalculated until this mode is exited)
             self.pic.scatter_spikes(self.curr_data.get_spikes_positions(threshold=10)) # TODO add init threshold value
             self.methods.set_current_widget(PlotMode.COSMIC_RAY_REMOVAL)
-            self.methods.cosmic_ray_removal.slider_slided.connect(self.change_threshold)
+            self.methods.cosmic_ray_removal.threshold_changed.connect(self.change_threshold)
         
         elif new_mode.text().lower() == "background removal":
             self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)
@@ -199,8 +200,8 @@ class ManualPreprocessing(QFrame):
             self.plot.hide_crosshair()
     
             self.plot.linear_region.sigRegionChanged.connect(self.methods.cosmic_ray_removal.update_manual_input_region)
-            self.methods.cosmic_ray_removal.input_man_start.editingFinished.connect(self.send_crr_new_data)
-            self.methods.cosmic_ray_removal.input_man_end.editingFinished.connect(self.send_crr_new_data)
+            self.methods.cosmic_ray_removal.input_manual_start.editingFinished.connect(self.send_crr_new_data)
+            self.methods.cosmic_ray_removal.input_manual_end.editingFinished.connect(self.send_crr_new_data)
             self.plot.linear_region.sigRegionChanged.emit(self.plot.linear_region)
         else:
             self.plot.hide_selection_region()
@@ -221,12 +222,13 @@ class ManualPreprocessing(QFrame):
         self.update_plot_mode(QListWidgetItem("cropping"))
     
     def remove_spikes(self):
-        if self.methods.cosmic_ray_removal.manual:
-            self.curr_data.remove_manual(self.curr_plot_indices[0], self.curr_plot_indices[1], *self.methods.cosmic_ray_removal.get_params())
-            self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
-        else: # automatic
-            self.curr_data.remove_spikes(*self.methods.cosmic_ray_removal.get_params())
+        auto_removal = self.methods.cosmic_ray_removal.auto_removal_btn.isChecked()
+        if auto_removal:
+            self.curr_data.remove_spikes(*self.methods.cosmic_ray_removal.get_params()[2:])
             self.update_plot(0, 0)
+        else: # manual
+            self.curr_data.remove_manual(self.curr_plot_indices[0], self.curr_plot_indices[1], *self.methods.cosmic_ray_removal.get_params()[:2])
+            self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
 
         self.pic.update_image(self.curr_data.averages)
 

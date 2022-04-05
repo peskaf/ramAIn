@@ -25,7 +25,7 @@ class Cropping(QFrame):
 
         super().__init__(parent)
 
-        real_validator = QRegularExpressionValidator("-?[0-9]+(.[0-9]+)?")
+        real_validator = QRegularExpressionValidator("-?[0-9]+(\.[0-9]+)?")
 
         # inputs
         self.input_plot_start = QLineEdit("0", validator=real_validator)
@@ -69,7 +69,6 @@ class Cropping(QFrame):
 
         self.setLayout(layout)
 
-    # set changed values to given QLineEdit objects
     def update_crop_plot_inputs(self, new_region: pg.LinearRegionItem) -> None:
         """
         The function to update inputs on spectral plots crop parameters based on passed region.
@@ -109,6 +108,7 @@ class Cropping(QFrame):
         Returns:
             parameters (tuple): Tuple of cropping method parameters converted to correct types.
         """
+
         parameters = (float(self.input_plot_start.text()), float(self.input_plot_end.text()), \
             int(np.floor(float(self.input_map_left.text()))), int(np.floor(float(self.input_map_top.text()))), \
             int(np.ceil(float(self.input_map_right.text()))), int(np.ceil(float(self.input_map_bottom.text()))))
