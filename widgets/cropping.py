@@ -20,7 +20,7 @@ class Cropping(QFrame):
         The constructor for Cropping widget.
   
         Parameters:
-           parent (QWidget): Parent widget of this widget. Default: None.
+            parent (QWidget): Parent widget of this widget. Default: None.
         """
 
         super().__init__(parent)

@@ -22,7 +22,7 @@ class CosmicRayRemoval(QFrame):
         The constructor for CosmicRayRemoval widget.
   
         Parameters:
-           parent (QWidget): Parent widget of this widget. Default: None.
+            parent (QWidget): Parent widget of this widget. Default: None.
         """
 
         super().__init__(parent)
