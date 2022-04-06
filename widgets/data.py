@@ -158,7 +158,7 @@ class Data:
             threshold (float): Value on which to separate valid and invalid data.
 
         Returns:
-            spikes_positions (np.ndarray): Array of indices of spikes in the spectral map.
+            spikes_positions (np.ndarray): Array of indices of spectra containing spikes in a spectral map.
         """
 
         if self.Z_scores is None:
@@ -168,16 +168,15 @@ class Data:
 
         return spikes_positions
 
-    def remove_spikes(self, threshold: float, window_width: int) -> None:
+    def remove_spikes(self, threshold: float, window_width: int) -> None: # TODO: zkusit nahradit nejen ty spiky (data s 0) ale celé okno okolo těchto spiků!
         """
         The function to remove the spikes using the sliding-window-filter.
 
+        Note that the `window_width` must be large enough so that some valid signal falls into it (typically at least 4).
         Parameters:
             threshold (float): Value on which to separate valid and invalid data.
             window_width (int): Width of the sliding window; it's size is then 2 * window_width + 1.
         """
-
-        # note that window width must be wide enough so that some valid signal falls into it (typically at least 3)
 
         # add first Z value (was not computed as we "detrended" the data) so that it exceeds the threshold automatically (in case it has spike)
         new_Z = np.insert(self.Z_scores, [0], np.full((self.Z_scores.shape[0], self.Z_scores.shape[1], 1), threshold + 1), axis=2)
@@ -201,6 +200,9 @@ class Data:
 
         # divide each intensity by the number of non_zero values it was computed from in the convolution
         restored_data = convolved_data / divisors
+
+        # TODO: experiment
+        # new_masked_data = np.where(divisors == (2 * window_width + 1), 1, 0)
 
         # replace only spikes with restored data values -> assigning restored data everywhere
         # would cause smoothing of the data which is not desirable
