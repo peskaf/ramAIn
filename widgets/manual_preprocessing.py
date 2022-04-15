@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox
 from PySide6.QtCore import QSize, Qt
 
 from widgets.color import Color
@@ -57,6 +57,8 @@ class ManualPreprocessing(QFrame):
         self.init_crr()
         self.init_bgr()
 
+        self.init_file_error_widget()
+
         # disable method selection until some valid file is selected
         self.methods.list.setEnabled(False)
 
@@ -104,8 +106,7 @@ class ManualPreprocessing(QFrame):
         try:
             self.curr_data = Data(os.path.join(self.curr_folder, temp_curr_file))
         except:
-            print("EXCEPTION IN UPDATE_FILE")
-            ... # TODO: show pop-up window that file has invalid structure
+            self.file_error.show()
             return
 
         if not self.methods.list.isEnabled():
@@ -138,7 +139,7 @@ class ManualPreprocessing(QFrame):
     def crr_change_threshold_on_map(self, value):
         self.spectral_map.scatter_spikes(self.curr_data.get_spikes_positions(threshold=value))
 
-    def update_method(self, new_method: QFrame): #TODO: dat sem toho spolecneho predka vsech metod!
+    def update_method(self, new_method: QFrame) -> None:
 
         self.curr_method.reset()
         self.curr_method = new_method
@@ -247,3 +248,11 @@ class ManualPreprocessing(QFrame):
 
     def _is_placeholder(self, object) -> bool: # return if passed object is placeholder
         return isinstance(object, Color)
+
+    def init_file_error_widget(self):
+        self.file_error = QMessageBox()
+        self.file_error.setIcon(QMessageBox.Critical) #TODO: add some pretty icon
+        self.file_error.setText("File has invalide structure and cannot be loaded.")
+        self.file_error.setInformativeText("RamAIn currently supports only .mat files produced by WITec spectroscopes. Sorry :(")
+        self.file_error.setWindowTitle("Invalid file structure")
+        self.file_error.setStandardButtons(QMessageBox.Ok)

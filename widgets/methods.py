@@ -1,9 +1,6 @@
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QFrame, QStackedLayout, QHBoxLayout, QListWidget
 from PySide6.QtCore import Signal
 
-from widgets.color import Color
-from widgets.plot_mode import PlotMode
 from widgets.cropping import Cropping
 from widgets.cosmic_ray_removal import CosmicRayRemoval
 from widgets.background_removal import BackgroundRemoval
@@ -12,7 +9,7 @@ from widgets.equidistantification import Equidistantification
 from widgets.view import View
 
 class Methods(QFrame):
-    method_changed = Signal(QFrame) # TODO: vsechny metody budou dedit od mnou vytvoreneho widgetu nejakeho, tak sem ten jejich rodic!
+    method_changed = Signal(QFrame)
 
     def __init__(self, parent=None):
         super().__init__(parent)

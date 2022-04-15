@@ -194,9 +194,6 @@ class Data:
         # divide each intensity by the number of non_zero values it was computed from in the convolution
         restored_data = convolved_data / divisors
 
-        # TODO: experiment
-        # new_masked_data = np.where(divisors == (2 * window_width + 1), 1, 0)
-
         # replace only spikes with restored data values -> assigning restored data everywhere
         # would cause smoothing of the data which is not desirable
         self.data = np.where(masked_data > 0, self.data, restored_data)
