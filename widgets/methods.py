@@ -1,59 +1,67 @@
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QFrame, QStackedLayout, QHBoxLayout, QListWidget
+from PySide6.QtCore import Signal
 
 from widgets.color import Color
 from widgets.plot_mode import PlotMode
 from widgets.cropping import Cropping
 from widgets.cosmic_ray_removal import CosmicRayRemoval
 from widgets.background_removal import BackgroundRemoval
+from widgets.normalization import Normalization
+from widgets.equidistantification import Equidistantification
+from widgets.view import View
 
 class Methods(QFrame):
+    method_changed = Signal(QFrame) # TODO: vsechny metody budou dedit od mnou vytvoreneho widgetu nejakeho, tak sem ten jejich rodic!
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
         # name for qss styling
         self.setObjectName("methods")
 
-        layout = QHBoxLayout()
-
-
-        methods = ["View", "Cropping", "Cosmic Ray Removal", "Background Removal"]
-
-        self.list = QListWidget()
-        self.list.setObjectName("methods_list") # nastavit velikost pevnou
-        self.list.addItems(methods)
-        self.list.setCurrentItem(self.list.item(0))
-        self.list.setSortingEnabled(False) # do not sort list items (methods)
-
+        self.view = View()
         self.cropping = Cropping()
-
         self.cosmic_ray_removal = CosmicRayRemoval()
         self.background_removal = BackgroundRemoval()
+        self.normalization = Normalization()
+        self.equidistantification = Equidistantification()
+
+        self.methods = [
+            self.view,
+            self.cropping,
+            self.cosmic_ray_removal,
+            self.equidistantification,
+            self.normalization,
+            self.background_removal,
+        ]
+
+        self.list = QListWidget()
+        self.list.setObjectName("methods_list") # TODO: set fixed size ?
+        self.list.addItems([method.get_string_name() for method in self.methods])
         
+        self.list.setCurrentItem(self.list.item(0))
+        # do not sort list items (methods) as they are in specific ored
+        self.list.setSortingEnabled(False) 
+
         self.methods_layout = QStackedLayout()
 
-        bg_color = QColor(240,240,240)
-        self.methods_layout.addWidget(Color(bg_color))
-        self.methods_layout.addWidget(self.cropping)
-        self.methods_layout.addWidget(self.cosmic_ray_removal)
-        self.methods_layout.addWidget(self.background_removal)
-        self.methods_layout.setCurrentIndex(0)
+        for method in self.methods:
+            self.methods_layout.addWidget(method)
 
+        self.methods_layout.setCurrentIndex(0)
+        self.list.currentItemChanged.connect(self.emit_method_changed)
+
+        layout = QHBoxLayout()
         layout.addWidget(self.list)
         layout.addLayout(self.methods_layout)
-
         self.setLayout(layout)
-    
-    def set_current_widget(self, mode):
-        if mode == PlotMode.VIEW:
-            self.methods_layout.setCurrentIndex(0)
-        elif mode == PlotMode.CROPPING:
-            self.methods_layout.setCurrentIndex(1)
-        elif mode == PlotMode.COSMIC_RAY_REMOVAL:
-            self.methods_layout.setCurrentIndex(2)
-        elif mode == PlotMode.BACKGROUND_REMOVAL:
-            self.methods_layout.setCurrentIndex(3)
     
     # resets to init mode - first method (view)
     def reset(self):
         self.list.setCurrentItem(self.list.item(0))
+
+    def emit_method_changed(self):
+        curr_method_index = self.list.currentRow()
+        self.methods_layout.setCurrentIndex(curr_method_index)
+        self.method_changed.emit(self.methods[curr_method_index])

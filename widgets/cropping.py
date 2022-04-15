@@ -113,3 +113,9 @@ class Cropping(QFrame):
             int(np.floor(float(self.input_map_left.text()))), int(np.floor(float(self.input_map_top.text()))), \
             int(np.ceil(float(self.input_map_right.text()))), int(np.ceil(float(self.input_map_bottom.text()))))
         return parameters
+
+    def reset(self) -> None:
+        ...
+
+    def get_string_name(self):
+        return "Cropping"

@@ -57,7 +57,7 @@ class SpectralPlot(QFrame):
         # create crosshair object
         self._make_crosshair()
 
-        self.mode = PlotMode.VIEW
+        self.mode = PlotMode.DEFAULT
         self.linear_region = None
 
         layout = QHBoxLayout(self)
@@ -147,11 +147,7 @@ class SpectralPlot(QFrame):
             new_mode (PlotMode): New mode enum.
         """
 
-        # no change
-        if new_mode == self.mode:
-            return
-
-        if new_mode == PlotMode.VIEW:
+        if new_mode == PlotMode.DEFAULT:
             self._set_view_mode()
         elif new_mode == PlotMode.CROPPING:
             self._set_cropping_mode()
@@ -187,9 +183,10 @@ class SpectralPlot(QFrame):
         if self._crosshair_visible:
             self.hide_crosshair()
         
-        # show region
-        if self.linear_region is None:
-            self.show_selection_region()
+        # if region is present -> delete it and create again so that sizes and bounds fit
+        if self.linear_region is not None:
+            self.hide_selection_region()
+        self.show_selection_region()
 
     def _set_bg_removal_mode(self) -> None:
         """

@@ -182,3 +182,6 @@ class CosmicRayRemoval(QFrame):
 
         parameters = (float(self.input_manual_start.text()), float(self.input_manual_end.text()), float(self.threshold.text()), int(self.window_width.text()))
         return parameters
+
+    def get_string_name(self):
+        return "Cosmic Ray Removal"

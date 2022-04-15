@@ -12,7 +12,6 @@ class BackgroundRemoval(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-
         # TODO: move these validators to sep. utils file
         int_validator = QRegularExpressionValidator("-?[0-9]+")
 
@@ -93,3 +92,9 @@ class BackgroundRemoval(QFrame):
         """
 
         self.ignore_water_band_toggled.emit(self.ignore_water_band.isChecked())
+
+    def reset(self) -> None:
+        ...
+
+    def get_string_name(self):
+        return "Background Removal"

@@ -48,7 +48,7 @@ class SpectralMap(QFrame):
         self._make_crosshair()
 
         # init mode is view
-        self.mode = PlotMode.VIEW
+        self.mode = PlotMode.DEFAULT
 
         self.ROI = None
         self.scatter = None
@@ -144,10 +144,7 @@ class SpectralMap(QFrame):
             new_mode (PlotMode): Enum representing new plot mode.
         """
 
-        if new_mode == self.mode: # no change
-            return
-
-        if new_mode == PlotMode.VIEW:
+        if new_mode == PlotMode.DEFAULT:
             self._set_view_mode()
         elif new_mode == PlotMode.CROPPING:
             self._set_cropping_mode()
@@ -181,8 +178,10 @@ class SpectralMap(QFrame):
 
         self.hide_crosshair()
 
-        if self.ROI is None:
-            self.add_selection_region()
+        # remove ROI if it was not deleted so that new object is created (crucial for bounds and size setting)
+        if self.ROI is not None:
+            self.image_view.removeItem(self.ROI)
+        self.add_selection_region()
 
         self._remove_scatter()   
 

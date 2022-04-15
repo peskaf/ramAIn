@@ -35,36 +35,29 @@ class Data:
             in_file (str): Matlab file containing the data.  
         """
 
-        # load only .mat data with expected structure
-        try:
-            # load matlab
-            matlab_data = scipy.io.loadmat(in_file, mdict=self._mdict)
+        # load .mat data with expected structure
+        matlab_data = scipy.io.loadmat(in_file, mdict=self._mdict)
 
-            # extract relevant information
-            # last one is the name of the data structure
-            name = list(self._mdict)[-1]
-            matlab_data = matlab_data[name][0,0]
+        # extract relevant information
+        # last one is the name of the data structure
+        name = list(self._mdict)[-1]
+        matlab_data = matlab_data[name][0,0]
 
-            # flattened data (individual spectra)
-            data = matlab_data[7]
+        # flattened data (individual spectra)
+        data = matlab_data[7]
 
-            # TODO: data before reshaping -> only for current method testing
-            self.pure_data = data
+        # num of rows, num of cols
+        image_size = tuple(matlab_data[5][0]) 
 
-            # num of rows, num of cols
-            image_size = tuple(matlab_data[5][0]) 
+        # units = matlab_data[9][1][1]
 
-            # units = matlab_data[9][1][1]
+        self.x_axis = matlab_data[9][1][0][0]
+        self.data = np.reshape(data,(image_size[1], image_size[0], -1))
 
-            self.x_axis = matlab_data[9][1][0][0]
-            self.data = np.reshape(data,(image_size[1], image_size[0], -1))
-
-            # maxima for intuitive cosmic rays positions (used in manual removal)
-            self.maxima = np.max(self.data, axis=2)
-            # averages for spectral map visualization
-            self.averages = np.mean(self.data, axis=2)
-        except:
-            print("Invalid file format or structure.")
+        # maxima for intuitive cosmic rays positions (used in manual removal)
+        self.maxima = np.max(self.data, axis=2)
+        # averages for spectral map visualization
+        self.averages = np.mean(self.data, axis=2)
 
     def save_data(self, out_file: str) -> None:
         """
