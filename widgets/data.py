@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.io
+from functools import reduce
 
 # TODO: Move into different folder -> change structure of the whole app files
 class Data:
@@ -228,3 +229,122 @@ class Data:
         self.data[spectrum_index_x, spectrum_index_y, x_axis_start:x_axis_end:1] = new_values
 
         self._recompute_dependent_data()
+
+    #TODO: to be done - docstrings etc.; move sth to data.func.utils
+
+    def _get_indices_range(self, x, start_value, end_value):
+        start_index = np.argmin(np.absolute(x - start_value))
+        end_index = np.argmin(np.absolute(x - end_value))
+        return np.r_[start_index:end_index]
+
+    def _get_indices_to_fit(self, x, ranges_to_ignore):
+        union = reduce(np.union1d, (self._get_indices_range(x, *i) for i in ranges_to_ignore))
+        to_fit = np.in1d(np.arange(x.shape[0]), union, invert=True)
+        return to_fit
+
+    def _get_no_water_indices(self, x: np.ndarray) -> np.ndarray:
+        to_ignore = [[2950, 3750]]
+        return self._get_indices_to_fit(x, to_ignore)
+
+    def vancouver_poly_bg(self, spectrum_index_x: int, spectrum_index_y: int, degree: int, ignore_water: bool = True) -> np.ndarray:
+        x = self.x_axis
+        y = self.data[spectrum_index_x, spectrum_index_y, :]
+
+        if ignore_water:
+            no_water_indices = self._get_no_water_indices(x)
+            x = x[no_water_indices]
+            y = y[no_water_indices]
+
+        signal = y
+        first_iter = True
+        devs = [0]
+        criterium = np.inf
+        while criterium > 0.05:
+            poly_obj = np.polynomial.Polynomial(None).fit(x, signal, deg=degree)
+            poly = poly_obj(x)
+            residual = signal - poly
+            residual_mean = np.mean(residual)
+            DEV = np.sqrt(np.mean((residual - residual_mean)**2))
+            devs.append(DEV)
+            
+            if first_iter:
+                # remove peaks from fitting in first iteration
+                not_peak_indices = np.where(signal <= (poly + DEV))
+                signal = signal[not_peak_indices]
+                x = x[not_peak_indices]
+                first_iter = False
+            else:
+            # reconstruction
+                signal = np.where(signal < poly + DEV, signal, poly + DEV)
+            criterium = np.abs((DEV - devs[-2]) / DEV)
+        return poly_obj(self.x_axis)
+
+    def erosion(self, values: np.ndarray, window_width: int) -> np.ndarray:
+        # eroze -> minmum v okně
+        padded_values = np.pad(values, (window_width, window_width), 'constant', constant_values=(values[0], values[-1])) # pad with side values from sides
+        windows = np.lib.stride_tricks.sliding_window_view(padded_values, 2 * window_width + 1)
+        mins = np.min(windows, axis=1)
+        return mins
+
+    def dilation(self, values: np.ndarray, window_width: int) -> np.ndarray:
+        # dilatace -> maximum v okně
+        padded_values = np.pad(values, (window_width, window_width), 'constant', constant_values=(values[0], values[-1])) # pad with side values from sides
+        windows = np.lib.stride_tricks.sliding_window_view(padded_values, 2 * window_width + 1)
+        mins = np.max(windows, axis=1)
+        return mins
+
+    def opening(self, values: np.ndarray, window_width: int) -> np.ndarray:
+        return self.dilation(self.erosion(values, window_width), window_width)
+
+    def closing(self, values: np.ndarray, window_width: int) -> np.ndarray:
+        return self.erosion(self.dilation(values, window_width), window_width)
+
+    def top_hat(self, values: np.ndarray, window_width: int) -> np.ndarray:
+        return values - self.opening(values, window_width)
+
+    def get_optimal_structuring_element_width(self, values: np.ndarray) -> int:
+        max_sim_counter = 3
+        window_width = 1
+        opened_array = self.opening(values, window_width)
+
+        while True:
+            window_width += 1
+            new_opened_array = self.opening(opened_array, window_width)
+            if np.any(new_opened_array != opened_array):
+                similarity_counter = 0
+                opened_array = new_opened_array
+                continue
+            else:
+                similarity_counter += 1
+                if similarity_counter == max_sim_counter:
+                    return window_width - max_sim_counter + 1 # restore window width of the first similar result
+
+    def mm_algo(self, spectrum_index_x: int, spectrum_index_y: int, ignore_water: bool = True) -> np.ndarray:
+        x = self.x_axis
+        y = self.data[spectrum_index_x, spectrum_index_y, :]
+
+        if ignore_water:
+            water_start_index = np.argmin(np.abs(x - 2800)) # zahrnuje i C-H vibrace
+            water_part_y = y[water_start_index:]
+            window_water = int(np.round(len(water_part_y) / 3))
+            spectrum_opening = self.opening(water_part_y, window_water)
+            approximation = np.mean(self.erosion(spectrum_opening, window_water) + self.dilation(spectrum_opening, window_water), axis=0)
+            background_water = np.minimum(spectrum_opening, approximation)
+
+            not_water_part_y = y[:water_start_index]
+            window_width = self.get_optimal_structuring_element_width(not_water_part_y)
+            spectrum_opening = self.opening(not_water_part_y, window_width)
+            approximation = np.mean(self.erosion(spectrum_opening, window_width) + self.dilation(spectrum_opening, window_width), axis=0)
+            background_not_water = np.minimum(spectrum_opening, approximation)
+            background = np.concatenate((background_not_water, background_water))
+
+            return background
+
+        window_width = self.get_optimal_structuring_element_width(y)
+
+        spectrum_opening = self.opening(y, window_width)
+        approximation = np.mean(self.erosion(spectrum_opening, window_width) + self.dilation(spectrum_opening, window_width), axis=0)
+        background = np.minimum(spectrum_opening, approximation)
+
+        return background
+    

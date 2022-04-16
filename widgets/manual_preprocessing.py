@@ -97,6 +97,10 @@ class ManualPreprocessing(QFrame):
             self.plot.update_data(self.curr_data.x_axis, self.curr_data.data[x,y])
             self.curr_plot_indices = (x, y)
 
+            # update also bg line on plot change
+            if self.curr_method == self.methods.background_removal:
+                self.bgr_update_plot()
+
     def _update_plot_from_mouse_point(self) -> None:
         self.update_plot(int(np.floor(self.spectral_map.mouse_point.x())), int(np.floor(self.spectral_map.mouse_point.y())))
 
@@ -170,11 +174,11 @@ class ManualPreprocessing(QFrame):
         elif self.curr_method == self.methods.background_removal:
             self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)
             self.spectral_map.set_mode(PlotMode.BACKGROUND_REMOVAL)
-            # TODO: polynom update
+            # will set poly on plot according to init config of params
+            self.bgr_update_plot()
 
         else:
             # default (view) on some other method
-            print("DEFAULT CASE MET, SOLVE IT.") # TODO
             self.plot.set_mode(PlotMode.DEFAULT)
             self.spectral_map.set_mode(PlotMode.DEFAULT)
             
@@ -231,6 +235,7 @@ class ManualPreprocessing(QFrame):
         self.methods.cropping.apply_clicked.connect(self.cropping_apply)
 
     def init_crr(self):
+        # connect inputs signals to function slots
         self.methods.cosmic_ray_removal.threshold_changed.connect(self.crr_change_threshold_on_map)
         self.methods.cosmic_ray_removal.input_manual_start.editingFinished.connect(self.crr_region_change)
         self.methods.cosmic_ray_removal.input_manual_end.editingFinished.connect(self.crr_region_change)
@@ -240,11 +245,25 @@ class ManualPreprocessing(QFrame):
         self.methods.cosmic_ray_removal.apply_clicked.connect(self.crr_apply)
 
     def init_bgr(self):
-        # TODO: dopsat
-        """
-        self.methods.background_removal.poly_deg_changed.connect(...)
-        self.methods.background_removal.ignore_water_band_toggled.connect(...)
-        """
+        # connect inputs signals to function slots
+        self.methods.background_removal.poly_deg_changed.connect(self.bgr_change_poly_on_plot)
+        self.methods.background_removal.ignore_water_band_toggled.connect(self.bgr_update_plot)
+        self.methods.background_removal.math_morpho_toggled.connect(self.bgr_update_plot)
+        self.methods.background_removal.apply_clicked.connect(self.bgr_apply)
+
+    def bgr_change_poly_on_plot(self, degree: int) -> None:
+        ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
+        poly_bg = self.curr_data.vancouver_poly_bg(self.curr_plot_indices[0], self.curr_plot_indices[1], degree, ignore_water)
+        self.plot.plot_background(poly_bg)
+
+    def bgr_update_plot(self) -> None:
+        if self.methods.background_removal.math_morpho_btn.isChecked():
+            ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
+            mm_bg = self.curr_data.mm_algo(self.curr_plot_indices[0], self.curr_plot_indices[1], ignore_water)
+            self.plot.plot_background(mm_bg)
+        else:
+            # emit degree of poly that is currently set in line edit -> it will trigger `bgr_change_poly_on_plot` with right params
+            self.methods.background_removal.emit_poly_deg_changed()
 
     def _is_placeholder(self, object) -> bool: # return if passed object is placeholder
         return isinstance(object, Color)

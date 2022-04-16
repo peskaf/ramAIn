@@ -45,7 +45,7 @@ class SpectralPlot(QFrame):
         self.plot_widget.getPlotItem().getAxis(axis).setTextPen(axis_pen)
 
         # plotting
-        plot_pen = pg.mkPen(color="#266867", width=1.1)
+        plot_pen = pg.mkPen(color="#266867", width=1.5)
         self.line = self.plot_widget.plot(self.x_data, self.y_data, pen=plot_pen, brush=brush, fillLevel=np.min(self.y_data))
 
         # labels setup
@@ -59,6 +59,9 @@ class SpectralPlot(QFrame):
 
         self.mode = PlotMode.DEFAULT
         self.linear_region = None
+
+        self.bg_pen = pg.mkPen(color="#F58800", width=2.5)
+        self.background = None
 
         layout = QHBoxLayout(self)
         layout.addWidget(self.plot_widget)
@@ -147,16 +150,14 @@ class SpectralPlot(QFrame):
             new_mode (PlotMode): New mode enum.
         """
 
-        if new_mode == PlotMode.DEFAULT:
-            self._set_view_mode()
-        elif new_mode == PlotMode.CROPPING:
+        if new_mode == PlotMode.CROPPING:
             self._set_cropping_mode()
         elif new_mode == PlotMode.COSMIC_RAY_REMOVAL:
             self._set_crr_mode()
         elif new_mode == PlotMode.BACKGROUND_REMOVAL:
             self._set_bg_removal_mode()
         else:
-            # invalid mode -> do nothing
+            self._set_view_mode() # default
             return
 
         self.mode = new_mode
@@ -174,6 +175,10 @@ class SpectralPlot(QFrame):
         if not self._crosshair_visible:
             self.show_crosshair()
 
+        # hide background
+        if self.background is not None:
+            self.hide_background()
+
     def _set_cropping_mode(self) -> None:
         """
         A function to perform actions demanded by `cropping` mode.
@@ -188,13 +193,26 @@ class SpectralPlot(QFrame):
             self.hide_selection_region()
         self.show_selection_region()
 
+        # hide background
+        if self.background is not None:
+            self.hide_background()
+
     def _set_bg_removal_mode(self) -> None:
         """
         A function to perform actions demanded by `BGR` mode.
         """
 
-        # TODO: TBD
-        self._set_view_mode()
+        # hide region
+        if self.linear_region is not None:
+            self.hide_selection_region()
+
+        # show crosshair
+        if not self._crosshair_visible:
+            self.show_crosshair()
+
+        # hide background -> wait for new one to be passed to `plot_background` as it depends on the data
+        if self.background is not None:
+            self.hide_background()
 
     def _set_crr_mode(self) -> None:
         """
@@ -208,6 +226,10 @@ class SpectralPlot(QFrame):
         # show crosshair
         if not self._crosshair_visible:
             self.show_crosshair()
+
+        # hide background
+        if self.background is not None:
+            self.hide_background()
 
     def show_selection_region(self) -> None:
         """
@@ -246,3 +268,13 @@ class SpectralPlot(QFrame):
         """
 
         self.linear_region.setRegion(new_region)
+
+    def plot_background(self, background: np.ndarray) -> None:
+        #remove prev bg in case there is some
+        if self.background is not None:
+            self.hide_background()
+        self.background = self.plot_widget.plot(self.x_data, background, pen=self.bg_pen)
+
+    def hide_background(self) -> None:
+        self.background.hide()
+        self.background = None

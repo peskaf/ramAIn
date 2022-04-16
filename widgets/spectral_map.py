@@ -144,16 +144,12 @@ class SpectralMap(QFrame):
             new_mode (PlotMode): Enum representing new plot mode.
         """
 
-        if new_mode == PlotMode.DEFAULT:
-            self._set_view_mode()
-        elif new_mode == PlotMode.CROPPING:
+        if new_mode == PlotMode.CROPPING:
             self._set_cropping_mode()
         elif new_mode == PlotMode.COSMIC_RAY_REMOVAL:
             self._set_crr_mode()
-        elif new_mode == PlotMode.BACKGROUND_REMOVAL:
-            self._set_bg_removal_mode()
-        else:
-            # invalid mode -> do nothing
+        else: # default
+            self._set_view_mode()
             return 
 
         self.mode = new_mode
@@ -184,14 +180,6 @@ class SpectralMap(QFrame):
         self.add_selection_region()
 
         self._remove_scatter()   
-
-    def _set_bg_removal_mode(self) -> None:
-        """
-        A function to perform actions demanded by `BG removal` mode.
-        """
-
-        # TODO: TBD
-        self._set_view_mode()
 
     def _set_crr_mode(self) -> None:
         """
