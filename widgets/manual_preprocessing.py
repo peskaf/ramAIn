@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox, QProgressDialog
+from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop
 
 from widgets.color import Color
 from widgets.files_view import FilesView
@@ -15,6 +15,8 @@ import numpy as np
 import os
 
 class ManualPreprocessing(QFrame):
+    update_progress = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -194,11 +196,8 @@ class ManualPreprocessing(QFrame):
             self.plot.show_crosshair()
     
     def crr_show_maxima(self, show):
-        if show:
-            self.spectral_map.update_image(self.curr_data.maxima)
-        else:
-            self.spectral_map.update_image(self.curr_data.averages)
-    
+        self.spectral_map.update_image(self.curr_data.maxima if show else self.curr_data.averages)
+
     def cropping_apply(self):
         self.curr_data.crop(*self.methods.cropping.get_params())
         self.spectral_map.update_image(self.curr_data.averages)
@@ -212,7 +211,6 @@ class ManualPreprocessing(QFrame):
 
         if auto_removal:
             self.curr_data.remove_spikes(*self.methods.cosmic_ray_removal.get_params()[2:])
-
         else: # manual
             self.curr_data.remove_manual(self.curr_plot_indices[0], self.curr_plot_indices[1], *self.methods.cosmic_ray_removal.get_params()[:2])
 
@@ -222,7 +220,21 @@ class ManualPreprocessing(QFrame):
         self.update_method(self.methods.cosmic_ray_removal)
 
     def bgr_apply(self):
-        ...
+        math_morpho = self.methods.background_removal.math_morpho_btn.isChecked()
+        ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
+        if math_morpho:
+            # TODO: decorator? wrapper function for methods that take longer?
+            self.make_progress_bar(np.multiply(*self.curr_data.data.shape[:2]))
+            self.curr_data.mm_algo_spectrum(ignore_water, self.update_progress)
+            self.destroy_progress_bar()
+        else:
+            # self.curr_data
+            ...
+
+        self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
+        self.spectral_map.update_image(self.curr_data.averages)
+
+        self.update_method(self.methods.background_removal)
 
     def init_cropping(self):
         # connect inputs signals to function slots
@@ -275,3 +287,26 @@ class ManualPreprocessing(QFrame):
         self.file_error.setInformativeText("RamAIn currently supports only .mat files produced by WITec spectroscopes. Sorry :(")
         self.file_error.setWindowTitle("Invalid file structure")
         self.file_error.setStandardButtons(QMessageBox.Ok)
+
+    def make_progress_bar(self, maximum):
+        self.files_view.setEnabled(False)
+        self.methods.setEnabled(False)
+
+        self.progress = QProgressDialog("Progress", "...", 0, maximum)
+        self.progress.setCancelButton(None)
+        # self.progress.setWindowIcon(...) # TODO: add icon
+        self.progress.setWindowTitle("Work in progress")
+        self.progress.setLabelText("Note that this process cannot be cancelled.")
+        self.update_progress.connect(self.set_progress)
+
+    def set_progress(self):
+        QCoreApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+        val = self.progress.value()
+        self.progress.setValue(val + 1)
+    
+    def destroy_progress_bar(self):
+        self.files_view.setEnabled(True)
+        self.methods.setEnabled(True)
+
+        self.progress = None
+

@@ -48,7 +48,7 @@ class Data:
         data = matlab_data[7]
 
         # num of rows, num of cols
-        image_size = tuple(matlab_data[5][0]) 
+        image_size = tuple(matlab_data[5][0])
 
         # units = matlab_data[9][1][1]
 
@@ -319,25 +319,31 @@ class Data:
                 if similarity_counter == max_sim_counter:
                     return window_width - max_sim_counter + 1 # restore window width of the first similar result
 
-    def mm_algo(self, spectrum_index_x: int, spectrum_index_y: int, ignore_water: bool = True) -> np.ndarray:
-        x = self.x_axis
-        y = self.data[spectrum_index_x, spectrum_index_y, :]
+    #TODO rename
+    def _mm_algo_step(self, y, window_width: int = None):
+        spectrum_opening = self.opening(y, window_width)
+        approximation = np.mean(self.erosion(spectrum_opening, window_width) + self.dilation(spectrum_opening, window_width), axis=0)
+        return np.minimum(spectrum_opening, approximation)
+
+    #TODO rename
+    def _mm_aaa(self, y: np.ndarray, ignore_water: bool, signal_to_emit = None) -> np.ndarray:
+        if signal_to_emit is not None:
+            signal_to_emit.emit()
 
         if ignore_water:
-            water_start_index = np.argmin(np.abs(x - 2800)) # zahrnuje i C-H vibrace
+            water_start_point = 2800
+            water_start_index = np.argmin(np.abs(self.x_axis - water_start_point))
+
             water_part_y = y[water_start_index:]
-            window_water = int(np.round(len(water_part_y) / 3))
-            spectrum_opening = self.opening(water_part_y, window_water)
-            approximation = np.mean(self.erosion(spectrum_opening, window_water) + self.dilation(spectrum_opening, window_water), axis=0)
-            background_water = np.minimum(spectrum_opening, approximation)
-
             not_water_part_y = y[:water_start_index]
-            window_width = self.get_optimal_structuring_element_width(not_water_part_y)
-            spectrum_opening = self.opening(not_water_part_y, window_width)
-            approximation = np.mean(self.erosion(spectrum_opening, window_width) + self.dilation(spectrum_opening, window_width), axis=0)
-            background_not_water = np.minimum(spectrum_opening, approximation)
-            background = np.concatenate((background_not_water, background_water))
 
+            window_width_water = int(np.round(len(water_part_y) / 3)) # TODO: best??
+            window_width_no_water = self.get_optimal_structuring_element_width(not_water_part_y)
+
+            bg_water = self._mm_algo_step(water_part_y, window_width_water)
+            bg_no_water = self._mm_algo_step(not_water_part_y, window_width_no_water)
+
+            background = np.concatenate((bg_no_water, bg_water))
             return background
 
         window_width = self.get_optimal_structuring_element_width(y)
@@ -345,6 +351,22 @@ class Data:
         spectrum_opening = self.opening(y, window_width)
         approximation = np.mean(self.erosion(spectrum_opening, window_width) + self.dilation(spectrum_opening, window_width), axis=0)
         background = np.minimum(spectrum_opening, approximation)
-
         return background
+
+    # TODO algo on one spectrum only (pak zavolat rovnou jen pres tu aaa metodu z te manual:prep...)
+    def mm_algo(self, spectrum_index_x: int, spectrum_index_y: int, ignore_water: bool = True) -> np.ndarray:
+        y = self.data[spectrum_index_x, spectrum_index_y, :]
+        return self._mm_aaa(y, ignore_water)
+
+    def mm_algo_spectrum(self, ignore_water: bool, signal_to_emit = None) -> np.ndarray:
+        # no speed-up version
+        backgrounds = np.apply_along_axis(self._mm_aaa, 2, self.data, ignore_water, signal_to_emit)
+        self.data = self.data - backgrounds
+        self._recompute_dependent_data()
+
+    def vancouver(self):
+        ...
+        
+
+    
     
