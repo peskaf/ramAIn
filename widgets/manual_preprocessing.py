@@ -1,3 +1,4 @@
+from typing import Callable
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox, QProgressDialog
 from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop
 
@@ -65,7 +66,6 @@ class ManualPreprocessing(QFrame):
         self.methods.list.setEnabled(False)
 
         layout.addWidget(self.methods)
-        
         layout.setAlignment(Qt.AlignTop)
         self.setLayout(layout)
 
@@ -222,14 +222,12 @@ class ManualPreprocessing(QFrame):
     def bgr_apply(self):
         math_morpho = self.methods.background_removal.math_morpho_btn.isChecked()
         ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
+        steps = np.multiply(*self.curr_data.data.shape[:2])
         if math_morpho:
-            # TODO: decorator? wrapper function for methods that take longer?
-            self.make_progress_bar(np.multiply(*self.curr_data.data.shape[:2]))
-            self.curr_data.mm_algo_spectrum(ignore_water, self.update_progress)
-            self.destroy_progress_bar()
+            self.progress_bar_function(steps, self.curr_data.mm_algo_spectrum, ignore_water, self.update_progress)
         else:
-            # self.curr_data
-            ...
+            poly_deg = self.methods.background_removal.get_params()[0]
+            self.progress_bar_function(steps, self.curr_data.vancouver, poly_deg, ignore_water, self.update_progress)
 
         self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
         self.spectral_map.update_image(self.curr_data.averages)
@@ -265,13 +263,15 @@ class ManualPreprocessing(QFrame):
 
     def bgr_change_poly_on_plot(self, degree: int) -> None:
         ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
-        poly_bg = self.curr_data.vancouver_poly_bg(self.curr_plot_indices[0], self.curr_plot_indices[1], degree, ignore_water)
+        curr_spectrum = self.curr_data.data[self.curr_plot_indices[0], self.curr_plot_indices[1], :]
+        poly_bg = self.curr_data.vancouver_poly_bg(curr_spectrum, degree, ignore_water)
         self.plot.plot_background(poly_bg)
 
     def bgr_update_plot(self) -> None:
         if self.methods.background_removal.math_morpho_btn.isChecked():
             ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
-            mm_bg = self.curr_data.mm_algo(self.curr_plot_indices[0], self.curr_plot_indices[1], ignore_water)
+            curr_spectrum = self.curr_data.data[self.curr_plot_indices[0], self.curr_plot_indices[1], :]
+            mm_bg = self.curr_data._mm_aaa(curr_spectrum, ignore_water)
             self.plot.plot_background(mm_bg)
         else:
             # emit degree of poly that is currently set in line edit -> it will trigger `bgr_change_poly_on_plot` with right params
@@ -294,9 +294,11 @@ class ManualPreprocessing(QFrame):
 
         self.progress = QProgressDialog("Progress", "...", 0, maximum)
         self.progress.setCancelButton(None)
+        # hide borders, title and "X" in the top right corner
+        self.progress.setWindowFlags(Qt.WindowTitleHint) # Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowTitleHint
         # self.progress.setWindowIcon(...) # TODO: add icon
         self.progress.setWindowTitle("Work in progress")
-        self.progress.setLabelText("Note that this process cannot be cancelled.")
+        # self.progress.setLabelText("Note that this process cannot be cancelled.")
         self.update_progress.connect(self.set_progress)
 
     def set_progress(self):
@@ -307,6 +309,13 @@ class ManualPreprocessing(QFrame):
     def destroy_progress_bar(self):
         self.files_view.setEnabled(True)
         self.methods.setEnabled(True)
-
         self.progress = None
+
+    def progress_bar_function(self, progress_steps, function: Callable, *args, **kwargs):
+        self.make_progress_bar(progress_steps)
+        function(*args, **kwargs)
+        self.destroy_progress_bar()
+
+
+    
 

@@ -2,6 +2,8 @@ from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButt
 from PySide6.QtGui import QRegularExpressionValidator
 from PySide6.QtCore import Signal
 
+import numpy as np
+
 class BackgroundRemoval(QFrame):
     # custom signals
     math_morpho_toggled = Signal(bool)
@@ -92,6 +94,18 @@ class BackgroundRemoval(QFrame):
         """
 
         self.ignore_water_band_toggled.emit(self.ignore_water_band.isChecked())
+
+    def get_params(self) -> tuple[int]:
+        """
+        The function to get parameters from all inputs.
+
+        Returns:
+            parameters (tuple): Tuple of background removal method parameters converted to correct types.
+        """
+
+        parameters = (int(self.poly_deg.text()), )
+        return parameters
+
 
     def reset(self) -> None:
         ...

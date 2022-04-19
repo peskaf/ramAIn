@@ -2,6 +2,8 @@ import numpy as np
 import scipy.io
 from functools import reduce
 
+from PySide6.QtCore import Signal
+
 # TODO: Move into different folder -> change structure of the whole app files
 class Data:
     """
@@ -246,39 +248,6 @@ class Data:
         to_ignore = [[2950, 3750]]
         return self._get_indices_to_fit(x, to_ignore)
 
-    def vancouver_poly_bg(self, spectrum_index_x: int, spectrum_index_y: int, degree: int, ignore_water: bool = True) -> np.ndarray:
-        x = self.x_axis
-        y = self.data[spectrum_index_x, spectrum_index_y, :]
-
-        if ignore_water:
-            no_water_indices = self._get_no_water_indices(x)
-            x = x[no_water_indices]
-            y = y[no_water_indices]
-
-        signal = y
-        first_iter = True
-        devs = [0]
-        criterium = np.inf
-        while criterium > 0.05:
-            poly_obj = np.polynomial.Polynomial(None).fit(x, signal, deg=degree)
-            poly = poly_obj(x)
-            residual = signal - poly
-            residual_mean = np.mean(residual)
-            DEV = np.sqrt(np.mean((residual - residual_mean)**2))
-            devs.append(DEV)
-            
-            if first_iter:
-                # remove peaks from fitting in first iteration
-                not_peak_indices = np.where(signal <= (poly + DEV))
-                signal = signal[not_peak_indices]
-                x = x[not_peak_indices]
-                first_iter = False
-            else:
-            # reconstruction
-                signal = np.where(signal < poly + DEV, signal, poly + DEV)
-            criterium = np.abs((DEV - devs[-2]) / DEV)
-        return poly_obj(self.x_axis)
-
     def erosion(self, values: np.ndarray, window_width: int) -> np.ndarray:
         # eroze -> minmum v okně
         padded_values = np.pad(values, (window_width, window_width), 'constant', constant_values=(values[0], values[-1])) # pad with side values from sides
@@ -295,12 +264,6 @@ class Data:
 
     def opening(self, values: np.ndarray, window_width: int) -> np.ndarray:
         return self.dilation(self.erosion(values, window_width), window_width)
-
-    def closing(self, values: np.ndarray, window_width: int) -> np.ndarray:
-        return self.erosion(self.dilation(values, window_width), window_width)
-
-    def top_hat(self, values: np.ndarray, window_width: int) -> np.ndarray:
-        return values - self.opening(values, window_width)
 
     def get_optimal_structuring_element_width(self, values: np.ndarray) -> int:
         max_sim_counter = 3
@@ -326,7 +289,7 @@ class Data:
         return np.minimum(spectrum_opening, approximation)
 
     #TODO rename
-    def _mm_aaa(self, y: np.ndarray, ignore_water: bool, signal_to_emit = None) -> np.ndarray:
+    def _mm_aaa(self, y: np.ndarray, ignore_water: bool, signal_to_emit: Signal = None) -> np.ndarray:
         if signal_to_emit is not None:
             signal_to_emit.emit()
 
@@ -353,20 +316,48 @@ class Data:
         background = np.minimum(spectrum_opening, approximation)
         return background
 
-    # TODO algo on one spectrum only (pak zavolat rovnou jen pres tu aaa metodu z te manual:prep...)
-    def mm_algo(self, spectrum_index_x: int, spectrum_index_y: int, ignore_water: bool = True) -> np.ndarray:
-        y = self.data[spectrum_index_x, spectrum_index_y, :]
-        return self._mm_aaa(y, ignore_water)
-
-    def mm_algo_spectrum(self, ignore_water: bool, signal_to_emit = None) -> np.ndarray:
-        # no speed-up version
+    def mm_algo_spectrum(self, ignore_water: bool, signal_to_emit: Signal = None) -> np.ndarray:
+        # no speed-up version - possible speed-ups: multithreading, clustering
         backgrounds = np.apply_along_axis(self._mm_aaa, 2, self.data, ignore_water, signal_to_emit)
-        self.data = self.data - backgrounds
+        self.data -= backgrounds
         self._recompute_dependent_data()
 
-    def vancouver(self):
-        ...
-        
+    def vancouver(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
+        backgrounds = np.apply_along_axis(self.vancouver_poly_bg, 2, self.data, degree, ignore_water, signal_to_emit)
+        self.data -= backgrounds
+        self._recompute_dependent_data()
 
-    
-    
+    def vancouver_poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
+        if signal_to_emit is not None:
+            signal_to_emit.emit()
+
+        x = self.x_axis
+
+        if ignore_water:
+            no_water_indices = self._get_no_water_indices(x)
+            x = x[no_water_indices]
+            y = y[no_water_indices]
+
+        signal = y
+        first_iter = True
+        devs = [0]
+        criterium = np.inf
+
+        while criterium > 0.05:
+            poly_obj = np.polynomial.Polynomial(None).fit(x, signal, deg=degree)
+            poly = poly_obj(x)
+            residual = signal - poly
+            residual_mean = np.mean(residual)
+            DEV = np.sqrt(np.mean((residual - residual_mean)**2))
+            devs.append(DEV)
+            
+            if first_iter: # remove peaks from fitting in first iteration
+                not_peak_indices = np.where(signal <= (poly + DEV))
+                signal = signal[not_peak_indices]
+                x = x[not_peak_indices]
+                first_iter = False
+            else: # reconstruction
+                signal = np.where(signal < poly + DEV, signal, poly + DEV)
+            criterium = np.abs((DEV - devs[-2]) / DEV)
+
+        return poly_obj(self.x_axis)
