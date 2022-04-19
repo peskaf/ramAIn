@@ -210,7 +210,8 @@ class ManualPreprocessing(QFrame):
         auto_removal = self.methods.cosmic_ray_removal.auto_removal_btn.isChecked()
 
         if auto_removal:
-            self.curr_data.remove_spikes(*self.methods.cosmic_ray_removal.get_params()[2:])
+            steps = np.multiply(*self.curr_data.data.shape[:2])
+            self.progress_bar_function(steps, self.curr_data.remove_spikes, *self.methods.cosmic_ray_removal.get_params()[2:])
         else: # manual
             self.curr_data.remove_manual(self.curr_plot_indices[0], self.curr_plot_indices[1], *self.methods.cosmic_ray_removal.get_params()[:2])
 
@@ -311,11 +312,8 @@ class ManualPreprocessing(QFrame):
         self.methods.setEnabled(True)
         self.progress = None
 
-    def progress_bar_function(self, progress_steps, function: Callable, *args, **kwargs):
+    # wrapper
+    def progress_bar_function(self, progress_steps: int, function: Callable, *args, **kwargs):
         self.make_progress_bar(progress_steps)
         function(*args, **kwargs)
         self.destroy_progress_bar()
-
-
-    
-

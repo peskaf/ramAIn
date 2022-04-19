@@ -27,14 +27,16 @@ class Cropping(QFrame):
 
         real_validator = QRegularExpressionValidator("-?[0-9]+(\.[0-9]+)?")
 
-        # inputs
-        self.input_plot_start = QLineEdit("0", validator=real_validator)
-        self.input_plot_end = QLineEdit("0", validator=real_validator)
+        self.init_inputs_value = 0
 
-        self.input_map_left = QLineEdit("0", validator=real_validator)
-        self.input_map_top = QLineEdit("0", validator=real_validator)
-        self.input_map_right = QLineEdit("0", validator=real_validator)
-        self.input_map_bottom = QLineEdit("0", validator=real_validator)
+        # inputs
+        self.input_plot_start = QLineEdit(str(self.init_inputs_value), validator=real_validator)
+        self.input_plot_end = QLineEdit(str(self.init_inputs_value), validator=real_validator)
+
+        self.input_map_left = QLineEdit(str(self.init_inputs_value), validator=real_validator)
+        self.input_map_top = QLineEdit(str(self.init_inputs_value), validator=real_validator)
+        self.input_map_right = QLineEdit(str(self.init_inputs_value), validator=real_validator)
+        self.input_map_bottom = QLineEdit(str(self.init_inputs_value), validator=real_validator)
 
         # emit signal on button click (mainly for encapsulation purposes)
         self.apply_button = QPushButton("Apply")
@@ -115,7 +117,21 @@ class Cropping(QFrame):
         return parameters
 
     def reset(self) -> None:
-        ...
+        """
+        The function to reset all widgets to initial state.
+        """
 
-    def get_string_name(self):
+        inputs = [
+            self.input_plot_start,
+            self.input_plot_end,
+            self.input_map_left,
+            self.input_map_top,
+            self.input_map_right,
+            self.input_map_bottom
+            ]
+
+        for input in inputs:
+            input.setText(self.init_inputs_value)
+
+    def get_string_name(self) -> str:
         return "Cropping"

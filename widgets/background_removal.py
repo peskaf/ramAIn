@@ -106,9 +106,14 @@ class BackgroundRemoval(QFrame):
         parameters = (int(self.poly_deg.text()), )
         return parameters
 
-
     def reset(self) -> None:
-        ...
+        """
+        The function to reset all widgets to initial state.
+        """
 
-    def get_string_name(self):
+        self.poly_fit_btn.setChecked(True)
+        self.ignore_water_band.setChecked(True)
+        self.poly_deg.setText(str(self.init_poly_deg))
+
+    def get_string_name(self) -> str:
         return "Background Removal"
