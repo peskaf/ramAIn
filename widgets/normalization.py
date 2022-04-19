@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QFrame
-from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtGui import QRegularExpressionValidator, QIcon
 from PySide6.QtCore import Signal
 
 class Normalization(QFrame):
@@ -8,6 +8,7 @@ class Normalization(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("method_instance")
+        self.icon = QIcon("icons/normalize.svg")
         ...
 
     def reset(self) -> None:

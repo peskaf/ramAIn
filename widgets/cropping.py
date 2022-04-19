@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QWidget
-from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtGui import QRegularExpressionValidator, QIcon
 from PySide6.QtCore import Signal
 
 import pyqtgraph as pg
@@ -25,6 +25,7 @@ class Cropping(QFrame):
 
         super().__init__(parent)
         self.setObjectName("method_instance")
+        self.icon = QIcon("icons/cut.svg")
 
         real_validator = QRegularExpressionValidator("-?[0-9]+(\.[0-9]+)?")
 

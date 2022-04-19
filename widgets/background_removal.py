@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButton, QCheckBox, QPushButton
-from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtGui import QRegularExpressionValidator, QIcon
 from PySide6.QtCore import Signal
 
 class BackgroundRemoval(QFrame):
@@ -12,6 +12,7 @@ class BackgroundRemoval(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("method_instance")
+        self.icon = QIcon("icons/background.svg")
 
         # TODO: move these validators to sep. utils file ??
         int_validator = QRegularExpressionValidator("-?[0-9]+")

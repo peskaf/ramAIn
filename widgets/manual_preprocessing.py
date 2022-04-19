@@ -1,6 +1,6 @@
-from typing import Callable
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox, QProgressDialog
 from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop
+from PySide6.QtGui import QIcon, QPixmap
 
 from widgets.color import Color
 from widgets.files_view import FilesView
@@ -12,6 +12,7 @@ from widgets.plot_mode import PlotMode
 
 from widgets.data import Data
 
+from typing import Callable
 import numpy as np
 import os
 
@@ -295,10 +296,11 @@ class ManualPreprocessing(QFrame):
 
     def init_file_error_widget(self):
         self.file_error = QMessageBox()
-        self.file_error.setIcon(QMessageBox.Critical) #TODO: add some pretty icon
+        self.file_error.setIconPixmap(QPixmap("icons/x-circle.svg"))
         self.file_error.setText("File has invalide structure and cannot be loaded.")
         self.file_error.setInformativeText("RamAIn currently supports only .mat files produced by WITec spectroscopes. Sorry :(")
         self.file_error.setWindowTitle("Invalid file structure")
+        self.file_error.setWindowIcon(QIcon("icons/message.svg"))
         self.file_error.setStandardButtons(QMessageBox.Ok)
 
     def make_progress_bar(self, maximum):
@@ -309,9 +311,9 @@ class ManualPreprocessing(QFrame):
         self.progress.setCancelButton(None)
         # hide borders, title and "X" in the top right corner
         self.progress.setWindowFlags(Qt.WindowTitleHint) # Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowTitleHint
-        # self.progress.setWindowIcon(...) # TODO: add icon
+        self.progress.setWindowIcon(QIcon("icons/message.svg"))
+
         self.progress.setWindowTitle("Work in progress")
-        # self.progress.setLabelText("Note that this process cannot be cancelled.")
         self.update_progress.connect(self.set_progress)
 
     def set_progress(self):

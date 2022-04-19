@@ -14,9 +14,9 @@ class Menu(QFrame):
         icon = QIcon("icons/icon.svg")
         buttons = [
             QPushButton("   Manual Preprocessing", icon=icon), # spaces because of spacing between icon and text
-            QPushButton("   Database", icon=icon),
-            QPushButton("   Project", icon=icon),
-            QPushButton("   Settings", icon=icon),
+            QPushButton("   Spectra Decomposition", icon=icon),
+            QPushButton("   Automatic Processing", icon=icon),
+            QPushButton("   Settings", icon=QIcon("icons/settings.svg")),
             QPushButton("   Raman", icon=icon)
         ]
 

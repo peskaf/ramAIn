@@ -50,7 +50,7 @@ class Methods(QFrame):
         
         # TODO: add icon for each method
         for i in range(self.list.count()):
-            self.list.item(i).setIcon(QIcon("icons/icon.svg"))
+            self.list.item(i).setIcon(self.methods[i].icon)
 
         self.methods_layout.setCurrentIndex(0)
         self.list.currentItemChanged.connect(self.emit_method_changed)
