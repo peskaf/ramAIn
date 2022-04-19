@@ -59,6 +59,7 @@ class ManualPreprocessing(QFrame):
         self.init_cropping()
         self.init_crr()
         self.init_bgr()
+        self.init_equidistantification()
 
         self.init_file_error_widget()
 
@@ -205,6 +206,13 @@ class ManualPreprocessing(QFrame):
         self.update_plot(0, 0)
         # reconnect plot and map for sizes adjusting
         self.update_method(self.methods.cropping)
+
+    def equidistantification_apply(self):
+        self.curr_data.equidistantify(self.methods.equidistantification.get_params()[0])
+        self.spectral_map.update_image(self.curr_data.averages)
+        self.update_plot(0, 0)
+
+        self.update_method(self.methods.equidistantification)
     
     def crr_apply(self):
         auto_removal = self.methods.cosmic_ray_removal.auto_removal_btn.isChecked()
@@ -261,6 +269,10 @@ class ManualPreprocessing(QFrame):
         self.methods.background_removal.ignore_water_band_toggled.connect(self.bgr_update_plot)
         self.methods.background_removal.math_morpho_toggled.connect(self.bgr_update_plot)
         self.methods.background_removal.apply_clicked.connect(self.bgr_apply)
+
+    def init_equidistantification(self):
+        # connect inputs signals to function slots
+        self.methods.equidistantification.apply_clicked.connect(self.equidistantification_apply)
 
     def bgr_change_poly_on_plot(self, degree: int) -> None:
         ignore_water = self.methods.background_removal.ignore_water_band.isChecked()

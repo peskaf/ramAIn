@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.io
+import scipy.interpolate as si
 from functools import reduce
 
 from PySide6.QtCore import Signal
@@ -316,13 +317,13 @@ class Data:
         background = np.minimum(spectrum_opening, approximation)
         return background
 
-    def mm_algo_spectrum(self, ignore_water: bool, signal_to_emit: Signal = None) -> np.ndarray:
+    def mm_algo_spectrum(self, ignore_water: bool, signal_to_emit: Signal = None):
         # no speed-up version - possible speed-ups: multithreading, clustering
         backgrounds = np.apply_along_axis(self._mm_aaa, 2, self.data, ignore_water, signal_to_emit)
         self.data -= backgrounds
         self._recompute_dependent_data()
 
-    def vancouver(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
+    def vancouver(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None):
         backgrounds = np.apply_along_axis(self.vancouver_poly_bg, 2, self.data, degree, ignore_water, signal_to_emit)
         self.data -= backgrounds
         self._recompute_dependent_data()
@@ -361,3 +362,11 @@ class Data:
             criterium = np.abs((DEV - devs[-2]) / DEV)
 
         return poly_obj(self.x_axis)
+
+    def equidistantify(self, step: float):
+        spectrum_spline = si.CubicSpline(self.x_axis, self.data, axis=2, extrapolate=False)
+        new_x = np.arange(np.ceil(self.x_axis[0]), np.floor(self.x_axis[-1]), step)
+        self.x_axis = new_x
+        self.data = spectrum_spline(new_x)
+
+        self._recompute_dependent_data()

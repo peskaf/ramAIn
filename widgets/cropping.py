@@ -131,7 +131,7 @@ class Cropping(QFrame):
             ]
 
         for input in inputs:
-            input.setText(self.init_inputs_value)
+            input.setText(str(self.init_inputs_value))
 
     def get_string_name(self) -> str:
         return "Cropping"

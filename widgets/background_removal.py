@@ -2,8 +2,6 @@ from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButt
 from PySide6.QtGui import QRegularExpressionValidator
 from PySide6.QtCore import Signal
 
-import numpy as np
-
 class BackgroundRemoval(QFrame):
     # custom signals
     math_morpho_toggled = Signal(bool)
@@ -14,7 +12,7 @@ class BackgroundRemoval(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # TODO: move these validators to sep. utils file
+        # TODO: move these validators to sep. utils file ??
         int_validator = QRegularExpressionValidator("-?[0-9]+")
 
         self.poly_fit_btn = QRadioButton("Poly-fit (Vancouver)")
