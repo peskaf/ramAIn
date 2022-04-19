@@ -68,7 +68,9 @@ class ManualPreprocessing(QFrame):
         self.methods.list.setEnabled(False)
 
         layout.addWidget(self.methods)
+        layout.addStretch()
         layout.setAlignment(Qt.AlignTop)
+
         self.setLayout(layout)
 
     def update_spectral_map(self): # gets updated on file change
@@ -308,7 +310,25 @@ class ManualPreprocessing(QFrame):
         self.methods.setEnabled(False)
 
         self.progress = QProgressDialog("Progress", "...", 0, maximum)
+
         self.progress.setCancelButton(None)
+
+        # style for progress bar that is inside progress dialog must be set here for some reason...
+        self.progress.setStyleSheet(
+            """
+            QProgressBar {
+                border: 1px solid;
+                border-radius: 5px;
+                text-align: center;
+            }
+
+            QProgressBar::chunk {
+                background-color: rgb(248, 188, 36);
+                width: 1px;
+            }
+            """
+        )
+
         # hide borders, title and "X" in the top right corner
         self.progress.setWindowFlags(Qt.WindowTitleHint) # Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowTitleHint
         self.progress.setWindowIcon(QIcon("icons/message.svg"))

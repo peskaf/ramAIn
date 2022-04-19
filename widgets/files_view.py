@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QListWidget, QFileDialog
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QCursor
 
 import os
 
@@ -17,6 +18,7 @@ class FilesView(QFrame):
         self.data_folder = os.getcwd() + "\data" # TODO: look at \data folder -> it does not have to be there, here for debug only
         # .mat files in curr data folder
         self.file_list = QListWidget()
+
         # widget to display 
         self.currFolderWidget = QLabel(f"Current directory: {self.data_folder}") # os.path.basename()
 
@@ -25,6 +27,7 @@ class FilesView(QFrame):
         self.file_list.addItems(files)
 
         button = QPushButton("Change directory")
+        button.setCursor(QCursor(Qt.PointingHandCursor))
         # connect action to be made when button is clicked
         button.clicked.connect(self.change_folder)
 
