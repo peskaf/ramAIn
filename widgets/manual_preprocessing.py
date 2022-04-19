@@ -221,8 +221,7 @@ class ManualPreprocessing(QFrame):
         auto_removal = self.methods.cosmic_ray_removal.auto_removal_btn.isChecked()
 
         if auto_removal:
-            steps = np.multiply(*self.curr_data.data.shape[:2])
-            self.progress_bar_function(steps, self.curr_data.remove_spikes, *self.methods.cosmic_ray_removal.get_params()[2:])
+            self.curr_data.remove_spikes(*self.methods.cosmic_ray_removal.get_params()[2:])
         else: # manual
             self.curr_data.remove_manual(self.curr_plot_indices[0], self.curr_plot_indices[1], *self.methods.cosmic_ray_removal.get_params()[:2])
 
@@ -235,6 +234,7 @@ class ManualPreprocessing(QFrame):
         math_morpho = self.methods.background_removal.math_morpho_btn.isChecked()
         ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
         steps = np.multiply(*self.curr_data.data.shape[:2])
+        print(steps)
         if math_morpho:
             self.progress_bar_function(steps, self.curr_data.mm_algo_spectrum, ignore_water, self.update_progress)
         else:
@@ -310,7 +310,7 @@ class ManualPreprocessing(QFrame):
         self.methods.setEnabled(False)
 
         self.progress = QProgressDialog("Progress", "...", 0, maximum)
-
+        self.progress.setValue(0)
         self.progress.setCancelButton(None)
 
         # style for progress bar that is inside progress dialog must be set here for some reason...
@@ -344,7 +344,8 @@ class ManualPreprocessing(QFrame):
     def destroy_progress_bar(self):
         self.files_view.setEnabled(True)
         self.methods.setEnabled(True)
-        self.progress = None
+        self.update_progress.disconnect()
+        self.progress.deleteLater()
 
     # wrapper
     def progress_bar_function(self, progress_steps: int, function: Callable, *args, **kwargs):
