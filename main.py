@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("  " + "RamAIn")
-        self.setWindowIcon(QIcon("icons/icon.svg"))
+        self.setWindowIcon(QIcon("icons/RamAIn_logo_R_f8bc24.svg"))
         
         # self.setWindowFlag(Qt.FramelessWindowHint) # hide windows frame
 

@@ -14,7 +14,7 @@ class Title(QFrame):
 
         # icon has to be set as a lable with no text but with pixmap
         icon = QLabel()
-        icon.setPixmap(QPixmap("icons/RamAIn-logo-f8bc24.svg"))
+        icon.setPixmap(QPixmap("icons/RamAIn_logo_f8bc24.svg"))
     
         # enables resizing the icon to fit
         icon.setScaledContents(True)
