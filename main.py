@@ -15,7 +15,7 @@ class MainWindow(QMainWindow):
         
         # self.setWindowFlag(Qt.FramelessWindowHint) # hide windows frame
 
-        # tell how the whole app will look like
+        # how the whole app will look like
         layout = QVBoxLayout()
         layout.addWidget(Header())
 
@@ -36,6 +36,11 @@ class MainWindow(QMainWindow):
         with open("themes/light_style.qss") as f:
             self.setStyleSheet(f.read())
     
+    def show(self):
+        # centering has to be called after show -> overriding
+        super().show()
+        self.center()
+
     def center(self):
         center_point = QScreen.availableGeometry(QApplication.primaryScreen()).center()
         frame_geometry = self.frameGeometry()
@@ -47,5 +52,4 @@ if __name__ == "__main__":
     app = QApplication([])
     main = MainWindow()
     main.show()
-    main.center()
     app.exec()
