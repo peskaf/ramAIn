@@ -24,6 +24,7 @@ class Cropping(QFrame):
         """
 
         super().__init__(parent)
+        self.setObjectName("method_instance")
 
         real_validator = QRegularExpressionValidator("-?[0-9]+(\.[0-9]+)?")
 

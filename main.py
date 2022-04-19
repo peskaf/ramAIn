@@ -1,5 +1,6 @@
-from PySide6.QtGui import QIcon, QFontDatabase
+from PySide6.QtGui import QIcon, QFontDatabase, QScreen
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QWidget, QVBoxLayout
+from PySide6.QtCore import Qt
 
 from widgets.menu import Menu
 from widgets.header import Header
@@ -34,10 +35,17 @@ class MainWindow(QMainWindow):
 
         with open("themes/light_style.qss") as f:
             self.setStyleSheet(f.read())
+    
+    def center(self):
+        center_point = QScreen.availableGeometry(QApplication.primaryScreen()).center()
+        frame_geometry = self.frameGeometry()
+        frame_geometry.moveCenter(center_point)
+        self.move(frame_geometry.topLeft())
 
 
 if __name__ == "__main__":
     app = QApplication([])
     main = MainWindow()
     main.show()
+    main.center()
     app.exec()

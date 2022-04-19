@@ -19,7 +19,8 @@ class Header(QFrame):
          # fills the area between the widgets (title & constrol btns)
         layout.addStretch()
 
-        layout.addWidget(ControlButtons())
+        # control buttons for frameless version
+        # layout.addWidget(ControlButtons())
 
         layout.setAlignment(Qt.AlignLeft)
         layout.setContentsMargins(0,0,0,0)

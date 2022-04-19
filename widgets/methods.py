@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QFrame, QStackedLayout, QHBoxLayout, QListWidget
 from PySide6.QtCore import Signal
+from PySide6.QtGui import QIcon
 
 from widgets.cropping import Cropping
 from widgets.cosmic_ray_removal import CosmicRayRemoval
@@ -34,6 +35,7 @@ class Methods(QFrame):
         ]
 
         self.list = QListWidget()
+
         self.list.setObjectName("methods_list") # TODO: set fixed size ?
         self.list.addItems([method.get_string_name() for method in self.methods])
         
@@ -45,6 +47,10 @@ class Methods(QFrame):
 
         for method in self.methods:
             self.methods_layout.addWidget(method)
+        
+        # TODO: add icon for each method
+        for i in range(self.list.count()):
+            self.list.item(i).setIcon(QIcon("icons/icon.svg"))
 
         self.methods_layout.setCurrentIndex(0)
         self.list.currentItemChanged.connect(self.emit_method_changed)
@@ -52,6 +58,8 @@ class Methods(QFrame):
         layout = QHBoxLayout()
         layout.addWidget(self.list)
         layout.addLayout(self.methods_layout)
+        # layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         self.setLayout(layout)
     
     # resets to init mode - first method (view)

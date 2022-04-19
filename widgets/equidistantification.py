@@ -7,6 +7,7 @@ class Equidistantification(QFrame):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("method_instance")
 
         # TODO: move these validators to sep. utils file ??
         real_validator = QRegularExpressionValidator("-?[0-9]+(\.[0-9]+)?")

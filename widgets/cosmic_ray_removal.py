@@ -26,6 +26,7 @@ class CosmicRayRemoval(QFrame):
         """
 
         super().__init__(parent)
+        self.setObjectName("method_instance")
 
         # input validators
         real_validator = QRegularExpressionValidator("-?[0-9]+(\.[0-9]+)?")

@@ -60,6 +60,41 @@ QWidget {
     text-align: left;
 }
 
+/* METHODS */
+#methods .QListWidget {
+    color: rgb(0,0,0);
+    background-color: rgb(235,235,235);
+    border: none;
+    border-radius: 10px;
+}
+
+#methods .QListWidget::item {
+    height: 30px;
+    width: 60px;
+    border-top-left-radius: 10;
+    border-bottom-left-radius: 10;
+}
+
+#methods .QListWidget::item:selected {
+    color: rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+}
+
+#methods .QListWidget::item:hover {
+    color: rgb(0, 0, 0);
+    background-color: rgb(245, 245, 245);
+}
+
+#method_instance {
+    background-color: rgb(255,255,255);
+    border-radius: 10;
+}
+
+/* removes dots around list items */
+QListView {
+    outline: 0;
+}
+
 /* FILE LIST */
 /*
     Set style for list, button (change folder), scrollbar, label (cwd)
