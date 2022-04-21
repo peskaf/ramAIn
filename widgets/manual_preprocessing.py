@@ -234,7 +234,7 @@ class ManualPreprocessing(QFrame):
         math_morpho = self.methods.background_removal.math_morpho_btn.isChecked()
         ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
         steps = np.multiply(*self.curr_data.data.shape[:2])
-        print(steps)
+
         if math_morpho:
             self.progress_bar_function(steps, self.curr_data.mm_algo_spectrum, ignore_water, self.update_progress)
         else:

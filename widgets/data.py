@@ -175,6 +175,8 @@ class Data:
             window_width (int): Width of the sliding window; it's size is then 2 * window_width + 1.
         """
 
+        #TODO: pokud je kono moc male, aby tam bylo neco validniho, vlozi se misto celeho spektra "NaN", vyresit! (zdetsit okno na minimum z nejmensiho mozneho a zadaneho uzivatelem)
+
         # add first Z value (was not computed as we "detrended" the data) so that it exceeds the threshold automatically (in case it has spike)
         new_Z = np.insert(self.Z_scores, [0], np.full((self.Z_scores.shape[0], self.Z_scores.shape[1], 1), threshold + 1), axis=2)
         # make the last Z-score to exceed the threshold as well in case CR appears there -> sliding window would not restore it properly
