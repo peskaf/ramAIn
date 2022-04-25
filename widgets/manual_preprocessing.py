@@ -5,7 +5,7 @@ from PySide6.QtGui import QIcon, QPixmap
 from widgets.color import Color
 from widgets.files_view import FilesView
 from widgets.collapse_button import CollapseButton
-from widgets.methods import Methods
+from widgets.preprocessing_methods import PreprocessingMethods
 from widgets.spectral_map import SpectralMap
 from widgets.spectral_plot import SpectralPlot
 from widgets.plot_mode import PlotMode
@@ -54,7 +54,7 @@ class ManualPreprocessing(QFrame):
 
         layout.addLayout(self.map_plot_layout)
 
-        self.methods = Methods()
+        self.methods = PreprocessingMethods()
         self.methods.method_changed.connect(self.update_method)
 
         self.init_cropping()

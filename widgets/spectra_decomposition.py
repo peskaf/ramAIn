@@ -1,20 +1,14 @@
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox, QProgressDialog, QScrollArea, QSizePolicy
-from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon, QPixmap
 
-from widgets.color import Color
 from widgets.files_view import FilesView
 from widgets.collapse_button import CollapseButton
-from widgets.methods import Methods
-from widgets.spectral_map import SpectralMap
-from widgets.spectral_plot import SpectralPlot
-from widgets.plot_mode import PlotMode
+from widgets.decomposition_methods import DecompositionMethods
 from widgets.component import Component
 
 from widgets.data import Data
 
-from typing import Callable
-import numpy as np
 import os
 
 class SpectraDecomposition(QFrame):
@@ -32,22 +26,22 @@ class SpectraDecomposition(QFrame):
         self.files_view.folder_changed.connect(self.update_folder)
 
         # TODO: method selection + params
+        self.methods = DecompositionMethods()
 
         # TODO: results visualization
         self.components_area = QScrollArea()
         self.components_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.components_frame = QFrame()
+        self.components_frame = QFrame(self.components_area)
         self.components = QVBoxLayout()
-        # self.components_area.setWidgetResizable(True)
-        # self.components.
+        self.components_area.setWidgetResizable(True)
 
         self.components_frame.setLayout(self.components)
+        self.components_frame.setMouseTracking(True)
 
         self.components_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.components_area.setWidgetResizable(True)
 
         self.components_area.setWidget(self.components_frame)
-        
 
         # misc
         self.init_file_error_widget()
@@ -55,6 +49,8 @@ class SpectraDecomposition(QFrame):
         layout = QVBoxLayout()
         layout.addWidget(CollapseButton(self.files_view, "Choose File"))
         layout.addWidget(self.files_view)
+        layout.addWidget(CollapseButton(self.methods, "Choose Method"))
+        layout.addWidget(self.methods)
         layout.addWidget(self.components_area)
         layout.setAlignment(Qt.AlignTop)
 
@@ -77,7 +73,7 @@ class SpectraDecomposition(QFrame):
         """
 
         self.curr_file = temp_curr_file
-        self.components.addWidget(Component(self.curr_data.x_axis, self.curr_data.data[0,0,:], self.curr_data.averages))
+        self.components.addWidget(Component(self.curr_data.x_axis, self.curr_data.data[0,0,:], self.curr_data.averages, self.components_frame))
 
     def update_folder(self, new_folder_name: str):
         # TODO: vyrasit jak se ma widget chovat pri zmene adresare k novemu souboru aktualnimu

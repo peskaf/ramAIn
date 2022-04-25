@@ -9,7 +9,7 @@ from widgets.normalization import Normalization
 from widgets.linearization import Linearization
 from widgets.view import View
 
-class Methods(QFrame):
+class PreprocessingMethods(QFrame):
     method_changed = Signal(QFrame)
 
     def __init__(self, parent=None):

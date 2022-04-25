@@ -1,23 +1,47 @@
-from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget, QLineEdit
-from PySide6.QtCore import Qt
+from pydoc import Doc
+from PySide6.QtGui import QColor, QWheelEvent
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget, QLineEdit, QGraphicsSceneWheelEvent
+from PySide6.QtCore import Qt, QPoint
 
 import pyqtgraph as pg
 import numpy as np
 
 from widgets.settings import VIRIDIS_COLOR_MAP, HOT_COLOR_MAP, GRAY_COLOR_MAP, CIVIDIS_COLOR_MAP
 
+class ScrollablePlotWidget(pg.PlotWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+        self.parent = parent
+
+    def wheelEvent(self,event):
+        self.parent.wheelEvent(event)
+
+"""
+class ScrollableViewBox(pg.ViewBox):
+    def __init__(self, parent=None):
+        super().__init__(enableMouse=False)
+        self.parent = parent
+
+    def wheelEvent(self, event: QGraphicsSceneWheelEvent):
+
+        pixel_delta = event.delta()
+        # this does not scroll scrolling widget..
+        print(self.parent.parent.scroll(0, pixel_delta))
+"""
+# TODO: scrolling over map?
+
 class Component(QFrame):
     def __init__(self, x, y, map, parent=None):
         super().__init__(parent)
+        self.setMouseTracking(True)
 
         self.setMinimumHeight(150)
 
         self.x_data = x
         self.y_data = y
         self.map_data = map
-
-        self.component_map = pg.ImageView()
+        
+        self.component_map = pg.ImageView(parent)#, view=ScrollableViewBox(parent))
         self.component_map.ui.histogram.hide()
         self.component_map.ui.roiBtn.hide()
         self.component_map.ui.menuBtn.hide()
@@ -30,11 +54,10 @@ class Component(QFrame):
         self.component_map.getView().setMouseEnabled(False, False)
         self.component_map.getView().setDefaultPadding(0)
         self.component_map.getView().setAspectLocked(True, ratio=None)
-        
         self.component_map.getView().setBackgroundColor(QColor(240,240,240))
 
-        self.component_plot = pg.PlotWidget(self)
-        self.component_plot.getPlotItem().getViewBox().setMouseEnabled(False, False)
+        self.component_plot = ScrollablePlotWidget(parent)
+        #self.component_plot.getPlotItem().getViewBox().setMouseEnabled(False, False)
         self.component_plot.setBackground(bg_color)
         plot_pen = pg.mkPen(color="#266867", width=1.5)
         self.line = self.component_plot.plot(self.x_data, self.y_data, pen=plot_pen)
