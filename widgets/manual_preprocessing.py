@@ -22,6 +22,8 @@ class ManualPreprocessing(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.icon = QIcon("icons/view.svg") #TODO: change
+
         # Nothing set yet
         self.files_view = FilesView()
 
@@ -352,3 +354,6 @@ class ManualPreprocessing(QFrame):
         self.make_progress_bar(progress_steps)
         function(*args, **kwargs)
         self.destroy_progress_bar()
+
+    def get_string_name(self):
+        return "Manual Preprocessing"

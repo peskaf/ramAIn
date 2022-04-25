@@ -15,6 +15,8 @@ class SpectraDecomposition(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.icon = QIcon("icons/view.svg") #TODO: change
+
         # files
         self.files_view = FilesView()
 
@@ -87,3 +89,6 @@ class SpectraDecomposition(QFrame):
         self.file_error.setWindowTitle("Invalid file structure")
         self.file_error.setWindowIcon(QIcon("icons/message.svg"))
         self.file_error.setStandardButtons(QMessageBox.Ok)
+
+    def get_string_name(self):
+        return "Spectra Decomposition"

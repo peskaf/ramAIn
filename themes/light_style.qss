@@ -3,7 +3,14 @@ QWidget {
     font-family: "montserrat";
 }
 
-#menu .QPushButton {
+QListWidget#menu {
+    background-color: rgb(255,255,255);
+    border: none;
+    border-radius: 10;
+    max-width: 220px;
+}
+
+ QListWidget::item#menu {
     background-color: rgb(255,255,255);
     border: none;
     border-radius: 10;
@@ -19,10 +26,9 @@ QWidget {
     icon-size: 25px;
 }
 
-#menu .QPushButton:hover {
+QListWidget::item:hover#menu {
     background-color: rgb(240,240,240);
 }
-
 /* HEADER */
 #control_buttons .QPushButton {
     border: none;

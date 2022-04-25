@@ -19,7 +19,8 @@ class MainWindow(QMainWindow):
         # how the whole app will look like
         layout = QVBoxLayout()
         layout.addWidget(Header())
-
+        layout.addWidget(Menu())
+        """
         layout2 = QHBoxLayout()
         layout2.addWidget(Menu())
 
@@ -28,7 +29,7 @@ class MainWindow(QMainWindow):
         layout2.addWidget(SpectraDecomposition())
 
         layout.addLayout(layout2)
-    
+        """
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)

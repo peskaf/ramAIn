@@ -61,4 +61,4 @@ class Linearization(QFrame):
         self.data_step.setText(str(self.init_data_step))
 
     def get_string_name(self):
-        return "Equidistantification"
+        return "Linearization"
