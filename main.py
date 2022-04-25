@@ -20,16 +20,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.addWidget(Header())
         layout.addWidget(Menu())
-        """
-        layout2 = QHBoxLayout()
-        layout2.addWidget(Menu())
 
-        # sem pak widget layout kde jsou za sebou ta okna a poradi se meni pomoci tlacitek v menu
-        # layout2.addWidget(ManualPreprocessing())
-        layout2.addWidget(SpectraDecomposition())
-
-        layout.addLayout(layout2)
-        """
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)

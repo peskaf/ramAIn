@@ -29,6 +29,7 @@ class SpectraDecomposition(QFrame):
 
         # TODO: method selection + params
         self.methods = DecompositionMethods()
+        self.methods.setEnabled(False)
 
         # TODO: results visualization
         self.components_area = QScrollArea()
@@ -73,7 +74,7 @@ class SpectraDecomposition(QFrame):
             self.methods.list.setEnabled(True)
         self.methods.reset()
         """
-
+        self.methods.setEnabled(True)
         self.curr_file = temp_curr_file
         self.components.addWidget(Component(self.curr_data.x_axis, self.curr_data.data[0,0,:], self.curr_data.averages, self.components_frame))
 

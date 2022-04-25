@@ -1,6 +1,5 @@
-from PySide6.QtWidgets import QFrame, QStackedLayout, QHBoxLayout, QListWidget
+from PySide6.QtWidgets import QFrame, QStackedLayout, QHBoxLayout, QListWidget, QSizePolicy
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QIcon
 
 from widgets.PCA import PCA
 from widgets.NMF import NMF
@@ -47,6 +46,7 @@ class DecompositionMethods(QFrame):
         layout.addLayout(self.methods_layout)
         layout.setSpacing(0)
         self.setLayout(layout)
+        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
     
     # resets to init mode - first method
     def reset(self):
