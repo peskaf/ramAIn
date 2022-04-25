@@ -6,7 +6,7 @@ from widgets.cropping import Cropping
 from widgets.cosmic_ray_removal import CosmicRayRemoval
 from widgets.background_removal import BackgroundRemoval
 from widgets.normalization import Normalization
-from widgets.equidistantification import Equidistantification
+from widgets.linearization import Linearization
 from widgets.view import View
 
 class Methods(QFrame):
@@ -23,13 +23,13 @@ class Methods(QFrame):
         self.cosmic_ray_removal = CosmicRayRemoval()
         self.background_removal = BackgroundRemoval()
         self.normalization = Normalization()
-        self.equidistantification = Equidistantification()
+        self.linearization = Linearization()
 
         self.methods = [
             self.view,
             self.cropping,
             self.cosmic_ray_removal,
-            self.equidistantification,
+            self.linearization,
             self.normalization,
             self.background_removal,
         ]
@@ -47,8 +47,7 @@ class Methods(QFrame):
 
         for method in self.methods:
             self.methods_layout.addWidget(method)
-        
-        # TODO: add icon for each method
+
         for i in range(self.list.count()):
             self.list.item(i).setIcon(self.methods[i].icon)
 

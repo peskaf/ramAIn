@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt
 from widgets.menu import Menu
 from widgets.header import Header
 from widgets.manual_preprocessing import ManualPreprocessing
+from widgets.spectra_decomposition import SpectraDecomposition
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -23,7 +24,8 @@ class MainWindow(QMainWindow):
         layout2.addWidget(Menu())
 
         # sem pak widget layout kde jsou za sebou ta okna a poradi se meni pomoci tlacitek v menu
-        layout2.addWidget(ManualPreprocessing())
+        # layout2.addWidget(ManualPreprocessing())
+        layout2.addWidget(SpectraDecomposition())
 
         layout.addLayout(layout2)
     

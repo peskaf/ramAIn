@@ -365,7 +365,7 @@ class Data:
 
         return poly_obj(self.x_axis)
 
-    def equidistantify(self, step: float):
+    def linearize(self, step: float):
         spectrum_spline = si.CubicSpline(self.x_axis, self.data, axis=2, extrapolate=False)
         new_x = np.arange(np.ceil(self.x_axis[0]), np.floor(self.x_axis[-1]), step)
         self.x_axis = new_x

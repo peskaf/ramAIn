@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButt
 from PySide6.QtGui import QRegularExpressionValidator, QIcon
 from PySide6.QtCore import Signal
 
-class Equidistantification(QFrame):
+class Linearization(QFrame):
     apply_clicked = Signal()
 
     def __init__(self, parent=None):

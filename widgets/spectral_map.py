@@ -14,7 +14,7 @@ class SpectralMap(QFrame):
     A widget for spectral map visualization.
     """
 
-    def __init__(self, data, parent: QWidget = None) -> None:
+    def __init__(self, data: np.ndarray, parent: QWidget = None) -> None:
         """
         The constructor for SpectralMap widget.
   
@@ -25,7 +25,7 @@ class SpectralMap(QFrame):
 
         super().__init__(parent)
 
-        self.win = pg.GraphicsLayoutWidget()
+        self.win = pg.GraphicsLayoutWidget() #TODO: delete
         
         self.image_view = pg.ImageView()
         self.data = data

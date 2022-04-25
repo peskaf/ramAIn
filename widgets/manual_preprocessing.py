@@ -60,7 +60,7 @@ class ManualPreprocessing(QFrame):
         self.init_cropping()
         self.init_crr()
         self.init_bgr()
-        self.init_equidistantification()
+        self.init_linearization()
 
         self.init_file_error_widget()
 
@@ -110,7 +110,7 @@ class ManualPreprocessing(QFrame):
     def _update_plot_from_mouse_point(self) -> None:
         self.update_plot(int(np.floor(self.spectral_map.mouse_point.x())), int(np.floor(self.spectral_map.mouse_point.y())))
 
-    def update_file(self, file: QListWidgetItem):
+    def update_file(self, file: QListWidgetItem) -> None:
         
         temp_curr_file = file.text()
         try:
@@ -210,12 +210,12 @@ class ManualPreprocessing(QFrame):
         # reconnect plot and map for sizes adjusting
         self.update_method(self.methods.cropping)
 
-    def equidistantification_apply(self):
-        self.curr_data.equidistantify(self.methods.equidistantification.get_params()[0])
+    def linearization_apply(self):
+        self.curr_data.linearize(self.methods.linearization.get_params()[0])
         self.spectral_map.update_image(self.curr_data.averages)
         self.update_plot(0, 0)
 
-        self.update_method(self.methods.equidistantification)
+        self.update_method(self.methods.linearization)
     
     def crr_apply(self):
         auto_removal = self.methods.cosmic_ray_removal.auto_removal_btn.isChecked()
@@ -273,9 +273,9 @@ class ManualPreprocessing(QFrame):
         self.methods.background_removal.math_morpho_toggled.connect(self.bgr_update_plot)
         self.methods.background_removal.apply_clicked.connect(self.bgr_apply)
 
-    def init_equidistantification(self):
+    def init_linearization(self):
         # connect inputs signals to function slots
-        self.methods.equidistantification.apply_clicked.connect(self.equidistantification_apply)
+        self.methods.linearization.apply_clicked.connect(self.linearization_apply)
 
     def bgr_change_poly_on_plot(self, degree: int) -> None:
         ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
@@ -300,7 +300,7 @@ class ManualPreprocessing(QFrame):
         self.file_error = QMessageBox()
         self.file_error.setIconPixmap(QPixmap("icons/x-circle.svg"))
         self.file_error.setText("File has invalide structure and cannot be loaded.")
-        self.file_error.setInformativeText("RamAIn currently supports only .mat files produced by WITec spectroscopes. Sorry :(")
+        self.file_error.setInformativeText("RamAIn currently supports only .mat files originally produced by WITec spectroscopes. Sorry :(")
         self.file_error.setWindowTitle("Invalid file structure")
         self.file_error.setWindowIcon(QIcon("icons/message.svg"))
         self.file_error.setStandardButtons(QMessageBox.Ok)
