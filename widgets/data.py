@@ -399,6 +399,10 @@ class Data:
         for i in range(len(nmf.components_)):
             self.components.append({"map": nmf_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": nmf.components_[i]})
 
+    def export_components(self, file_name: str, components_names: list[str]) -> None:
+        
+        ...
+
         
 
 

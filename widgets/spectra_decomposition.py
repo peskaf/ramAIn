@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon, QPixmap
 
@@ -50,6 +50,9 @@ class SpectraDecomposition(QFrame):
 
         # misc
         self.init_file_error_widget()
+        self.export_button = QPushButton("Export")
+        self.export_button.clicked.connect(self.export_components)
+        self.export_button.setMaximumWidth(200)
 
         layout = QVBoxLayout()
         layout.addWidget(CollapseButton(self.files_view, "Choose File"))
@@ -57,6 +60,7 @@ class SpectraDecomposition(QFrame):
         layout.addWidget(CollapseButton(self.methods, "Choose Method"))
         layout.addWidget(self.methods)
         layout.addWidget(self.components_area)
+        layout.addWidget(self.export_button)
         layout.setAlignment(Qt.AlignTop)
 
         self.setLayout(layout)
@@ -118,7 +122,11 @@ class SpectraDecomposition(QFrame):
 
     def remove_components(self):
         for i in reversed(range(self.components.count())): 
-            self.components.takeAt(i).widget().deleteLater() #setParent(None)
+            self.components.takeAt(i).widget().deleteLater()
+
+    def export_components(self):
+        self.f = QFileDialog.getSaveFileName(self, 'Dialog Title', self.files_view.data_folder, filter='*.mat')
+        print(self.f)
 
     def get_string_name(self):
         return "Spectra Decomposition"

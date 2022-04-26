@@ -1,6 +1,5 @@
-from PySide6.QtGui import QIcon, QCursor
-from PySide6.QtWidgets import QFrame, QPushButton, QVBoxLayout, QListWidget, QStackedLayout, QHBoxLayout
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QFrame, QListWidget, QStackedLayout, QHBoxLayout
+from PySide6.QtCore import Signal
 
 from widgets.manual_preprocessing import ManualPreprocessing
 from widgets.spectra_decomposition import SpectraDecomposition
@@ -12,33 +11,8 @@ class Menu(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # set name for qss styling
-        # self.setObjectName("menu")
         # TODO: menu styling
-        """
-        # TODO: add relevant icons to the menu items
-        icon = QIcon("icons/icon.svg")
-        buttons = [
-            QPushButton("   Manual Preprocessing", icon=icon), # spaces because of spacing between icon and text
-            QPushButton("   Spectra Decomposition", icon=icon),
-            QPushButton("   Automatic Processing", icon=icon),
-            QPushButton("   Settings", icon=QIcon("icons/settings.svg")),
-            QPushButton("   Raman", icon=icon)
-        ]
 
-        layout = QVBoxLayout()
-
-        for button in buttons:
-            # self.setObjectName("nazev") # pripadne pak pro routing tlacitek
-            button.setCursor(QCursor(Qt.PointingHandCursor))
-            layout.addWidget(button)
-
-        # buttons should be aligned to the top of the layout
-        layout.setAlignment(Qt.AlignTop)
-
-        self.setLayout(layout)
-
-        """
         self.manual_preprocessing = ManualPreprocessing()
         self.spectra_decomposition = SpectraDecomposition()
 
@@ -56,6 +30,7 @@ class Menu(QFrame):
         self.list.setCurrentItem(self.list.item(0))
         # do not sort list items (methods) as they are in specific ored
         self.list.setSortingEnabled(False) 
+        self.list.setMinimumWidth(210)
 
         self.main_layout = QStackedLayout()
 

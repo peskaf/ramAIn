@@ -6,7 +6,7 @@ from PySide6.QtCore import Qt, QPoint
 import pyqtgraph as pg
 import numpy as np
 
-from widgets.settings import VIRIDIS_COLOR_MAP, HOT_COLOR_MAP, GRAY_COLOR_MAP, CIVIDIS_COLOR_MAP
+from widgets.settings import VIRIDIS_COLOR_MAP, HOT_COLOR_MAP, JET_COLOR_MAP, CIVIDIS_COLOR_MAP
 
 class ScrollablePlotWidget(pg.PlotWidget):
     def __init__(self, parent=None):
@@ -54,7 +54,8 @@ class Component(QFrame):
         self.component_map.ui.menuBtn.hide()
 
         bg_color = (240,240,240)
-        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=VIRIDIS_COLOR_MAP) # TODO: colomap from settings
+        color_map = VIRIDIS_COLOR_MAP
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
 
         self.component_map.setColorMap(cmap)
         self.component_map.setImage(self.map_data, autoRange=False)

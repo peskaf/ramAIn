@@ -5,7 +5,7 @@ from PySide6.QtCore import QRectF, QPoint
 import pyqtgraph as pg
 import numpy as np
 
-from widgets.settings import VIRIDIS_COLOR_MAP, HOT_COLOR_MAP, GRAY_COLOR_MAP, CIVIDIS_COLOR_MAP
+from widgets.settings import VIRIDIS_COLOR_MAP, HOT_COLOR_MAP, JET_COLOR_MAP, CIVIDIS_COLOR_MAP
 from widgets.plot_mode import PlotMode
 from widgets.adjustable_handles_roi import AdjustableHandlesROI
 
@@ -35,7 +35,8 @@ class SpectralMap(QFrame):
         self.image_view.ui.roiBtn.hide()
         self.image_view.ui.menuBtn.hide()
 
-        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=HOT_COLOR_MAP) # TODO: colomap from settings
+        color_map = HOT_COLOR_MAP
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
         self.image_view.setColorMap(cmap)
         self.image_view.setImage(self.data, autoRange=False)
         self.image_view.getView().setDefaultPadding(0)
