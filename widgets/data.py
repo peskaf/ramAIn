@@ -2,6 +2,7 @@ import numpy as np
 import scipy.io
 import scipy.interpolate as si
 from functools import reduce
+from sklearn import decomposition
 
 from PySide6.QtCore import Signal
 
@@ -28,6 +29,7 @@ class Data:
         self.maxima = None
         self.averages = None
         self.Z_scores = None
+        self.components = []
         
         self.load_data(in_file)
 
@@ -365,10 +367,30 @@ class Data:
 
         return poly_obj(self.x_axis)
 
-    def linearize(self, step: float):
+    def linearize(self, step: float) -> None:
         spectrum_spline = si.CubicSpline(self.x_axis, self.data, axis=2, extrapolate=False)
         new_x = np.arange(np.ceil(self.x_axis[0]), np.floor(self.x_axis[-1]), step)
         self.x_axis = new_x
         self.data = spectrum_spline(new_x)
 
         self._recompute_dependent_data()
+
+    # decomposition methods
+
+    def PCA(self, n_components: int) -> None:
+        self.components = [] # reset to init state
+
+        reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
+        pca = decomposition.PCA(n_components=n_components) #TODO: mozna nejaka regularizace apod.
+        pca.fit(reshaped_data)
+        print(pca.transform(reshaped_data).shape)
+        pca_transformed_data = pca.transform(reshaped_data)
+
+        for i in range(len(pca.components_)):
+            self.components.append({"map": pca_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": pca.components_[i]})
+
+        print(self.components)
+
+        
+
+

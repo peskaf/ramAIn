@@ -16,6 +16,12 @@ class ScrollablePlotWidget(pg.PlotWidget):
     def wheelEvent(self,event):
         self.parent.wheelEvent(event)
 
+    def mousePressEvent(self, QMouseEvent):
+        ...
+
+    def mouseReleaseEvent(self, QMouseEvent):
+        ...
+
 """
 class ScrollableViewBox(pg.ViewBox):
     def __init__(self, parent=None):
@@ -35,7 +41,8 @@ class Component(QFrame):
         super().__init__(parent)
         self.setMouseTracking(True)
 
-        self.setMinimumHeight(150)
+        self.setMinimumHeight(175)
+        self.setMaximumHeight(400)
 
         self.x_data = x
         self.y_data = y
@@ -55,6 +62,8 @@ class Component(QFrame):
         self.component_map.getView().setDefaultPadding(0)
         self.component_map.getView().setAspectLocked(True, ratio=None)
         self.component_map.getView().setBackgroundColor(QColor(240,240,240))
+        self.component_map.setMinimumWidth(175)
+        self.component_map.setMaximumWidth(250)
 
         self.component_plot = ScrollablePlotWidget(parent)
         #self.component_plot.getPlotItem().getViewBox().setMouseEnabled(False, False)

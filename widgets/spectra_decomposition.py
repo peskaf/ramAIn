@@ -30,6 +30,7 @@ class SpectraDecomposition(QFrame):
         # TODO: method selection + params
         self.methods = DecompositionMethods()
         self.methods.setEnabled(False)
+        self.init_pca()
 
         # TODO: results visualization
         self.components_area = QScrollArea()
@@ -76,7 +77,6 @@ class SpectraDecomposition(QFrame):
         """
         self.methods.setEnabled(True)
         self.curr_file = temp_curr_file
-        self.components.addWidget(Component(self.curr_data.x_axis, self.curr_data.data[0,0,:], self.curr_data.averages, self.components_frame))
 
     def update_folder(self, new_folder_name: str):
         # TODO: vyrasit jak se ma widget chovat pri zmene adresare k novemu souboru aktualnimu
@@ -90,6 +90,24 @@ class SpectraDecomposition(QFrame):
         self.file_error.setWindowTitle("Invalid file structure")
         self.file_error.setWindowIcon(QIcon("icons/message.svg"))
         self.file_error.setStandardButtons(QMessageBox.Ok)
+
+    def init_pca(self):
+        self.methods.PCA.apply_clicked.connect(self.PCA_apply)
+
+    def PCA_apply(self):
+        # self.components.addWidget(Component(self.curr_data.x_axis, self.curr_data.data[0,0,:], self.curr_data.averages, self.components_frame))
+        n_comps = self.methods.PCA.get_params()[0]
+        self.curr_data.PCA(n_comps)
+        self.show_components()
+
+    def show_components(self):
+        self.remove_components()
+        for component in self.curr_data.components:
+            self.components.addWidget(Component(self.curr_data.x_axis, component["plot"], component["map"], parent=self.components_frame))
+
+    def remove_components(self):
+        for i in reversed(range(self.components.count())): 
+            self.components.takeAt(i).widget().deleteLater() #setParent(None)
 
     def get_string_name(self):
         return "Spectra Decomposition"
