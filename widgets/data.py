@@ -1,8 +1,12 @@
 import numpy as np
 import scipy.io
 import scipy.interpolate as si
+from scipy import signal
 from functools import reduce
 from sklearn import decomposition
+import matplotlib.colors as mcolors
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
 
 from PySide6.QtCore import Signal
 
@@ -380,6 +384,7 @@ class Data:
     def PCA(self, n_components: int) -> None:
         self.components = [] # reset to init state
 
+        # TODO: abs?
         reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
         pca = decomposition.PCA(n_components=n_components) #TODO: mozna nejaka regularizace apod.
         pca.fit(reshaped_data)
@@ -391,18 +396,95 @@ class Data:
     def NMF(self, n_components: int) -> None:
         self.components = [] # reset to init state
 
+        # np.abs has to be present since NMF requires positive values
         reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
-        nmf = decomposition.NMF(n_components=n_components) #TODO: mozna nejaka regularizace apod.
+        nmf = decomposition.NMF(n_components=n_components, init="nndsvd") #TODO: mozna nejaka regularizace apod.
         nmf.fit(reshaped_data)
         nmf_transformed_data = nmf.transform(reshaped_data)
 
         for i in range(len(nmf.components_)):
             self.components.append({"map": nmf_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": nmf.components_[i]})
 
-    def export_components(self, file_name: str, components_names: list[str]) -> None:
+    def export_components(self, file_name: str, file_format: str, components_names: list[str]=None) -> None:
+        # matplotlib pic export
+        n_components = len(self.components)
+
+        # letters for components identification
+        comp_letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+
+        component_plots = [component["plot"] for component in self.components]
+        component_maps = [component["map"] for component in self.components]
+
+        plt.figure(figsize=(14, n_components * 2.5))
+
+        # set white background on exported images
+        plt.rcParams["savefig.facecolor"] = "white"
+
+        # colors for matplotlib plotting
+        colors = list(mcolors.TABLEAU_COLORS) 
+
+        # subplot params
+        n_rows = len(component_plots)
+        n_cols = 2
+        index = 1
+
+        # maps
+
+        for i in range(n_components):
+            ax = plt.subplot(n_rows, n_cols, index)
+            plt.axis('off')
+            # set limist so that frame can be made
+            ax.set_xlim(-1.5, self.data.shape[0] + 1.5)
+            ax.set_ylim(-1.5, self.data.shape[1] + 1.5)
+
+            # frame with color corresponding to plot's one
+            rec = patches.Rectangle((-1.5, -1.5), self.data.shape[0] + 3, self.data.shape[1] + 3, linewidth=2, edgecolor=colors[n_components -1 - i], facecolor=colors[n_components - 1 - i])
+            rec.set_zorder(0)
+            ax.add_patch(rec)
+
+            # need to plot starting from the last image so that position fits with plot
+            plt.imshow(component_maps[n_components - 1 - i].reshape(self.data.shape[0], self.data.shape[1]).T, extent=[0, self.data.shape[0], 0, self.data.shape[1]])
+            
+            # move to next row
+            index += n_cols
+
+        # plots
+
+        # shifts for annotation and lines so that they can be on top of each other in one plot
+        shift_step = np.max(component_plots) + 3
+
+        letter_shift_x = -150
+        letter_shift_y = 3
+        annotaion_shift_y = 0.6
+        annotation_shift_x = - 0.015 * len(self.x_axis)
+        shift = 0
+
+        plt.subplot(5, 2, (2, 10))
+        # set ylim so that upper plot has same space above as other plots
+        plt.ylim(top=shift_step * n_components, bottom=-1)
+        plt.xlim(self.x_axis[0], self.x_axis[-1])
+        plt.axis('on')
+
+        for i in range(n_components):
+            plt.plot(self.x_axis, component_plots[i] + shift, linewidth=2, color=colors[i])
+
+            # find and annotate important peaks
+            peaks, _ = signal.find_peaks(component_plots[i], prominence=0.8) # 0.5 seems fine
+            for peak_index in peaks:
+                plt.annotate(f"{int(np.round(self.x_axis[peak_index]))}", (self.x_axis[peak_index] + annotation_shift_x, component_plots[i][peak_index] + shift + annotaion_shift_y), ha='left', rotation=90)
+
+            # letter annotation
+            plt.annotate(comp_letters[n_components - 1 - i], (self.x_axis[-1] + letter_shift_x, component_plots[i][peak_index] + shift + letter_shift_y), size="xx-large", weight="bold")
+
+            shift += shift_step
+
+        # reduce space between maps and plots
+        plt.subplots_adjust(wspace=-0.2, hspace=0.1)
         
-        ...
 
+        plt.xlabel("Raman shift (cm$^{-1}$)")
+        plt.ylabel("Intensity (a.u.)")
+        plt.yticks([])
         
-
-
+        plt.tight_layout()
+        plt.savefig(file_name, bbox_inches='tight', format=file_format)

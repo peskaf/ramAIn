@@ -125,8 +125,19 @@ class SpectraDecomposition(QFrame):
             self.components.takeAt(i).widget().deleteLater()
 
     def export_components(self):
-        self.f = QFileDialog.getSaveFileName(self, 'Dialog Title', self.files_view.data_folder, filter='*.mat')
-        print(self.f)
+        # formats supported by matplotlib
+        supported_formats = ["png", "pdf", "ps", "eps", "svg"]
+
+        # filter fot QFileDialog
+        regex_formats = ["*." + ext for ext in supported_formats]
+        filter = ';;'.join(regex_formats)
+
+        file_name, extension = QFileDialog.getSaveFileName(self, "Components Export", self.files_view.data_folder, filter=filter)
+
+        # get nly frmat string
+        format = str.split(extension, '.')[1]
+
+        self.curr_data.export_components(file_name, format)
 
     def get_string_name(self):
         return "Spectra Decomposition"
