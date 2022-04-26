@@ -383,13 +383,21 @@ class Data:
         reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
         pca = decomposition.PCA(n_components=n_components) #TODO: mozna nejaka regularizace apod.
         pca.fit(reshaped_data)
-        print(pca.transform(reshaped_data).shape)
         pca_transformed_data = pca.transform(reshaped_data)
 
         for i in range(len(pca.components_)):
             self.components.append({"map": pca_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": pca.components_[i]})
 
-        print(self.components)
+    def NMF(self, n_components: int) -> None:
+        self.components = [] # reset to init state
+
+        reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
+        nmf = decomposition.NMF(n_components=n_components) #TODO: mozna nejaka regularizace apod.
+        nmf.fit(reshaped_data)
+        nmf_transformed_data = nmf.transform(reshaped_data)
+
+        for i in range(len(nmf.components_)):
+            self.components.append({"map": nmf_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": nmf.components_[i]})
 
         
 

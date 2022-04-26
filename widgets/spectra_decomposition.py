@@ -31,6 +31,7 @@ class SpectraDecomposition(QFrame):
         self.methods = DecompositionMethods()
         self.methods.setEnabled(False)
         self.init_pca()
+        self.init_nmf()
 
         # TODO: results visualization
         self.components_area = QScrollArea()
@@ -94,14 +95,24 @@ class SpectraDecomposition(QFrame):
     def init_pca(self):
         self.methods.PCA.apply_clicked.connect(self.PCA_apply)
 
+    def init_nmf(self):
+        self.methods.NMF.apply_clicked.connect(self.NMF_apply)
+
     def PCA_apply(self):
-        # self.components.addWidget(Component(self.curr_data.x_axis, self.curr_data.data[0,0,:], self.curr_data.averages, self.components_frame))
         n_comps = self.methods.PCA.get_params()[0]
         self.curr_data.PCA(n_comps)
         self.show_components()
 
+    def NMF_apply(self):
+        n_comps = self.methods.NMF.get_params()[0]
+        self.curr_data.NMF(n_comps)
+        self.show_components()
+
     def show_components(self):
+        # remove components if some are present
         self.remove_components()
+
+        # show new components
         for component in self.curr_data.components:
             self.components.addWidget(Component(self.curr_data.x_axis, component["plot"], component["map"], parent=self.components_frame))
 
