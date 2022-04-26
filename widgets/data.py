@@ -412,8 +412,9 @@ class Data:
         # letters for components identification
         comp_letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
 
-        component_plots = [component["plot"] for component in self.components]
-        component_maps = [component["map"] for component in self.components]
+        # reverse ([::-1]) -> want the best components on the top and plotting happens from the bottom
+        component_plots = [component["plot"] for component in self.components][::-1]
+        component_maps = [component["map"] for component in self.components][::-1]
 
         plt.figure(figsize=(14, n_components * 2.5))
 
@@ -469,12 +470,12 @@ class Data:
             plt.plot(self.x_axis, component_plots[i] + shift, linewidth=2, color=colors[i])
 
             # find and annotate important peaks
-            peaks, _ = signal.find_peaks(component_plots[i], prominence=0.8) # 0.5 seems fine
+            peaks, _ = signal.find_peaks(component_plots[i], prominence=0.8, distance=20)
             for peak_index in peaks:
                 plt.annotate(f"{int(np.round(self.x_axis[peak_index]))}", (self.x_axis[peak_index] + annotation_shift_x, component_plots[i][peak_index] + shift + annotaion_shift_y), ha='left', rotation=90)
 
             # letter annotation
-            plt.annotate(comp_letters[n_components - 1 - i], (self.x_axis[-1] + letter_shift_x, component_plots[i][peak_index] + shift + letter_shift_y), size="xx-large", weight="bold")
+            plt.annotate(comp_letters[n_components - 1 - i], (self.x_axis[-1] + letter_shift_x, component_plots[i][-1] + shift + letter_shift_y), size="xx-large", weight="bold")
 
             shift += shift_step
 
