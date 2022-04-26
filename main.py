@@ -1,11 +1,8 @@
 from PySide6.QtGui import QIcon, QFontDatabase, QScreen
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QWidget, QVBoxLayout
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
 
 from widgets.menu import Menu
 from widgets.header import Header
-from widgets.manual_preprocessing import ManualPreprocessing
-from widgets.spectra_decomposition import SpectraDecomposition
 
 class MainWindow(QMainWindow):
     def __init__(self):
