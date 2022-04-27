@@ -56,9 +56,14 @@ class FilesView(QFrame):
             self.update_list()
             self.folder_changed.emit(self.data_folder)
 
-    def update_list(self):
+    def update_list(self) -> None:
         # get .mat files in cw dir
         files = [file for file in os.listdir(self.data_folder) if file.endswith(".mat")]
         self.file_list.clear()
         self.file_list.addItems(files)
         self.currFolderWidget.setText(f"Current directory: {self.data_folder}")
+
+    def set_curr_file(self, name: str) -> None:
+        for i in range(self.file_list.count()):
+            if self.file_list.item(i).text() == name:
+                self.file_list.setCurrentItem(self.file_list.item(i))

@@ -62,6 +62,7 @@ class Data:
         # units = matlab_data[9][1][1]
 
         self.x_axis = matlab_data[9][1][0][0]
+
         self.data = np.reshape(data,(image_size[1], image_size[0], -1))
 
         # maxima for intuitive cosmic rays positions (used in manual removal)
@@ -77,7 +78,7 @@ class Data:
             out_file (str): Matlab file that is to be created.  
         """
 
-        # add .mat if it's not present (app won't find other extentions)
+        # add .mat if it's not present (app won't find other extensions)
         if not out_file.endswith(".mat"):
             out_file = out_file + ".mat"
 
@@ -89,13 +90,13 @@ class Data:
             name = list(self._mdict)[-1] 
 
             # set x axis values
-            self._mdict[name][0,0][9][1][0][0] = self.x_axis
+            self._mdict[name][0,0][9][1][0] = [self.x_axis]
 
             # reshape the data back and set it to its position
-            self._mdict[name][0,0][7] = np.reshape(self.data,(self.data.shape[0] * self.data.shape[1], self.data.shape[2]), order='C')
+            self._mdict[name][0,0][7] = np.reshape(self.data,(self.data.shape[0] * self.data.shape[1], -1), order='C')
 
             # set spectral map size (may change after cropping)
-            self._mdict[name][0,0][5][0] = self.data.shape[:2]
+            self._mdict[name][0,0][5][0] = self.data.shape[:2][::-1]
 
             scipy.io.savemat(out_file, mdict=self._mdict)
 
@@ -376,7 +377,6 @@ class Data:
         new_x = np.arange(np.ceil(self.x_axis[0]), np.floor(self.x_axis[-1]), step)
         self.x_axis = new_x
         self.data = spectrum_spline(new_x)
-
         self._recompute_dependent_data()
 
     # decomposition methods

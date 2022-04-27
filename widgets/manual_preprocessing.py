@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox, QProgressDialog
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox, QProgressDialog, QPushButton, QFileDialog
 from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop
 from PySide6.QtGui import QIcon, QPixmap
 
@@ -59,6 +59,10 @@ class ManualPreprocessing(QFrame):
         self.methods = PreprocessingMethods()
         self.methods.method_changed.connect(self.update_method)
 
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.save_file)
+        self.save_button.setMaximumWidth(200)
+
         self.init_cropping()
         self.init_crr()
         self.init_bgr()
@@ -70,6 +74,7 @@ class ManualPreprocessing(QFrame):
         self.methods.list.setEnabled(False)
 
         layout.addWidget(self.methods)
+        layout.addWidget(self.save_button)
         layout.addStretch()
         layout.setAlignment(Qt.AlignTop)
 
@@ -113,8 +118,13 @@ class ManualPreprocessing(QFrame):
         self.update_plot(int(np.floor(self.spectral_map.mouse_point.x())), int(np.floor(self.spectral_map.mouse_point.y())))
 
     def update_file(self, file: QListWidgetItem) -> None:
-        
-        temp_curr_file = file.text()
+
+        if file is None:
+            # do nothing if no file is provided
+            return
+        else:
+            temp_curr_file = file.text()
+
         try:
             self.curr_data = Data(os.path.join(self.curr_folder, temp_curr_file))
         except:
@@ -354,6 +364,24 @@ class ManualPreprocessing(QFrame):
         self.make_progress_bar(progress_steps)
         function(*args, **kwargs)
         self.destroy_progress_bar()
+
+    def save_file(self):
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save Data", self.files_view.data_folder, filter="*.mat")
+        self.curr_data.save_data(file_name)
+        folder, file_name = os.path.split(file_name)
+
+        
+        self.files_view.data_folder = folder
+        self.update_folder(folder)
+
+        # do not update file on curr item change in the list -> item will be changed to the same one, no need for loading again
+        self.files_view.file_list.currentItemChanged.disconnect()
+        # update file list so that new file is visible
+        self.files_view.update_list()
+        # set that required file is visually selected
+        self.files_view.set_curr_file(file_name)
+        # connect again
+        self.files_view.file_list.currentItemChanged.connect(self.update_file)
 
     def get_string_name(self):
         return "Manual Preprocessing"
