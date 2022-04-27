@@ -59,9 +59,18 @@ class ManualPreprocessing(QFrame):
         self.methods = PreprocessingMethods()
         self.methods.method_changed.connect(self.update_method)
 
-        self.save_button = QPushButton("Save")
+        self.discard_button = QPushButton("Discard Changes")
+        self.discard_button.clicked.connect(self.discard_changes)
+        self.discard_button.setMaximumWidth(400)
+
+        self.save_button = QPushButton("Save File")
         self.save_button.clicked.connect(self.save_file)
-        self.save_button.setMaximumWidth(200)
+        self.save_button.setMaximumWidth(400)
+
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addWidget(self.discard_button)
+        buttons_layout.addStretch()
+        buttons_layout.addWidget(self.save_button)
 
         self.init_cropping()
         self.init_crr()
@@ -74,7 +83,7 @@ class ManualPreprocessing(QFrame):
         self.methods.list.setEnabled(False)
 
         layout.addWidget(self.methods)
-        layout.addWidget(self.save_button)
+        layout.addLayout(buttons_layout)
         layout.addStretch()
         layout.setAlignment(Qt.AlignTop)
 
@@ -120,8 +129,7 @@ class ManualPreprocessing(QFrame):
     def update_file(self, file: QListWidgetItem) -> None:
 
         if file is None:
-            # do nothing if no file is provided
-            return
+            return # do nothing if no file is provided
         else:
             temp_curr_file = file.text()
 
@@ -370,7 +378,6 @@ class ManualPreprocessing(QFrame):
         self.curr_data.save_data(file_name)
         folder, file_name = os.path.split(file_name)
 
-        
         self.files_view.data_folder = folder
         self.update_folder(folder)
 
@@ -382,6 +389,9 @@ class ManualPreprocessing(QFrame):
         self.files_view.set_curr_file(file_name)
         # connect again
         self.files_view.file_list.currentItemChanged.connect(self.update_file)
+    
+    def discard_changes(self):
+        self.update_file(self.files_view.file_list.currentItem())
 
     def get_string_name(self):
         return "Manual Preprocessing"

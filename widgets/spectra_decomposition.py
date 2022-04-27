@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog, QHBoxLayout
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon, QPixmap
 
@@ -50,9 +50,14 @@ class SpectraDecomposition(QFrame):
 
         # misc
         self.init_file_error_widget()
-        self.export_button = QPushButton("Export")
+        self.export_button = QPushButton("Export Components")
         self.export_button.clicked.connect(self.export_components)
-        self.export_button.setMaximumWidth(200)
+        self.export_button.setMaximumWidth(400)
+
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+        buttons_layout.addWidget(self.export_button)
+        buttons_layout.setAlignment(Qt.AlignLeft)
 
         layout = QVBoxLayout()
         layout.addWidget(CollapseButton(self.files_view, "Choose File"))
@@ -60,7 +65,7 @@ class SpectraDecomposition(QFrame):
         layout.addWidget(CollapseButton(self.methods, "Choose Method"))
         layout.addWidget(self.methods)
         layout.addWidget(self.components_area)
-        layout.addWidget(self.export_button)
+        layout.addLayout(buttons_layout)
         layout.setAlignment(Qt.AlignTop)
 
         self.setLayout(layout)
