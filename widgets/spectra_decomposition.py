@@ -50,9 +50,10 @@ class SpectraDecomposition(QFrame):
 
         # misc
         self.init_file_error_widget()
+
+        # TODO: style button
         self.export_button = QPushButton("Export Components")
         self.export_button.clicked.connect(self.export_components)
-        self.export_button.setMaximumWidth(400)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()

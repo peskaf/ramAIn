@@ -59,13 +59,14 @@ class ManualPreprocessing(QFrame):
         self.methods = PreprocessingMethods()
         self.methods.method_changed.connect(self.update_method)
 
+        #TODO: style buttons
         self.discard_button = QPushButton("Discard Changes")
         self.discard_button.clicked.connect(self.discard_changes)
-        self.discard_button.setMaximumWidth(400)
+        self.discard_button.setMinimumWidth(400)
 
         self.save_button = QPushButton("Save File")
         self.save_button.clicked.connect(self.save_file)
-        self.save_button.setMaximumWidth(400)
+        self.save_button.setMinimumWidth(400)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.discard_button)
