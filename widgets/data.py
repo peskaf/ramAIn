@@ -3,7 +3,7 @@ import scipy.io
 import scipy.interpolate as si
 from scipy import signal
 from functools import reduce
-from sklearn import decomposition
+from sklearn import decomposition, cluster
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -34,6 +34,7 @@ class Data:
         self.averages = None
         self.Z_scores = None
         self.components = []
+        self.spikes = {}
         
         self.load_data(in_file)
 
@@ -133,11 +134,11 @@ class Data:
 
         # recompute what depends on self.data because it changed
         self._recompute_dependent_data()
-
+    """
     def _calculate_Z_scores(self) -> None:
-        """
+        
         The function to calculate the modified Z-scores for the data.
-        """
+        
 
         # "detrend" the data
         diff = np.diff(self.data, axis=2)
@@ -153,9 +154,10 @@ class Data:
 
         # calculate the modified Z scores and save it in the attribute as it will be reused frequently
         self.Z_scores = 0.6745 * (diff - wide_M) / np.repeat(MAD[:,:,np.newaxis], diff.shape[2], 2)
-
+    """
+    """
     def get_spikes_positions(self, threshold: float) -> np.ndarray:
-        """
+        
         The function to get indices of the spikes according to the given threshold.
 
         Parameters:
@@ -163,7 +165,7 @@ class Data:
 
         Returns:
             spikes_positions (np.ndarray): Array of indices of spectra containing spikes in a spectral map.
-        """
+        
 
         if self.Z_scores is None:
             self._calculate_Z_scores()
@@ -171,16 +173,17 @@ class Data:
         spikes_positions = np.unique(np.vstack(np.where(np.abs(self.Z_scores) > threshold)[:2]).T, axis=0)
 
         return spikes_positions
-
+    """
+    """
     def remove_spikes(self, threshold: float, window_width: int) -> None: # TODO: zkusit nahradit nejen ty spiky (data s 0) ale celé okno okolo těchto spiků!
-        """
+        
         The function to remove the spikes using the sliding-window-filter.
 
         Note that the `window_width` must be large enough so that some valid signal falls into it (typically at least 4).
         Parameters:
             threshold (float): Value on which to separate valid and invalid data.
             window_width (int): Width of the sliding window; it's size is then 2 * window_width + 1.
-        """
+        
 
         #TODO: pokud je kono moc male, aby tam bylo neco validniho, vlozi se misto celeho spektra "NaN", vyresit! (zdetsit okno na minimum z nejmensiho mozneho a zadaneho uzivatelem)
 
@@ -212,7 +215,8 @@ class Data:
         self.data = np.where(masked_data > 0, self.data, restored_data)
 
         self._recompute_dependent_data()
-    
+    """
+
     # linear interpolation between the end-points
     def remove_manual(self, spectrum_index_x: int, spectrum_index_y: int, start: float, end: float) -> None:
         """
@@ -489,3 +493,106 @@ class Data:
         
         plt.tight_layout()
         plt.savefig(file_name, bbox_inches='tight', format=file_format)
+
+    def _calculate_Z_scores(self, data: np.ndarray) -> np.ndarray:
+        abs_differences = np.abs(np.diff(data, axis=1))
+        percentile_90 = np.percentile(abs_differences, 90)
+        deviation = np.median(np.abs(abs_differences - percentile_90))
+        Z = 0.6745 * (abs_differences - percentile_90) / deviation
+        return Z
+
+    def calculate_spikes_indices(self):
+        Z_score_threshold = 6.5
+        window_width = 5
+        n_comp = 8
+        correlation_threshold = 0.9
+        silent_region = [1900, 2600]
+
+        clf = cluster.MiniBatchKMeans(n_clusters=n_comp, random_state=42, max_iter=60)
+        # flatten data and ingore silent region
+        flattened_data = np.reshape(self.data, (-1, self.data.shape[-1]))[:,self._get_indices_to_fit(self.x_axis, [silent_region])]
+        clf.fit(flattened_data)
+        cluster_map = np.reshape(clf.predict(flattened_data), self.data.shape[:2])
+
+        comps = {}
+        zets = {}
+        map_indices = []
+        peak_positions = []
+
+        for i in range(n_comp):
+            comps[i] = np.asarray(np.where(cluster_map == i)).T
+            zets[i] = self._calculate_Z_scores(self.data[comps[i][:, 0], comps[i][:, 1], :])
+            spectrum, spike_pos = np.where(zets[i] > Z_score_threshold)
+            pos = comps[i][spectrum]
+
+            # no spike detected -> next iteration
+            if len(pos) < 1:
+                continue
+            
+            # align spike tops
+            spike_tops = []
+            for position, spike_position in zip(pos, spike_pos):
+                curr_spectrum = self.data[position[0], position[1], :]
+                spike_window_start = np.maximum(spike_position - window_width, 0)
+                spike_window_end = np.minimum(spike_position + window_width + 1, self.data.shape[2])
+                spike_rel_index = np.argmax(curr_spectrum[spike_window_start : spike_window_end])
+                spike_top = spike_window_start + spike_rel_index
+                spike_tops.append(spike_top)
+
+            # keep only unique entries
+            stacked = np.unique(np.column_stack((pos, spike_tops)), axis=0)
+            pos = stacked[:, :2]
+            spike_tops = stacked[:, 2]
+
+            # covariance filtering
+            for position, spike_position in zip(pos, spike_tops):
+                curr_spectrum = self.data[position[0], position[1], :]
+
+                # get reference spectrum
+                if position[1] == self.data.shape[1] - 1: # lower border
+                    ref_spectrum = self.data[position[0], position[1] - 1, :]
+                elif position[1] == 0: # upper border
+                    ref_spectrum = self.data[position[0], position[1] + 1, :]
+                else: # OK
+                    spectrum_above = self.data[position[0], position[1] - 1, :]
+                    spectrum_below = self.data[position[0], position[1] + 1, :]
+                    ref_spectrum = (spectrum_above + spectrum_below) / 2
+
+                left = int(np.maximum(spike_position - window_width, 0))
+                # right can be `self.data.shape[2]` as it is used for slicing only
+                right = int(np.minimum(spike_position + window_width + 1, self.data.shape[2]))
+
+                curr_spec_window = curr_spectrum[left : right]
+                ref_spec_window = ref_spectrum[left : right]
+
+                corr = np.corrcoef(curr_spec_window, ref_spec_window)[0, -1]
+                if corr < correlation_threshold:
+                    map_indices.append(position)
+                    peak_positions.append(spike_position)
+
+        self.spikes["map_indices"] = map_indices
+        self.spikes["peak_positions"] = peak_positions
+
+    def remove_spikes(self):
+        # NOTE: remove spikes before cropping!
+
+        window_width = 5
+        for spectrum_indices, spike_position in zip(self.spikes["map_indices"], self.spikes["peak_positions"]):
+            curr_spectrum = self.data[spectrum_indices[0], spectrum_indices[1], :]
+
+            # NOTE: right cannot be data.data.shape[2] as it's for indexing as well
+            left = int(np.maximum(spike_position - window_width, 0))
+            right = int(np.minimum(spike_position + window_width + 1, len(curr_spectrum) - 1))
+
+            # use median when "normal" value is not obtainable (extreme indices)
+            median = np.median(curr_spectrum)
+
+            start_value = curr_spectrum[left] if left > 0 else median
+            end_value = curr_spectrum[right] if right < len(curr_spectrum) - 1 else median
+
+            values_count = right - left 
+            new_values = np.linspace(start_value, end_value, num=values_count + 1)
+
+            self.data[spectrum_indices[0], spectrum_indices[1], left:right+1:1] = new_values
+
+        self._recompute_dependent_data()

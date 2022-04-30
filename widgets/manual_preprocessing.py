@@ -62,11 +62,11 @@ class ManualPreprocessing(QFrame):
         #TODO: style buttons
         self.discard_button = QPushButton("Discard Changes")
         self.discard_button.clicked.connect(self.discard_changes)
-        self.discard_button.setMinimumWidth(400)
+        self.discard_button.setMaximumWidth(400)
 
         self.save_button = QPushButton("Save File")
         self.save_button.clicked.connect(self.save_file)
-        self.save_button.setMinimumWidth(400)
+        self.save_button.setMaximumWidth(400)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.discard_button)
@@ -167,9 +167,6 @@ class ManualPreprocessing(QFrame):
         # ROI does not have to change on invalid input -> send curr ROI info to QLineEdits
         self.spectral_map.ROI.sigRegionChanged.emit(self.spectral_map.ROI)
 
-    def crr_change_threshold_on_map(self, value):
-        self.spectral_map.scatter_spikes(self.curr_data.get_spikes_positions(threshold=value))
-
     def update_method(self, new_method: QFrame) -> None:
 
         self.curr_method.reset()
@@ -195,9 +192,9 @@ class ManualPreprocessing(QFrame):
             self.plot.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
             self.spectral_map.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
 
-            self.curr_data._calculate_Z_scores() # get new Z scores (in case something has changed, won't be recalculated until this mode is exited)
-            self.spectral_map.scatter_spikes(self.curr_data.get_spikes_positions(threshold=10)) # TODO add init threshold value
-        
+            self.curr_data.calculate_spikes_indices()
+            self.spectral_map.scatter_spikes(self.curr_data.spikes["map_indices"])
+
         elif self.curr_method == self.methods.background_removal:
             self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)
             self.spectral_map.set_mode(PlotMode.BACKGROUND_REMOVAL)
@@ -208,7 +205,6 @@ class ManualPreprocessing(QFrame):
             # default (view) on some other method
             self.plot.set_mode(PlotMode.DEFAULT)
             self.spectral_map.set_mode(PlotMode.DEFAULT)
-            
 
     def crr_show_plot_region(self, show):
         if show:
@@ -242,10 +238,10 @@ class ManualPreprocessing(QFrame):
         auto_removal = self.methods.cosmic_ray_removal.auto_removal_btn.isChecked()
 
         if auto_removal:
-            self.curr_data.remove_spikes(*self.methods.cosmic_ray_removal.get_params()[2:])
+            self.curr_data.remove_spikes()
         else: # manual
             self.curr_data.remove_manual(self.curr_plot_indices[0], self.curr_plot_indices[1], *self.methods.cosmic_ray_removal.get_params()[:2])
-
+    
         self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
         self.spectral_map.update_image(self.curr_data.averages)
 
@@ -279,12 +275,10 @@ class ManualPreprocessing(QFrame):
 
     def init_crr(self):
         # connect inputs signals to function slots
-        self.methods.cosmic_ray_removal.threshold_changed.connect(self.crr_change_threshold_on_map)
         self.methods.cosmic_ray_removal.input_manual_start.editingFinished.connect(self.crr_region_change)
         self.methods.cosmic_ray_removal.input_manual_end.editingFinished.connect(self.crr_region_change)
         self.methods.cosmic_ray_removal.manual_removal_toggled.connect(self.crr_show_plot_region)
         self.methods.cosmic_ray_removal.show_maxima_toggled.connect(self.crr_show_maxima)
-        self.methods.cosmic_ray_removal.threshold_changed.connect(self.crr_change_threshold_on_map)
         self.methods.cosmic_ray_removal.apply_clicked.connect(self.crr_apply)
 
     def init_bgr(self):
