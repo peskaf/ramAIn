@@ -409,7 +409,7 @@ class Data:
         for i in range(len(nmf.components_)):
             self.components.append({"map": nmf_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": nmf.components_[i]})
 
-    def export_components(self, file_name: str, file_format: str, components_names: list[str]=None) -> None:
+    def export_components(self, file_name: str, file_format: str) -> None:
         # matplotlib pic export
         n_components = len(self.components)
 
@@ -459,12 +459,12 @@ class Data:
         shift_step = np.max(component_plots) + 3
 
         letter_shift_x = -150
-        letter_shift_y = 3
+        letter_shift_y = -5
         annotaion_shift_y = 0.6
         annotation_shift_x = - 0.015 * len(self.x_axis)
         shift = 0
 
-        plt.subplot(5, 2, (2, 10))
+        plt.subplot(n_components, 2, (2, 2 * n_components))
         # set ylim so that upper plot has same space above as other plots
         plt.ylim(top=shift_step * n_components, bottom=-1)
         plt.xlim(self.x_axis[0], self.x_axis[-1])
@@ -479,12 +479,12 @@ class Data:
                 plt.annotate(f"{int(np.round(self.x_axis[peak_index]))}", (self.x_axis[peak_index] + annotation_shift_x, component_plots[i][peak_index] + shift + annotaion_shift_y), ha='left', rotation=90)
 
             # letter annotation
-            plt.annotate(comp_letters[n_components - 1 - i], (self.x_axis[-1] + letter_shift_x, component_plots[i][-1] + shift + letter_shift_y), size="xx-large", weight="bold")
-
+            plt.annotate(comp_letters[n_components - 1 - i], (self.x_axis[-1] + letter_shift_x, (i + 1)*shift_step + letter_shift_y), size="xx-large", weight="bold")
+            # component_plots[i][-1]
             shift += shift_step
 
         # reduce space between maps and plots
-        plt.subplots_adjust(wspace=-0.2, hspace=0.1)
+        # plt.subplots_adjust(wspace=-0.2, hspace=0.1)
         
 
         plt.xlabel("Raman shift (cm$^{-1}$)")

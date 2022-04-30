@@ -34,7 +34,8 @@ class SpectralPlot(QFrame):
         self.plot_widget.setBackground(bg_color)
 
         # shading of the plot
-        self.cm = pg.ColorMap(pos=np.linspace(0.0, 1.0, 2), color=[(38, 104, 103, 0), (38, 104, 103, 50)], mapping="diverging") # color same as for plot but in rgba with opacity going from 50 to 0
+        # color same as for plot but in rgba with opacity going from 50 to 0
+        self.cm = pg.ColorMap(pos=np.linspace(0.0, 1.0, 2), color=[(38, 104, 103, 0), (38, 104, 103, 50)], mapping="diverging")
         brush = self.cm.getBrush(span=(np.min(self.y_data), np.max(self.y_data)))
         
         # axis styling

@@ -1,11 +1,11 @@
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget
-from PySide6.QtCore import QRectF, QPoint
+from PySide6.QtCore import QRectF, QPoint, QSettings
 
 import pyqtgraph as pg
 import numpy as np
 
-from widgets.settings import VIRIDIS_COLOR_MAP, HOT_COLOR_MAP, JET_COLOR_MAP, CIVIDIS_COLOR_MAP
+from widgets.settings import COLORMAPS, SCATTER_COLORMAPS
 from widgets.plot_mode import PlotMode
 from widgets.adjustable_handles_roi import AdjustableHandlesROI
 
@@ -25,8 +25,8 @@ class SpectralMap(QFrame):
 
         super().__init__(parent)
 
-        self.win = pg.GraphicsLayoutWidget() #TODO: delete
-        
+        self.settings = QSettings()
+
         self.image_view = pg.ImageView()
         self.data = data
 
@@ -35,7 +35,7 @@ class SpectralMap(QFrame):
         self.image_view.ui.roiBtn.hide()
         self.image_view.ui.menuBtn.hide()
 
-        color_map = HOT_COLOR_MAP
+        color_map = COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
         self.image_view.setColorMap(cmap)
         self.image_view.setImage(self.data, autoRange=False)
@@ -96,6 +96,11 @@ class SpectralMap(QFrame):
         Parameters:
             new_data (np.ndarray): New data to visualize.
         """
+
+        
+        color_map = COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
+        self.image_view.setColorMap(cmap)
 
         self.data = new_data
         self.image_view.setImage(self.data)
@@ -268,8 +273,8 @@ class SpectralMap(QFrame):
         if self.scatter is not None:
             self.scatter.setData([])
         else:
-            # TODO: vymyslet jinou barvu, případně podle colormapy ze settings
-            scatter_brush = pg.mkBrush(30, 255, 35, 255)
+            scatter_color = SCATTER_COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
+            scatter_brush = pg.mkBrush(*(scatter_color[0]), 255)
             self.scatter = pg.ScatterPlotItem(size=3, brush=scatter_brush)
 
         # data for x-axis; 0.5 for centering

@@ -1,12 +1,12 @@
 from pydoc import Doc
 from PySide6.QtGui import QColor, QWheelEvent
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget, QLineEdit, QGraphicsSceneWheelEvent
-from PySide6.QtCore import Qt, QPoint
+from PySide6.QtCore import Qt, QPoint, QSettings
 
 import pyqtgraph as pg
 import numpy as np
 
-from widgets.settings import VIRIDIS_COLOR_MAP, HOT_COLOR_MAP, JET_COLOR_MAP, CIVIDIS_COLOR_MAP
+from widgets.settings import COLORMAPS
 
 class ScrollablePlotWidget(pg.PlotWidget):
     def __init__(self, parent=None):
@@ -39,7 +39,8 @@ class ScrollableViewBox(pg.ViewBox):
 class Component(QFrame):
     def __init__(self, x, y, map, parent=None):
         super().__init__(parent)
-        self.setMouseTracking(True)
+
+        self.settings = QSettings()
 
         self.setMinimumHeight(175)
         self.setMaximumHeight(400)
@@ -54,7 +55,7 @@ class Component(QFrame):
         self.component_map.ui.menuBtn.hide()
 
         bg_color = (240,240,240)
-        color_map = VIRIDIS_COLOR_MAP
+        color_map = COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
 
         self.component_map.setColorMap(cmap)
@@ -80,13 +81,9 @@ class Component(QFrame):
         self.component_plot.getPlotItem().setLabel("bottom", "Raman shift (1/cm)", **styles) # jednotky ?
         """
 
-        self.component_name = QLineEdit("new component")
-        self.component_name.setMaximumWidth(150)
-
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignHCenter)
         layout.addWidget(self.component_map)
         layout.addWidget(self.component_plot)
-        layout.addWidget(self.component_name)
         self.setLayout(layout)
         

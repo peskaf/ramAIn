@@ -72,25 +72,26 @@ class SpectraDecomposition(QFrame):
         self.setLayout(layout)
 
     def update_file(self, file: QListWidgetItem) -> None:
-        
-        temp_curr_file = file.text()
+
+        if file is None:
+            return # do nothing if no file is provided
+        else:
+            temp_curr_file = file.text()
+
         try:
             self.curr_data = Data(os.path.join(self.curr_folder, temp_curr_file))
         except:
             self.file_error.show()
             return
 
-        # TODO: predelat na metody dekompozice
-        """
         if not self.methods.list.isEnabled():
             self.methods.list.setEnabled(True)
         self.methods.reset()
-        """
+        
         self.methods.setEnabled(True)
         self.curr_file = temp_curr_file
 
     def update_folder(self, new_folder_name: str):
-        # TODO: vyrasit jak se ma widget chovat pri zmene adresare k novemu souboru aktualnimu
         self.curr_folder = new_folder_name
 
     def init_file_error_widget(self):
@@ -110,12 +111,16 @@ class SpectraDecomposition(QFrame):
 
     def PCA_apply(self):
         n_comps = self.methods.PCA.get_params()[0]
+        self.methods.setEnabled(False)
         self.curr_data.PCA(n_comps)
+        self.methods.setEnabled(True)
         self.show_components()
 
     def NMF_apply(self):
         n_comps = self.methods.NMF.get_params()[0]
+        self.methods.setEnabled(False)
         self.curr_data.NMF(n_comps)
+        self.methods.setEnabled(True)
         self.show_components()
 
     def show_components(self):
@@ -144,6 +149,16 @@ class SpectraDecomposition(QFrame):
         format = str.split(extension, '.')[1]
 
         self.curr_data.export_components(file_name, format)
+
+    def update_file_list(self):
+        if self.curr_file is not None:
+            self.files_view.file_list.currentItemChanged.disconnect()
+            # update file list so that new file is visible
+            self.files_view.update_list()
+            # set that required file is visually selected
+            self.files_view.set_curr_file(self.curr_file)
+            # connect again
+            self.files_view.file_list.currentItemChanged.connect(self.update_file)
 
     def get_string_name(self):
         return "Spectra Decomposition"

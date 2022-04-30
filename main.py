@@ -1,5 +1,6 @@
 from PySide6.QtGui import QIcon, QFontDatabase, QScreen
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
+from PySide6.QtCore import QCoreApplication
 
 from widgets.menu import Menu
 from widgets.header import Header
@@ -7,6 +8,10 @@ from widgets.header import Header
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        QCoreApplication.setOrganizationName("RamAIn")
+        QCoreApplication.setOrganizationDomain("ramain.cz")
+        QCoreApplication.setApplicationName("RamAIn")
 
         self.setWindowTitle("  " + "RamAIn")
         self.setWindowIcon(QIcon("icons/RamAIn_logo_R_f8bc24.svg"))

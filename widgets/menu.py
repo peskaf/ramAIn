@@ -3,6 +3,7 @@ from PySide6.QtCore import Signal
 
 from widgets.manual_preprocessing import ManualPreprocessing
 from widgets.spectra_decomposition import SpectraDecomposition
+from widgets.settings import Settings
 
 # OK
 class Menu(QFrame):
@@ -15,11 +16,13 @@ class Menu(QFrame):
 
         self.manual_preprocessing = ManualPreprocessing()
         self.spectra_decomposition = SpectraDecomposition()
+        self.settings_widget = Settings()
 
 
         self.menu_items = [
             self.manual_preprocessing,
             self.spectra_decomposition,
+            self.settings_widget
         ]
 
         self.list = QListWidget()
@@ -57,4 +60,5 @@ class Menu(QFrame):
     def emit_menu_item_changed(self):
         curr_item_index = self.list.currentRow()
         self.main_layout.setCurrentIndex(curr_item_index)
+        self.spectra_decomposition.update_file_list()
         self.menu_item_changed.emit(self.menu_items[curr_item_index])
