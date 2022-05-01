@@ -24,7 +24,7 @@ class SpectraDecomposition(QFrame):
         self.curr_file = None
         self.curr_data = None
 
-        self.files_view.file_list.currentItemChanged.connect(self.update_file) # change of file -> update picture
+        self.files_view.file_list.currentItemChanged.connect(self.update_file)
         self.files_view.folder_changed.connect(self.update_folder)
 
         # TODO: method selection + params
