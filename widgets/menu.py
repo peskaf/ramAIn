@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QFrame, QListWidget, QStackedLayout, QHBoxLayout
 from PySide6.QtCore import Signal
-from widgets.auto_processing import AutoProcessing
 
+from widgets.auto_processing import AutoProcessing
 from widgets.manual_preprocessing import ManualPreprocessing
 from widgets.spectra_decomposition import SpectraDecomposition
 from widgets.settings import Settings
@@ -15,10 +15,10 @@ class Menu(QFrame):
 
         # TODO: menu styling
 
-        self.manual_preprocessing = ManualPreprocessing()
-        self.spectra_decomposition = SpectraDecomposition()
-        self.settings_widget = Settings()
-        self.auto_processing = AutoProcessing()
+        self.manual_preprocessing = ManualPreprocessing(self)
+        self.spectra_decomposition = SpectraDecomposition(self)
+        self.settings_widget = Settings(self)
+        self.auto_processing = AutoProcessing(self)
 
 
         self.menu_items = [
@@ -28,7 +28,7 @@ class Menu(QFrame):
             self.auto_processing
         ]
 
-        self.list = QListWidget()
+        self.list = QListWidget(self)
         self.list.setObjectName("menu")
 
         self.list.addItems([menu_item.get_string_name() for menu_item in self.menu_items])

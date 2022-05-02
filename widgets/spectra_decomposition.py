@@ -18,7 +18,7 @@ class SpectraDecomposition(QFrame):
         self.icon = QIcon("icons/view.svg") #TODO: change
 
         # files
-        self.files_view = FilesView()
+        self.files_view = FilesView(self)
 
         self.curr_folder = self.files_view.data_folder
         self.curr_file = None
@@ -28,13 +28,13 @@ class SpectraDecomposition(QFrame):
         self.files_view.folder_changed.connect(self.update_folder)
 
         # method selection + params
-        self.methods = DecompositionMethods()
+        self.methods = DecompositionMethods(self)
 
         self.init_pca()
         self.init_nmf()
 
         # results visualization
-        self.components_area = QScrollArea()
+        self.components_area = QScrollArea(self)
         self.components_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.components_frame = QFrame(self.components_area)
         self.components = QVBoxLayout()
@@ -64,9 +64,9 @@ class SpectraDecomposition(QFrame):
         buttons_layout.setAlignment(Qt.AlignLeft)
 
         layout = QVBoxLayout()
-        layout.addWidget(CollapseButton(self.files_view, "Choose File"))
+        layout.addWidget(CollapseButton(self.files_view, "Choose File", self))
         layout.addWidget(self.files_view)
-        layout.addWidget(CollapseButton(self.methods, "Choose Method"))
+        layout.addWidget(CollapseButton(self.methods, "Choose Method", self))
         layout.addWidget(self.methods)
         layout.addWidget(self.components_area)
         layout.addLayout(buttons_layout)
@@ -75,7 +75,6 @@ class SpectraDecomposition(QFrame):
         self.setLayout(layout)
 
     def update_file(self, file: QListWidgetItem) -> None:
-
         if file is None:
             return # do nothing if no file is provided
         else:
@@ -88,9 +87,7 @@ class SpectraDecomposition(QFrame):
             return
 
         self.methods.reset()
-        
         self.methods.setEnabled(True)
-        self.export_button.setEnabled(True)
 
         self.curr_file = temp_curr_file
 
@@ -137,6 +134,8 @@ class SpectraDecomposition(QFrame):
         # show new components
         for component in self.curr_data.components:
             self.components.addWidget(Component(self.curr_data.x_axis, component["plot"], component["map"], parent=self.components_frame))
+        
+        self.export_button.setEnabled(True)
 
     def remove_components(self):
         for i in reversed(range(self.components.count())): 

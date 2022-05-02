@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QListWidget, QFileDialog
+from PySide6.QtWidgets import QFrame, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QListWidget, QFileDialog, QWidget
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QCursor
 
@@ -8,8 +8,8 @@ import os
 class FilesView(QFrame):
     folder_changed = Signal(str) # custom signal that folder has changed
 
-    def __init__(self):
-        super(FilesView, self).__init__()
+    def __init__(self, parent: QWidget = None):
+        super().__init__() # note that missing parent here
 
         # name for qss styling
         self.setObjectName("files_view")
@@ -17,7 +17,7 @@ class FilesView(QFrame):
         # folder where to look for the data files
         self.data_folder = os.getcwd() + "\data" # TODO: look at \data folder -> it does not have to be there, here for debug only
         # .mat files in curr data folder
-        self.file_list = QListWidget()
+        self.file_list = QListWidget(self)
 
         # widget to display 
         self.currFolderWidget = QLabel(f"Current directory: {self.data_folder}") # os.path.basename()

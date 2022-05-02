@@ -15,7 +15,7 @@ class AutoProcessing(QFrame):
         self.icon = QIcon("icons/settings.svg")
         
         # file selection widget
-        self.file_list_widget = QListWidget()
+        self.file_list_widget = QListWidget(self)
         self.file_list = []
         
         self.add_file_btn = QPushButton("Add file")
@@ -23,11 +23,24 @@ class AutoProcessing(QFrame):
 
         self.remove_file_btn = QPushButton("Remove file")
         self.remove_file_btn.clicked.connect(self.remove_file)
+
+        # methods selection
+       # self.methods_list = QListWidget(self)
+
+
+        # methods pipeline
+
+        self.apply_button = QPushButton("Apply")
+        self.apply_button.clicked.connect(self.apply_pipeline)
+
+        # common
         
-        layout = QGridLayout()
+        layout = QGridLayout(self)
+        layout.addWidget(self.file_list_widget, 0, 0)
         layout.addWidget(self.add_file_btn, 1, 0)
         layout.addWidget(self.remove_file_btn, 1, 1)
-        layout.addWidget(self.file_list_widget, 0, 0)
+
+        layout.addWidget(self.apply_button, 7, 0)
 
         self.setLayout(layout)
 
@@ -46,6 +59,9 @@ class AutoProcessing(QFrame):
                 item_row = self.file_list_widget.row(item)
                 self.file_list_widget.takeItem(item_row)
                 self.file_list.pop(item_row)
+
+    def apply_pipeline(self):
+        ...
 
     def get_string_name(self):
         return "Auto Processing"

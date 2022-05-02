@@ -25,7 +25,7 @@ class ManualPreprocessing(QFrame):
         self.icon = QIcon("icons/view.svg") #TODO: change
 
         # Nothing set yet
-        self.files_view = FilesView()
+        self.files_view = FilesView(self)
 
         self.curr_folder = self.files_view.data_folder
         self.curr_file = None
@@ -36,27 +36,21 @@ class ManualPreprocessing(QFrame):
         self.curr_plot_indices = None
 
         # set placeholders for spectral map and plot
-        self.spectral_map = Color("#F0F0F0")
-        self.spectral_map.setFixedSize(QSize(700,300)) #TODO: ??
+        self.spectral_map = Color("#F0F0F0", self)
+        self.spectral_map.setFixedSize(QSize(700,300))
 
-        self.plot = Color("#F0F0F0")
-        self.plot.setFixedSize(QSize(300,300)) #TODO: ??
+        self.plot = Color("#F0F0F0", self)
+        self.plot.setFixedSize(QSize(300,300))
 
         self.files_view.file_list.currentItemChanged.connect(self.update_file) # change of file -> update picture
         self.files_view.folder_changed.connect(self.update_folder)
-
-        layout = QVBoxLayout()
-        layout.addWidget(CollapseButton(self.files_view, "Choose File"))
-        layout.addWidget(self.files_view)
-
+        
         self.map_plot_layout = QHBoxLayout()
         self.map_plot_layout.addWidget(self.spectral_map)
         self.map_plot_layout.addWidget(self.plot)
         self.map_plot_layout.setAlignment(Qt.AlignHCenter)
 
-        layout.addLayout(self.map_plot_layout)
-
-        self.methods = PreprocessingMethods()
+        self.methods = PreprocessingMethods(self)
         self.methods.method_changed.connect(self.update_method)
 
         #TODO: style buttons
@@ -85,6 +79,10 @@ class ManualPreprocessing(QFrame):
         self.save_button.setEnabled(False)
         self.reload_discard_button.setEnabled(False)
 
+        layout = QVBoxLayout()
+        layout.addWidget(CollapseButton(self.files_view, "Choose File", self))
+        layout.addWidget(self.files_view)
+        layout.addLayout(self.map_plot_layout)
         layout.addWidget(self.methods)
         layout.addLayout(buttons_layout)
         layout.addStretch()

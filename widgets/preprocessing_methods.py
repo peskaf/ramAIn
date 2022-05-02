@@ -18,12 +18,12 @@ class PreprocessingMethods(QFrame):
         # name for qss styling
         self.setObjectName("methods")
 
-        self.view = View()
-        self.cropping = Cropping()
-        self.cosmic_ray_removal = CosmicRayRemoval()
-        self.background_removal = BackgroundRemoval()
-        self.normalization = Normalization()
-        self.linearization = Linearization()
+        self.view = View(self)
+        self.cropping = Cropping(self)
+        self.cosmic_ray_removal = CosmicRayRemoval(self)
+        self.background_removal = BackgroundRemoval(self)
+        self.normalization = Normalization(self)
+        self.linearization = Linearization(self)
 
         self.methods = [
             self.view,
@@ -34,7 +34,7 @@ class PreprocessingMethods(QFrame):
             self.background_removal,
         ]
 
-        self.list = QListWidget()
+        self.list = QListWidget(self)
 
         self.list.setObjectName("methods_list") # TODO: set fixed size ?
         self.list.addItems([method.get_string_name() for method in self.methods])

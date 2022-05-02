@@ -20,10 +20,10 @@ class MainWindow(QMainWindow):
 
         # how the whole app will look like
         layout = QVBoxLayout()
-        layout.addWidget(Header())
-        layout.addWidget(Menu())
+        layout.addWidget(Header(self))
+        layout.addWidget(Menu(self))
 
-        widget = QWidget()
+        widget = QWidget(self)
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 

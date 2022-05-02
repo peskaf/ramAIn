@@ -1,11 +1,11 @@
 from PySide6.QtGui import QIcon, QCursor
-from PySide6.QtWidgets import QFrame, QPushButton
+from PySide6.QtWidgets import QFrame, QPushButton, QWidget
 from PySide6.QtCore import Qt
 
 # OK
 class CollapseButton(QPushButton):
-    def __init__(self, frame : QFrame, text=""):
-        super(CollapseButton, self).__init__()
+    def __init__(self, frame : QFrame, text="", parent: QWidget = None):
+        super().__init__(parent)
 
         # name for future styling in qss
         self.setObjectName("collapse_button")

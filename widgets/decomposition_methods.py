@@ -13,15 +13,15 @@ class DecompositionMethods(QFrame):
         # name for qss styling
         self.setObjectName("methods")
 
-        self.PCA = PCA()
-        self.NMF = NMF()
+        self.PCA = PCA(self)
+        self.NMF = NMF(self)
 
         self.methods = [
             self.PCA,
             self.NMF
         ]
 
-        self.list = QListWidget()
+        self.list = QListWidget(self)
 
         self.list.setObjectName("methods_list") # TODO: set fixed size ?
         self.list.addItems([method.get_string_name() for method in self.methods])

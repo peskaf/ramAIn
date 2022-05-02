@@ -33,7 +33,7 @@ class Settings(QFrame):
         cmap_pics = []
 
         for colormap in COLORMAPS.values():
-            cmap_pic = pg.ImageView()
+            cmap_pic = pg.ImageView(self)
             cmap_pic.ui.histogram.hide()
             cmap_pic.ui.roiBtn.hide()
             cmap_pic.ui.menuBtn.hide()
@@ -67,7 +67,7 @@ class Settings(QFrame):
             self.viridis.setChecked(True)
 
 
-        layout = QGridLayout()
+        layout = QGridLayout(self)
         layout.addWidget(QLabel("Spectral Map - Colormap"), 0, 0)
         layout.addWidget(self.viridis, 1, 0)
         layout.addWidget(self.hot, 2, 0)
