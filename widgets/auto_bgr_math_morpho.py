@@ -29,6 +29,9 @@ class AutoBGRMathMorpho(QFrame):
         parameters = (self.ignore_water_band.isChecked(), )
         return parameters
 
+    def params_to_text(self) -> str:
+        return f"ignore water: {self.ignore_water_band.isChecked()}"
+
     def reset(self) -> None:
         self.ignore_water_band.setChecked(True)
 

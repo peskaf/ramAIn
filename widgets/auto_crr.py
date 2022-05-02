@@ -19,6 +19,9 @@ class AutoCRR(QFrame):
 
     def get_params(self) -> None:
         return None
+    
+    def params_to_text(self) -> str:
+        return f""
 
     def reset(self) -> None:
         return

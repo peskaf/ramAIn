@@ -37,15 +37,12 @@ class AutoLinearization(QFrame):
             self.data_step.setText(str(self.data_step_range[1]))
 
     def get_params(self) -> tuple[float]:
-        """
-        The function to get parameters from all inputs.
-
-        Returns:
-            parameters (tuple): Tuple of equidistantification method parameters converted to correct types.
-        """
 
         parameters = (float(self.data_step.text()), )
         return parameters
+
+    def params_to_text(self) -> str:
+        return f"step size: {float(self.data_step.text())}"
 
     def reset(self) -> None:
         """

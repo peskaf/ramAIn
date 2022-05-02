@@ -35,6 +35,9 @@ class AutoCropping(QFrame):
 
         parameters = (float(self.input_plot_start.text()), float(self.input_plot_end.text()), )
         return parameters
+    
+    def params_to_text(self) -> str:
+        return f"x start: {float(self.input_plot_start.text())}, x end: {float(self.input_plot_end.text())}"
 
     def reset(self) -> None:
         inputs = [

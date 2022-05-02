@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox, QProgressDialog, QPushButton, QFileDialog
-from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop
+from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop, QSettings
 from PySide6.QtGui import QIcon, QPixmap
 
 from widgets.color import Color
@@ -23,6 +23,8 @@ class ManualPreprocessing(QFrame):
         super().__init__(parent)
 
         self.icon = QIcon("icons/view.svg") #TODO: change
+
+        self.settings = QSettings()
 
         # Nothing set yet
         self.files_view = FilesView(self)
@@ -375,7 +377,11 @@ class ManualPreprocessing(QFrame):
         self.destroy_progress_bar()
 
     def save_file(self):
-        file_name, _ = QFileDialog.getSaveFileName(self, "Save Data", self.files_view.data_folder, filter="*.mat")
+        data_folder = self.settings.value("save_dir", self.files_view.data_folder)
+        if not os.path.exists(data_folder):
+            data_folder = os.getcwd()
+
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save Data", data_folder, filter="*.mat")
 
         # user did not select any file and exited the dialog
         if file_name is None or len(file_name) == 0:
@@ -383,6 +389,8 @@ class ManualPreprocessing(QFrame):
 
         self.curr_data.save_data(file_name)
         folder, file_name = os.path.split(file_name)
+
+        self.settings.setValue("save_dir", folder)
 
         self.files_view.data_folder = folder
         self.update_folder(folder)

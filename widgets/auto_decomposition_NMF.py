@@ -51,5 +51,8 @@ class AutoNMF(QFrame):
         parameters = (int(self.num_of_components.text()),)
         return parameters
 
+    def params_to_text(self) -> str:
+        return f"components: {int(self.num_of_components.text())}"
+
     def get_string_name(self):
         return "Decomposition - NMF"

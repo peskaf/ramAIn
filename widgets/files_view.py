@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QListWidget, QFileDialog, QWidget
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal, Qt, QSettings
 from PySide6.QtGui import QCursor
 
 import os
@@ -14,13 +14,18 @@ class FilesView(QFrame):
         # name for qss styling
         self.setObjectName("files_view")
 
+        self.settings = QSettings()
+
         # folder where to look for the data files
-        self.data_folder = os.getcwd() + "\data" # TODO: look at \data folder -> it does not have to be there, here for debug only
+        self.data_folder = self.settings.value("source_dir", os.getcwd())
+        if not os.path.exists(self.data_folder):
+            self.data_folder = os.getcwd()
+
         # .mat files in curr data folder
         self.file_list = QListWidget(self)
 
         # widget to display 
-        self.currFolderWidget = QLabel(f"Current directory: {self.data_folder}") # os.path.basename()
+        self.curr_directory = QLabel(f"Current directory: {self.data_folder}") # os.path.basename()
 
         # .mat files in given folder
         files = [file for file in os.listdir(self.data_folder) if file.endswith(".mat")]
@@ -34,7 +39,7 @@ class FilesView(QFrame):
         # layout with curr folder and button to change it
         folder_layout = QHBoxLayout()
         
-        folder_layout.addWidget(self.currFolderWidget)
+        folder_layout.addWidget(self.curr_directory)
         # fill the area between the widgets
         folder_layout.addStretch()
         folder_layout.addWidget(button)
@@ -55,13 +60,14 @@ class FilesView(QFrame):
         if self.data_folder:
             self.update_list()
             self.folder_changed.emit(self.data_folder)
+            self.settings.setValue("source_dir", self.data_folder)
 
     def update_list(self) -> None:
         # get .mat files in cw dir
         files = [file for file in os.listdir(self.data_folder) if file.endswith(".mat")]
         self.file_list.clear()
         self.file_list.addItems(files)
-        self.currFolderWidget.setText(f"Current directory: {self.data_folder}")
+        self.curr_directory.setText(f"Current directory: {self.data_folder}")
 
     def set_curr_file(self, name: str) -> None:
         for i in range(self.file_list.count()):

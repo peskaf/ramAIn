@@ -23,5 +23,8 @@ class AutoBGRairPLS(QFrame):
     def reset(self) -> None:
         return
 
+    def params_to_text(self) -> str:
+        return f""
+
     def get_string_name(self) -> str:
         return "Background Removal - airPLS"

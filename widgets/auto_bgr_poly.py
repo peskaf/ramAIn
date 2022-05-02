@@ -47,9 +47,12 @@ class AutoBGRPoly(QFrame):
             self.poly_deg.setText(str(self.poly_deg_range[1]))
 
     def get_params(self) -> tuple[int]:
-
+        #TODO: add ignore water
         parameters = (int(self.poly_deg.text()), )
         return parameters
+
+    def params_to_text(self) -> str:
+        return f"poly deg: {int(self.poly_deg.text())}, ignore water: {self.ignore_water_band.isChecked()}"
 
     def reset(self) -> None:
 

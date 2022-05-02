@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog, QHBoxLayout
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QSettings
 from PySide6.QtGui import QIcon, QPixmap
 
 from widgets.files_view import FilesView
@@ -16,6 +16,8 @@ class SpectraDecomposition(QFrame):
         super().__init__(parent)
 
         self.icon = QIcon("icons/view.svg") #TODO: change
+
+        self.settings = QSettings()
 
         # files
         self.files_view = FilesView(self)
@@ -154,7 +156,11 @@ class SpectraDecomposition(QFrame):
         regex_formats = ["*." + ext for ext in supported_formats]
         filter = ';;'.join(regex_formats)
 
-        file_name, extension = QFileDialog.getSaveFileName(self, "Components Export", self.files_view.data_folder, filter=filter)
+        data_folder = self.settings.value("export_dir", self.files_view.data_folder)
+        if not os.path.exists(data_folder):
+            data_folder = os.getcwd()
+
+        file_name, extension = QFileDialog.getSaveFileName(self, "Components Export", data_folder, filter=filter)
 
         # user exited file selection dialog without any file selected
         if file_name is None or len(file_name) == 0:

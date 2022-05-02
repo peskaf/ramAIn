@@ -11,6 +11,7 @@ from widgets.auto_bgr_math_morpho import AutoBGRMathMorpho
 from widgets.auto_linearization import AutoLinearization
 from widgets.auto_decomposition_NMF import AutoNMF
 from widgets.auto_save import AutoSave
+from widgets.auto_export_components import AutoExportComponents
 
 import numpy as np
 import os
@@ -21,7 +22,8 @@ class AutoProcessing(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.icon = QIcon("icons/settings.svg")
-        
+        self.settings = QSettings()
+
         # file selection widget
         self.file_list_widget = QListWidget(self)
         self.file_list = []
@@ -32,7 +34,7 @@ class AutoProcessing(QFrame):
         self.remove_file_btn = QPushButton("Remove file")
         self.remove_file_btn.clicked.connect(self.remove_file)
 
-        # TODO: methods selection
+        # methods selection
         self.methods_list = QListWidget(self)
         self.methods_list.currentItemChanged.connect(self.change_method)
 
@@ -45,6 +47,7 @@ class AutoProcessing(QFrame):
         self.auto_linearization = AutoLinearization(self)
         self.auto_NMF = AutoNMF(self)
         self.auto_save = AutoSave(self)
+        self.auto_export_components = AutoExportComponents(self)
 
         self.auto_methods = [
             self.auto_cropping,
@@ -56,6 +59,7 @@ class AutoProcessing(QFrame):
             self.auto_linearization,
             self.auto_NMF,
             self.auto_save,
+            self.auto_export_components,
 
         ]
 
@@ -76,10 +80,12 @@ class AutoProcessing(QFrame):
         self.add_to_pipeline_btn = QPushButton("Add to pipeline")
         self.add_to_pipeline_btn.clicked.connect(self.add_to_pipeline)
 
-        # TODO: methods pipeline + drag & drop reordering!
+        # methods pipeline
         self.pipeline_list = QListWidget(self)
-        self.pipeline_list.setDragDropMode(QAbstractItemView.InternalMove)
+        # self.pipeline_list.setDragDropMode(QAbstractItemView.InternalMove) # ??: how to change order of func and params stored?
 
+        self.remove_from_pipeline_btn = QPushButton("Remove step")
+        self.remove_from_pipeline_btn.clicked.connect(self.remove_from_pipeline)
 
         self.apply_button = QPushButton("Apply")
         self.apply_button.clicked.connect(self.apply_pipeline)
@@ -110,12 +116,26 @@ class AutoProcessing(QFrame):
 
         layout.addWidget(self.pipeline_list)
 
+        remove_btn_layout = QHBoxLayout()
+        remove_btn_layout.addStretch()
+        remove_btn_layout.addWidget(self.remove_from_pipeline_btn)
+
+        layout.addLayout(remove_btn_layout)
         layout.addWidget(self.apply_button)
 
         self.setLayout(layout)
 
     def add_files(self):
-        file_names, _ = QFileDialog.getOpenFileNames(self, "Select one or more files", os.getcwd(), "*.mat")
+        temp_folder = self.settings.value("source_dir", os.getcwd())
+        if not os.path.exists(temp_folder):
+            temp_folder = os.getcwd()
+
+        file_names, _ = QFileDialog.getOpenFileNames(self, "Select one or more files", temp_folder, "*.mat")
+
+        if file_names is None or len(file_names) == 0:
+            return
+
+        self.settings.setValue("source_dir", os.path.dirname(file_names[0]))
 
         for file_name in file_names:
             self.file_list_widget.addItem(os.path.basename(file_name))
@@ -135,14 +155,17 @@ class AutoProcessing(QFrame):
         self.methods_layout.setCurrentIndex(curr_method_index)
 
     def add_to_pipeline(self):
-        # TODO: napsat poradne
-        self.pipeline_list.addItem(self.methods_list.currentItem().text())
+        curr_item = self.methods_list.currentItem()
+        curr_item_index = self.methods_list.row(curr_item)
+        params_text = self.auto_methods[curr_item_index].params_to_text()
+        self.pipeline_list.addItem(curr_item.text() + (" - " if len(params_text) else "") + params_text)
         
+    def remove_from_pipeline(self):
+        ...
 
     def apply_pipeline(self):
         ...
 
-    
 
     def get_string_name(self):
         return "Auto Processing"

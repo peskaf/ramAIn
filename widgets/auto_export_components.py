@@ -4,21 +4,21 @@ from PySide6.QtCore import QSettings
 
 import os
 
-class AutoSave(QFrame):
+class AutoExportComponents(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("method_instance")
         self.icon = QIcon("icons/save.svg")
+
         self.settings = QSettings()
 
-        self.data_folder = self.settings.value("save_dir", os.getcwd())
-
+        self.data_folder = self.settings.value("export_dir", os.getcwd())
         self.change_dir_btn = QPushButton("Change directory")
         self.change_dir_btn.clicked.connect(self.change_folder)
         self.curr_dir = QLabel(f"Directory: {self.data_folder}")
         # put windgets into layout
         layout = QGridLayout()
-        layout.addWidget(QLabel("Save Data"), 0, 0)
+        layout.addWidget(QLabel("Export Components"), 0, 0)
         layout.addWidget(self.curr_dir, 1, 0)
         layout.addWidget(self.change_dir_btn, 2, 0)
         
@@ -29,7 +29,7 @@ class AutoSave(QFrame):
         return parameters
 
     def params_to_text(self) -> str:
-        return f"folder: {self.data_folder}" #TODO
+        return f"folder: {self.data_folder}"
 
     def change_folder(self):
 
@@ -41,7 +41,7 @@ class AutoSave(QFrame):
         if temp_dir is None or len(temp_dir) == 0:
             return
 
-        self.settings.setValue("save_dir", temp_dir)      
+        self.settings.setValue("export_dir", temp_dir)  
 
         self.data_folder = temp_dir
         self.curr_dir.setText(f"Directory: {self.data_folder}")
@@ -51,4 +51,4 @@ class AutoSave(QFrame):
         self.curr_dir.setText(f"Directory: {self.data_folder}")
 
     def get_string_name(self):
-        return "Save Data"
+        return "Export Components"
