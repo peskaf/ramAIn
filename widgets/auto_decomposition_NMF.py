@@ -2,9 +2,7 @@ from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLineEdit, QLabe
 from PySide6.QtGui import QRegularExpressionValidator, QIcon
 from PySide6.QtCore import Signal
 
-class NMF(QFrame):
-
-    apply_clicked = Signal()
+class AutoNMF(QFrame):
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -19,19 +17,17 @@ class NMF(QFrame):
         self.num_of_components = QLineEdit(str(self.init_num_of_components), validator=int_validator)
         self.num_of_components.editingFinished.connect(self.validate_components_range)
 
-        self.apply_button = QPushButton("Apply")
-        self.apply_button.clicked.connect(self.apply_clicked.emit)
-
         layout = QGridLayout()
 
-        layout.addWidget(QLabel("Number of components"), 0, 0)
-        layout.addWidget(self.num_of_components, 0, 1)
-        layout.addWidget(self.apply_button, 1, 1)
+        layout.addWidget(QLabel("Decomposition - NMF"), 0, 0)
+        layout.addWidget(QLabel("Number of components"), 1, 0)
+        layout.addWidget(self.num_of_components, 1, 1)
 
         self.setLayout(layout)
 
     def reset(self):
         ...
+        # TODO: dopsat
 
     def validate_components_range(self) -> None:
         """
@@ -56,4 +52,4 @@ class NMF(QFrame):
         return parameters
 
     def get_string_name(self):
-        return "NMF"
+        return "Decomposition - NMF"

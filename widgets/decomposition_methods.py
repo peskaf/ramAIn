@@ -5,7 +5,7 @@ from widgets.PCA import PCA
 from widgets.NMF import NMF
 
 class DecompositionMethods(QFrame):
-    method_changed = Signal(QFrame)
+    method_changed = Signal(QFrame) #TODO: delete?
 
     def __init__(self, parent=None):
         super().__init__(parent)

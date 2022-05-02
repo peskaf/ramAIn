@@ -9,7 +9,7 @@ class PCA(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("method_instance")
-        self.icon = QIcon("icons/view.svg") #TODO: change
+        self.icon = QIcon("icons/pie.svg")
 
         int_validator = QRegularExpressionValidator("-?[0-9]+")
 

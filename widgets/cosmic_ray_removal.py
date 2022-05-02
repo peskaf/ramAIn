@@ -117,7 +117,7 @@ class CosmicRayRemoval(QFrame):
         self.show_maxima.setChecked(False)
         self.emit_show_maxima() # will emit False as it was set on prev line
 
-    def get_params(self) -> tuple[float, float, float, int]:
+    def get_params(self) -> tuple[float, float]:
         """
         The function to get parameters from all inputs.
 

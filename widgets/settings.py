@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QFrame, QLabel, QGridLayout, QRadioButton
+from PySide6.QtWidgets import QFrame, QLabel, QGridLayout, QRadioButton, QButtonGroup
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal, Qt, QSettings
 
@@ -50,14 +50,24 @@ class Settings(QFrame):
 
             cmap_pics.append(cmap_pic)
 
+        self.group = QButtonGroup()
+        self.group.setExclusive(True)
+
         self.viridis = QRadioButton("Viridis")
         self.viridis.toggled.connect(self.emit_cmap_changed)
+        self.group.addButton(self.viridis)
+
         self.hot = QRadioButton("Hot")
         self.hot.toggled.connect(self.emit_cmap_changed)
+        self.group.addButton(self.hot)
+
         self.jet = QRadioButton("Jet")
         self.jet.toggled.connect(self.emit_cmap_changed)
+        self.group.addButton(self.jet)
+        
         self.cividis = QRadioButton("Cividis")
         self.cividis.toggled.connect(self.emit_cmap_changed)
+        self.group.addButton(self.cividis)
 
         try:
             cmap = str(self.settings.value("spectral_map/cmap"))

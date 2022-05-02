@@ -102,7 +102,7 @@ class BackgroundRemoval(QFrame):
         Returns:
             parameters (tuple): Tuple of background removal method parameters converted to correct types.
         """
-
+        #TODO: return water here?
         parameters = (int(self.poly_deg.text()), )
         return parameters
 
