@@ -27,13 +27,13 @@ class SpectraDecomposition(QFrame):
         self.files_view.file_list.currentItemChanged.connect(self.update_file)
         self.files_view.folder_changed.connect(self.update_folder)
 
-        # TODO: method selection + params
+        # method selection + params
         self.methods = DecompositionMethods()
-        self.methods.setEnabled(False)
+
         self.init_pca()
         self.init_nmf()
 
-        # TODO: results visualization
+        # results visualization
         self.components_area = QScrollArea()
         self.components_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.components_frame = QFrame(self.components_area)
@@ -54,6 +54,9 @@ class SpectraDecomposition(QFrame):
         # TODO: style button
         self.export_button = QPushButton("Export Components")
         self.export_button.clicked.connect(self.export_components)
+
+        self.methods.setEnabled(False)
+        self.export_button.setEnabled(False)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
@@ -84,11 +87,11 @@ class SpectraDecomposition(QFrame):
             self.file_error.show()
             return
 
-        if not self.methods.list.isEnabled():
-            self.methods.list.setEnabled(True)
         self.methods.reset()
         
         self.methods.setEnabled(True)
+        self.export_button.setEnabled(True)
+
         self.curr_file = temp_curr_file
 
     def update_folder(self, new_folder_name: str):
@@ -112,15 +115,19 @@ class SpectraDecomposition(QFrame):
     def PCA_apply(self):
         n_comps = self.methods.PCA.get_params()[0]
         self.methods.setEnabled(False)
+        self.export_button.setEnabled(False)
         self.curr_data.PCA(n_comps)
         self.methods.setEnabled(True)
+        self.export_button.setEnabled(True)
         self.show_components()
 
     def NMF_apply(self):
         n_comps = self.methods.NMF.get_params()[0]
         self.methods.setEnabled(False)
+        self.export_button.setEnabled(False)
         self.curr_data.NMF(n_comps)
         self.methods.setEnabled(True)
+        self.export_button.setEnabled(True)
         self.show_components()
 
     def show_components(self):
@@ -136,6 +143,11 @@ class SpectraDecomposition(QFrame):
             self.components.takeAt(i).widget().deleteLater()
 
     def export_components(self):
+
+        # do nothing if no components are generated yet
+        if len(self.curr_data.components) == 0:
+            return
+
         # formats supported by matplotlib
         supported_formats = ["png", "pdf", "ps", "eps", "svg"]
 
@@ -145,7 +157,11 @@ class SpectraDecomposition(QFrame):
 
         file_name, extension = QFileDialog.getSaveFileName(self, "Components Export", self.files_view.data_folder, filter=filter)
 
-        # get nly frmat string
+        # user exited file selection dialog without any file selected
+        if file_name is None or len(file_name) == 0:
+            return
+
+        # get only format string
         format = str.split(extension, '.')[1]
 
         self.curr_data.export_components(file_name, format)

@@ -80,8 +80,10 @@ class ManualPreprocessing(QFrame):
 
         self.init_file_error_widget()
 
-        # disable method selection until some valid file is selected
+        # disable method selection + buttons until some valid file is selected
         self.methods.list.setEnabled(False)
+        self.save_button.setEnabled(False)
+        self.reload_discard_button.setEnabled(False)
 
         layout.addWidget(self.methods)
         layout.addLayout(buttons_layout)
@@ -142,6 +144,8 @@ class ManualPreprocessing(QFrame):
 
         if not self.methods.list.isEnabled():
             self.methods.list.setEnabled(True)
+            self.save_button.setEnabled(True)
+            self.reload_discard_button.setEnabled(True)
 
         self.curr_file = temp_curr_file
         self.update_spectral_map()
@@ -323,6 +327,8 @@ class ManualPreprocessing(QFrame):
     def make_progress_bar(self, maximum):
         self.files_view.setEnabled(False)
         self.methods.setEnabled(False)
+        self.save_button.setEnabled(False)
+        self.reload_discard_button.setEnabled(False)
 
         self.progress = QProgressDialog("Progress", "...", 0, maximum)
         self.progress.setValue(0)
@@ -359,6 +365,8 @@ class ManualPreprocessing(QFrame):
     def destroy_progress_bar(self):
         self.files_view.setEnabled(True)
         self.methods.setEnabled(True)
+        self.save_button.setEnabled(True)
+        self.reload_discard_button.setEnabled(True)
         self.update_progress.disconnect()
         self.progress.deleteLater()
 
@@ -370,6 +378,11 @@ class ManualPreprocessing(QFrame):
 
     def save_file(self):
         file_name, _ = QFileDialog.getSaveFileName(self, "Save Data", self.files_view.data_folder, filter="*.mat")
+
+        # user did not select any file and exited the dialog
+        if file_name is None or len(file_name) == 0:
+            return
+
         self.curr_data.save_data(file_name)
         folder, file_name = os.path.split(file_name)
 

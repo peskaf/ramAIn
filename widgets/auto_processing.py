@@ -15,7 +15,8 @@ class AutoProcessing(QFrame):
         self.icon = QIcon("icons/settings.svg")
         
         # file selection widget
-        self.file_list = QListWidget()
+        self.file_list_widget = QListWidget()
+        self.file_list = []
         
         self.add_file_btn = QPushButton("Add file")
         self.add_file_btn.clicked.connect(self.add_files)
@@ -26,7 +27,7 @@ class AutoProcessing(QFrame):
         layout = QGridLayout()
         layout.addWidget(self.add_file_btn, 1, 0)
         layout.addWidget(self.remove_file_btn, 1, 1)
-        layout.addWidget(self.file_list, 0, 0)
+        layout.addWidget(self.file_list_widget, 0, 0)
 
         self.setLayout(layout)
 
@@ -34,14 +35,17 @@ class AutoProcessing(QFrame):
         file_names, _ = QFileDialog.getOpenFileNames(self, "Select one or more files", os.getcwd(), "*.mat")
 
         for file_name in file_names:
-            self.file_list.addItem(os.path.basename(file_name))
+            self.file_list_widget.addItem(os.path.basename(file_name))
+            self.file_list.append(file_name)
 
     def remove_file(self):
 
-        curr_items = self.file_list.selectedItems()
+        curr_items = self.file_list_widget.selectedItems()
         if curr_items is not None:
             for item in curr_items:
-                self.file_list.takeItem(self.file_list.row(item))
+                item_row = self.file_list_widget.row(item)
+                self.file_list_widget.takeItem(item_row)
+                self.file_list.pop(item_row)
 
     def get_string_name(self):
         return "Auto Processing"
