@@ -10,6 +10,7 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import scipy.sparse as ss
 from scipy.sparse import linalg
+from scipy import stats
 
 from PySide6.QtCore import Signal
 
@@ -107,6 +108,15 @@ class Data:
     def auto_save_data(self, out_folder: str, file_tag: str) -> None:
         file_name, ext = os.path.basename(self.in_file).split('.')
         out_file = os.path.join(out_folder, file_name + file_tag + '.' + ext)
+        
+        # do not overwrite on auto save
+        if os.path.exists(out_file):
+            i = 2
+            out_file = os.path.join(out_folder, file_name + file_tag + f"({i})" + '.' + ext)
+            while os.path.exists(out_file):
+                i += 1
+                out_file = os.path.join(out_folder, file_name + file_tag + f"({i})" + '.' + ext)
+    
         self.save_data(out_file)
 
     def _recompute_dependent_data(self) -> None:
@@ -304,7 +314,7 @@ class Data:
     def vancouver_poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
         if signal_to_emit is not None:
             signal_to_emit.emit()
-
+        print("here")
         x = self.x_axis
 
         if ignore_water:
@@ -335,6 +345,22 @@ class Data:
             criterium = np.abs((DEV - devs[-2]) / DEV)
 
         return poly_obj(self.x_axis)
+
+    def poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True) -> np.ndarray:
+        x = self.x_axis
+
+        if ignore_water:
+            no_water_indices = self._get_no_water_indices(x)
+            x = x[no_water_indices]
+            y = y[no_water_indices]
+        
+        poly_obj = np.polynomial.Polynomial(None).fit(x, signal, deg=degree)
+        return poly_obj(self.x_axis)
+
+    def auto_poly(self, degree: int, ignore_water: bool) -> None:
+        backgrounds = np.apply_along_axis(self.poly_bg, 2, self.data, degree, ignore_water)
+        self.data -= backgrounds
+        self._recompute_dependent_data()
 
     def linearize(self, step: float) -> None:
         spectrum_spline = si.CubicSpline(self.x_axis, self.data, axis=2, extrapolate=False)
@@ -467,6 +493,15 @@ class Data:
     def auto_export(self, out_folder: str, file_tag: str, file_format: str):
         file_name, _ = os.path.basename(self.in_file).split('.')
         out_file = os.path.join(out_folder, file_name + file_tag + '.' + file_format)
+
+        # do not overwrite on auto export
+        if os.path.exists(out_file):
+            i = 2
+            out_file = os.path.join(out_folder, file_name + file_tag + f"({i})" + '.' + file_format)
+            while os.path.exists(out_file):
+                i += 1
+                out_file = os.path.join(out_folder, file_name + file_tag + f"({i})" + '.' + file_format)
+
         self.export_components(out_file, file_format)
 
     def _calculate_Z_scores(self, data: np.ndarray) -> np.ndarray:
@@ -633,6 +668,7 @@ class Data:
         background = linalg.spsolve(A, B)
         return np.array(background)
 
+    #TODO: nechat uzivatele lambdu nastavit? 
     def airPLS(self, x, lambda_=10**4.4, porder=1, itermax=20):
         '''
         Adaptive iteratively reweighted penalized least squares for baseline fitting
