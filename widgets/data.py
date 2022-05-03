@@ -10,9 +10,8 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import scipy.sparse as ss
 from scipy.sparse import linalg
-from scipy import stats
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, QSettings
 
 # TODO: Move into different folder -> change structure of the whole app files
 class Data:
@@ -223,7 +222,7 @@ class Data:
         return to_fit
 
     def _get_no_water_indices(self, x: np.ndarray) -> np.ndarray:
-        to_ignore = [[2950, 3750]]
+        to_ignore = [[2750, 3750]] # possible C-H vibrations included
         return self._get_indices_to_fit(x, to_ignore)
 
     def erosion(self, values: np.ndarray, window_width: int) -> np.ndarray:
@@ -314,7 +313,7 @@ class Data:
     def vancouver_poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
         if signal_to_emit is not None:
             signal_to_emit.emit()
-        print("here")
+
         x = self.x_axis
 
         if ignore_water:
@@ -354,7 +353,7 @@ class Data:
             x = x[no_water_indices]
             y = y[no_water_indices]
         
-        poly_obj = np.polynomial.Polynomial(None).fit(x, signal, deg=degree)
+        poly_obj = np.polynomial.Polynomial(None).fit(x, y, deg=degree)
         return poly_obj(self.x_axis)
 
     def auto_poly(self, degree: int, ignore_water: bool) -> None:
@@ -394,6 +393,14 @@ class Data:
         self.components = [] # reset to init state
 
         # np.abs has to be present since NMF requires positive values
+
+        """
+        # sub min to make non-negative
+        temp_data = self.data - np.repeat(np.min(self.data, axis=2)[:,:,np.newaxis], self.data.shape[2], 2)
+        reshaped_data = np.reshape(temp_data, (-1, self.data.shape[2]))
+        """
+
+        #abs
         reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
         nmf = decomposition.NMF(n_components=n_components, init="nndsvd") #TODO: mozna nejaka regularizace apod.
         nmf.fit(reshaped_data)
@@ -409,6 +416,9 @@ class Data:
         # matplotlib pic export
         n_components = len(self.components)
 
+        # app settings
+        settings = QSettings()
+
         # letters for components identification
         comp_letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
 
@@ -423,7 +433,7 @@ class Data:
 
         # colors for matplotlib plotting
         colors = list(mcolors.TABLEAU_COLORS) 
-
+        cmap = str(settings.value("spectral_map/cmap"))
         # subplot params
         n_rows = len(component_plots)
         n_cols = 2
@@ -444,7 +454,7 @@ class Data:
             ax.add_patch(rec)
 
             # need to plot starting from the last image so that position fits with plot
-            plt.imshow(component_maps[n_components - 1 - i].reshape(self.data.shape[0], self.data.shape[1]).T, extent=[0, self.data.shape[0], 0, self.data.shape[1]])
+            plt.imshow(component_maps[n_components - 1 - i].reshape(self.data.shape[0], self.data.shape[1]).T, extent=[0, self.data.shape[0], 0, self.data.shape[1]], cmap=cmap)
             
             # move to next row
             index += n_cols

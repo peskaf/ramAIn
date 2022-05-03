@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QFrame, QLabel, QGridLayout, QRadioButton, QFileDialog, QPushButton, QListWidget, QStackedLayout, QVBoxLayout, QHBoxLayout, QAbstractItemView, QListWidgetItem
+from PySide6.QtWidgets import QFrame, QFileDialog, QPushButton, QListWidget, QStackedLayout, QVBoxLayout, QHBoxLayout, QAbstractItemView, QListWidgetItem, QProgressDialog
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Signal, Qt, QSettings
+from PySide6.QtCore import Signal, Qt, QSettings, QCoreApplication, QEventLoop
 
 from widgets.auto_cropping_absolute import AutoCroppingAbsolute
 from widgets.auto_cropping_relative import AutoCroppingRelative
@@ -16,7 +16,6 @@ from widgets.auto_export_components import AutoExportComponents
 
 from widgets.data import Data
 
-import numpy as np
 import os
 
 class FunctionItem(QListWidgetItem):
@@ -93,15 +92,12 @@ class AutoProcessing(QFrame):
         self.pipeline_list = QListWidget(self)
         self.pipeline_list.setDragDropMode(QAbstractItemView.InternalMove)
 
-        # TODO: fill with function and params
-        self.pipeline_functions = []
-        self.pipeline_params = []
-
         self.remove_from_pipeline_btn = QPushButton("Remove step")
         self.remove_from_pipeline_btn.clicked.connect(self.remove_from_pipeline)
 
         self.apply_button = QPushButton("Apply")
         self.apply_button.clicked.connect(self.apply_pipeline)
+        self.apply_button.setEnabled(False)
 
         # common
         self.log_file = ...
@@ -131,8 +127,8 @@ class AutoProcessing(QFrame):
         layout.addWidget(self.pipeline_list)
 
         remove_btn_layout = QHBoxLayout()
-        remove_btn_layout.addStretch()
         remove_btn_layout.addWidget(self.remove_from_pipeline_btn)
+        remove_btn_layout.addStretch()
 
         layout.addLayout(remove_btn_layout)
         layout.addWidget(self.apply_button)
@@ -155,6 +151,9 @@ class AutoProcessing(QFrame):
             self.file_list_widget.addItem(os.path.basename(file_name))
             self.file_list.append(file_name)
 
+        if self.file_list_widget.count() != 0 and self.pipeline_list.count() != 0:
+            self.apply_button.setEnabled(True)
+
     def remove_file(self):
 
         curr_items = self.file_list_widget.selectedItems()
@@ -164,11 +163,19 @@ class AutoProcessing(QFrame):
                 self.file_list_widget.takeItem(item_row)
                 self.file_list.pop(item_row)
 
+        if self.file_list_widget.count() == 0:
+            self.apply_button.setEnabled(False)
+
     def change_method(self):
         curr_method_index = self.methods_list.currentRow()
         self.methods_layout.setCurrentIndex(curr_method_index)
 
     def add_to_pipeline(self):
+
+        # Enable apply button only if some file is in the list
+        if self.file_list_widget.count() != 0:
+            self.apply_button.setEnabled(True)
+
         curr_item = self.methods_list.currentItem()
         curr_item_index = self.methods_list.row(curr_item)
         params_text = self.auto_methods[curr_item_index].params_to_text()
@@ -183,25 +190,81 @@ class AutoProcessing(QFrame):
                 item_row = self.pipeline_list.row(item)
                 self.pipeline_list.takeItem(item_row)
 
-    def apply_pipeline(self):
-        #TODO: add progress bar update after each iteration
-        self.setEnabled(False)
+        if self.pipeline_list.count() == 0:
+            self.apply_button.setEnabled(False)
 
-        for file_name in self.file_list:
+    def enable_widgets(self, enable: bool) -> None:
+        self.pipeline_list.setEnabled(enable)
+        self.file_list_widget.setEnabled(enable)
+        self.methods_list.setEnabled(enable)
+        self.add_file_btn.setEnabled(enable)
+        self.remove_file_btn.setEnabled(enable)
+        self.add_to_pipeline_btn.setEnabled(enable)
+        self.remove_from_pipeline_btn.setEnabled(enable)
+        self.apply_button.setEnabled(enable)
+
+    def make_progress_bar(self, maximum):
+        
+        self.enable_widgets(False)
+
+        self.progress = QProgressDialog("Progress", "...", 0, maximum)
+        self.progress.setValue(0)
+        self.progress.setCancelButton(None)
+
+        # style for progress bar that is inside progress dialog must be set here for some reason...
+        self.progress.setStyleSheet(
+            """
+            QProgressBar {
+                border: 1px solid;
+                border-radius: 5px;
+                text-align: center;
+            }
+
+            QProgressBar::chunk {
+                background-color: rgb(248, 188, 36);
+                width: 1px;
+            }
+            """
+        )
+
+        # hide borders, title and "X" in the top right corner
+        self.progress.setWindowFlags(Qt.WindowTitleHint)
+        self.progress.setWindowIcon(QIcon("icons/message.svg"))
+
+        self.progress.setWindowTitle("Work in progress")
+
+    def update_progress(self, val):
+        QCoreApplication.processEvents(QEventLoop.ExcludeUserInputEvents, 1000)
+        self.progress.setValue(val)
+    
+    def destroy_progress_bar(self):
+        self.enable_widgets(True)
+        self.progress.deleteLater()
+
+    def apply_pipeline(self):
+
+        steps = len(self.file_list) * self.pipeline_list.count() + 1
+        self.make_progress_bar(steps)
+        self.update_progress(1)
+
+        for i, file_name in enumerate(self.file_list, 1):
             try:
                 curr_data = Data(file_name)
                 print(curr_data.in_file) # TODO: to file
-                # TODO: call functions on that data
                 for item_index in range(self.pipeline_list.count()):
                     # function call
                     print(f"{self.pipeline_list.item(item_index).func}{self.pipeline_list.item(item_index).params}") # TODO: to file
                     getattr(curr_data, self.pipeline_list.item(item_index).func)(*self.pipeline_list.item(item_index).params)
                     print("OK") # TODO: to file
-                    #TODO: add progress bar update after each iteration
+                    self.update_progress(self.progress.value() + 1)
+
             except Exception as e:
                 print(e) # TODO: to file
+            self.update_progress(i*self.pipeline_list.count())
 
-        self.setEnabled(True)
+        # set progress to maximum so that it shows 100 %
+        self.update_progress(steps)
+        self.destroy_progress_bar()
 
     def get_string_name(self):
         return "Auto Processing"
