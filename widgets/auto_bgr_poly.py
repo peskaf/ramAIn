@@ -1,23 +1,26 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QCheckBox
-from PySide6.QtGui import QRegularExpressionValidator, QIcon
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QCheckBox, QWidget
+from PySide6.QtGui import QIcon
 
 from data import Data
+from utils import validators
+
 
 class AutoBGRPoly(QFrame):
+    """
+    A widget for parameters selection for automatic polynom interpolation bg subtraction method.
+    """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
+
         self.setObjectName("method_instance")
         self.icon = QIcon("icons/background.svg")
-
-        int_validator = QRegularExpressionValidator("-?[0-9]+")
 
         self.init_poly_deg = 5
 
         # range is inclusive on both sides
         self.poly_deg_range = (1, 15)
-        self.poly_deg = QLineEdit(str(self.init_poly_deg), validator=int_validator)
-    
+        self.poly_deg = QLineEdit(str(self.init_poly_deg), validator=validators.INT_VALIDATOR)
         self.poly_deg.editingFinished.connect(self.validate_poly_deg_range)
 
         self.ignore_water_band = QCheckBox()
@@ -34,12 +37,15 @@ class AutoBGRPoly(QFrame):
         layout.addWidget(QLabel("Polynom degree"), 2, 0)
         layout.addWidget(self.poly_deg, 2, 1)
 
-        #TODO: add lower envelope, add spectrum opening?
+        # TODO: lower envelope, spectrum opening ?
         
         self.setLayout(layout)
 
 
     def validate_poly_deg_range(self) -> None:
+        """
+        A function to validate `self.poly_deg` input, setting it to correct value if it's unsatisfactory.
+        """
 
         poly_deg = int(self.poly_deg.text())
         if poly_deg < self.poly_deg_range[0]:
@@ -48,19 +54,43 @@ class AutoBGRPoly(QFrame):
             self.poly_deg.setText(str(self.poly_deg_range[1]))
 
     def get_params(self) -> tuple[int, bool]:
+        """
+        A function to return parameters of the method with the correct types.
+
+        Returns:
+            parameters (tuple): Tuple of method's parameters.
+        """
+
         parameters = (int(self.poly_deg.text()), self.ignore_water_band.isChecked(), )
         return parameters
 
     def params_to_text(self) -> str:
-        return f"poly deg: {int(self.poly_deg.text())}, ignore water: {self.ignore_water_band.isChecked()}"
+        """
+        A function to return parameters as strings with corresponding meanings.
 
-    def reset(self) -> None:
+        Returns:
+            str_parameters (str): String of parameters and their meaning.
+        """
 
-        self.ignore_water_band.setChecked(True)
-        self.poly_deg.setText(str(self.init_poly_deg))
+        str_parameters = f"poly deg: {int(self.poly_deg.text())}, ignore water: {self.ignore_water_band.isChecked()}"
+        return str_parameters
 
     def function_name(self) -> str:
+        """
+        A function to return name of the function that this widget represents.
+
+        Returns:
+            function_name (str): Name of the function that the parameters from this widget are for.
+        """
+
         return Data.auto_poly.__name__
 
     def get_string_name(self) -> str:
+        """
+        A function to return name of this widget as a string.
+
+        Returns:
+            widget_name (str): Name of the widget so that it can be recognized by the user.
+        """
+
         return "Background Removal - Polynom Interpolation"

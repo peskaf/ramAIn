@@ -1,12 +1,16 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QCheckBox
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QCheckBox, QWidget
 from PySide6.QtGui import QIcon
 
 from data import Data
 
 class AutoBGRMathMorpho(QFrame):
+    """
+    A widget for parameters selection for automatic math morpho bg subtraction method.
+    """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
+
         self.setObjectName("method_instance")
         self.icon = QIcon("icons/background.svg")
 
@@ -21,23 +25,48 @@ class AutoBGRMathMorpho(QFrame):
         layout.addWidget(QLabel("Ignore Water Band"), 1, 0)
         layout.addWidget(self.ignore_water_band, 1, 1)
 
-        #TODO: add lower envelope, add spectrum opening?
-        
+        # TODO: lower envelope,spectrum opening?
+
         self.setLayout(layout)
 
     def get_params(self) -> tuple[bool]:
+        """
+        A function to return parameters of the method with the correct types.
+
+        Returns:
+            parameters (tuple): Tuple of method's parameters.
+        """
 
         parameters = (self.ignore_water_band.isChecked(), )
         return parameters
 
     def params_to_text(self) -> str:
-        return f"ignore water: {self.ignore_water_band.isChecked()}"
+        """
+        A function to return parameters as strings with corresponding meanings.
 
-    def reset(self) -> None:
-        self.ignore_water_band.setChecked(True)
+        Returns:
+            str_parameters (str): String of parameters and their meaning.
+        """
+
+        str_parameters = f"ignore water: {self.ignore_water_band.isChecked()}"
+        return str_parameters
 
     def function_name(self) -> str:
+        """
+        A function to return name of the function that this widget represents.
+
+        Returns:
+            function_name (str): Name of the function that the parameters from this widget are for.
+        """
+
         return Data.auto_math_morpho.__name__
 
     def get_string_name(self) -> str:
+        """
+        A function to return name of this widget as a string.
+
+        Returns:
+            widget_name (str): Name of the widget so that it can be recognized by the user.
+        """
+
         return "Background Removal - Mathematical Morphology"

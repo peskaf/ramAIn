@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QFrame, QFileDialog, QPushButton, QListWidget, QStackedLayout, QVBoxLayout, QHBoxLayout, QAbstractItemView, QListWidgetItem, QProgressDialog, QLabel
+from PySide6.QtWidgets import QFrame, QFileDialog, QPushButton, QListWidget, QStackedLayout, QVBoxLayout, QHBoxLayout, QAbstractItemView, QListWidgetItem, QProgressDialog, QLabel, QWidget
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QSettings, QCoreApplication, QEventLoop
 
@@ -20,16 +20,27 @@ import os
 import datetime
 
 class FunctionItem(QListWidgetItem):
-    def __init__(self, label, func=None, params=None, parent=None):
+    """
+    Subclass of `QListWidgetItem`, instance of this class holds name of the function it represents
+    and its parameters.
+    """
+
+    def __init__(self, label: str, func: str = None, params: tuple = None, parent: QWidget = None) -> None:
         super().__init__(label, parent)
         self.func = func
         self.params = params
 
-class AutoProcessing(QFrame):
 
-    def __init__(self, parent=None):
+class AutoProcessing(QFrame):
+    """
+    A widget for creation of pipeline for batch of files for automatic data processing.
+    """
+
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
+
         self.icon = QIcon("icons/settings.svg")
+
         self.settings = QSettings()
 
         # file selection widget
@@ -112,6 +123,7 @@ class AutoProcessing(QFrame):
         self.apply_button.clicked.connect(self.apply_pipeline)
         self.apply_button.setEnabled(False)
 
+        # put everything into layout
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Files to Process"))
         layout.addWidget(self.file_list_widget)
@@ -158,7 +170,11 @@ class AutoProcessing(QFrame):
 
         self.setLayout(layout)
 
-    def logs_dir_dialog(self):
+    def logs_dir_dialog(self) -> None:
+        """
+        A function that shows file dialog for the selection of the directory where to store logs file.
+        """
+
         if not os.path.exists(self.logs_dir_label.text()):
             self.logs_dir_label.setText(os.getcwd())
 
@@ -171,12 +187,22 @@ class AutoProcessing(QFrame):
         self.logs_dir = temp_dir
         self.logs_dir_label.setText(f"Logs Directory: {temp_dir}")
 
-    def clear_pipeline(self):
+    def clear_pipeline(self) -> None:
+        """
+        A function to clear whole pipeline.
+        """
+
+        # NOTE: removing in reversed order -> items index decreases during deletion
         for item_index in reversed(range(self.pipeline_list.count())):
             self.pipeline_list.takeItem(item_index)
         self.clear_pipeline_btn.setEnabled(False)
 
-    def add_files(self):
+    def add_files(self) -> None:
+        """
+        A function to show file dialog so that file can be added to the list of files
+        that are to be processed.
+        """
+
         temp_folder = self.settings.value("source_dir", os.getcwd())
         if not os.path.exists(temp_folder):
             temp_folder = os.getcwd()
@@ -195,7 +221,10 @@ class AutoProcessing(QFrame):
         if self.file_list_widget.count() != 0 and self.pipeline_list.count() != 0:
             self.apply_button.setEnabled(True)
 
-    def remove_file(self):
+    def remove_file(self) -> None:
+        """
+        A function for removing of currently selected file(s).
+        """
 
         curr_items = self.file_list_widget.selectedItems()
         if curr_items is not None:
@@ -207,11 +236,19 @@ class AutoProcessing(QFrame):
         if self.file_list_widget.count() == 0:
             self.apply_button.setEnabled(False)
 
-    def change_method(self):
+    def change_method(self) -> None:
+        """
+        A function to change visible widget in the `methods_layout` according to selected
+        item in the `self.method_list`.
+        """
+
         curr_method_index = self.methods_list.currentRow()
         self.methods_layout.setCurrentIndex(curr_method_index)
 
-    def add_to_pipeline(self):
+    def add_to_pipeline(self) -> None:
+        """
+        A function to add currently selected method to the pipeline.
+        """
 
         # Enable apply button only if some file is in the list
         if self.file_list_widget.count() != 0:
@@ -223,20 +260,34 @@ class AutoProcessing(QFrame):
         params_text = self.auto_methods[curr_item_index].params_to_text()
         function_name = self.auto_methods[curr_item_index].function_name()
         params = self.auto_methods[curr_item_index].get_params()
+
+        # make item with function and params, display text version of params
         self.pipeline_list.addItem(FunctionItem(curr_item.text() + (" - " if len(params_text) else "") + params_text, function_name, params))
         
-    def remove_from_pipeline(self):
+    def remove_from_pipeline(self) -> None:
+        """
+        A function to remove currently selected method from the pipeline
+        """
+
         curr_items = self.pipeline_list.selectedItems()
         if curr_items is not None:
             for item in curr_items:
                 item_row = self.pipeline_list.row(item)
                 self.pipeline_list.takeItem(item_row)
 
+        # disable some buttons if no method is left in the list
         if self.pipeline_list.count() == 0:
             self.apply_button.setEnabled(False)
             self.clear_pipeline_btn.setEnabled(False)
 
     def enable_widgets(self, enable: bool) -> None:
+        """
+        A function to enable/disable all possible widgets on the page.
+
+        Parameters:
+            enable (bool): Whether to enable or disable the widgets.  
+        """
+
         self.pipeline_list.setEnabled(enable)
         self.file_list_widget.setEnabled(enable)
         self.methods_list.setEnabled(enable)
@@ -246,12 +297,19 @@ class AutoProcessing(QFrame):
         self.remove_from_pipeline_btn.setEnabled(enable)
         self.apply_button.setEnabled(enable)
         self.clear_pipeline_btn.setEnabled(enable)
+        self.select_logs_dir.setEnabled(enable)
 
         for method in self.auto_methods:
             method.setEnabled(enable)
 
-    def make_progress_bar(self, maximum):
-        
+    def make_progress_bar(self, maximum: int) -> None:
+        """
+        A function to make progress bar dialog with `maximum` steps.
+
+        Parameters:
+            maximum (int): Number of steps to be made to display 100 %.
+        """
+
         self.enable_widgets(False)
 
         self.progress = QProgressDialog("Progress", "...", 0, maximum)
@@ -259,6 +317,7 @@ class AutoProcessing(QFrame):
         self.progress.setCancelButton(None)
 
         # style for progress bar that is inside progress dialog must be set here for some reason...
+        # TODO: look at it once again
         self.progress.setStyleSheet(
             """
             QProgressBar {
@@ -280,16 +339,31 @@ class AutoProcessing(QFrame):
 
         self.progress.setWindowTitle("Work in progress")
 
-    def update_progress(self, val):
+    def update_progress(self, val: int) -> None:
+        """
+        A function to set progress value to `val`.
+
+        Parameters:
+            val (int): Value to which to set the progress in the progress bar.
+        """
+
         QCoreApplication.processEvents(QEventLoop.ExcludeUserInputEvents, 1000)
         self.progress.setValue(val)
     
-    def destroy_progress_bar(self):
+    def destroy_progress_bar(self) -> None:
+        """
+        A function to destroy the progress bar object.
+        """
+        
         self.enable_widgets(True)
         self.progress.deleteLater()
 
     def apply_pipeline(self):
+        """
+        A function to apply the pipeline on the batch of files.
+        """
         
+        # log file has name according to current time
         logs_file = os.path.join(self.logs_dir, "logs_" + datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S") + ".txt")
 
         with open(logs_file, "w", encoding="utf-8") as logs:
@@ -319,5 +393,12 @@ class AutoProcessing(QFrame):
             self.update_progress(steps)
             self.destroy_progress_bar()
 
-    def get_string_name(self):
+    def get_string_name(self) -> str:
+        """
+        A function to return name of this widget as a string.
+
+        Returns:
+            widget_name (str): Name of the widget so that it can be recognized by the user.
+        """
+
         return "Auto Processing"
