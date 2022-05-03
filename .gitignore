@@ -130,3 +130,6 @@ dmypy.json
 
 # Data - possibly big, example data are provided
 data/
+
+# All ipynb files -> experiments
+*.ipynb
