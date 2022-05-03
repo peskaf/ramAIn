@@ -4,7 +4,7 @@ from PySide6.QtCore import QSettings
 
 import os
 
-from widgets.data import Data
+from data import Data
 
 class AutoExportComponents(QFrame):
     def __init__(self, parent=None):

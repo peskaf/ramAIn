@@ -14,7 +14,7 @@ from widgets.auto_decomposition_NMF import AutoNMF
 from widgets.auto_save import AutoSave
 from widgets.auto_export_components import AutoExportComponents
 
-from widgets.data import Data
+from data import Data
 
 import os
 import datetime

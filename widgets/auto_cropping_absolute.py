@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QWidget
 from PySide6.QtGui import QRegularExpressionValidator, QIcon
 
-from widgets.data import Data
+from data import Data
 
 class AutoCroppingAbsolute(QFrame):
     def __init__(self, parent: QWidget = None) -> None:

@@ -7,7 +7,7 @@ from widgets.collapse_button import CollapseButton
 from widgets.decomposition_methods import DecompositionMethods
 from widgets.component import Component
 
-from widgets.data import Data
+from data import Data
 
 import os
 

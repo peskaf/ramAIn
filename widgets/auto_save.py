@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QFileDia
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import QSettings
 
-from widgets.data import Data
+from data import Data
 
 import os
 

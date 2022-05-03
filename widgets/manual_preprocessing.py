@@ -10,7 +10,7 @@ from widgets.spectral_map import SpectralMap
 from widgets.spectral_plot import SpectralPlot
 from widgets.plot_mode import PlotMode
 
-from widgets.data import Data
+from data import Data
 
 from typing import Callable
 import numpy as np
@@ -257,7 +257,7 @@ class ManualPreprocessing(QFrame):
         steps = np.multiply(*self.curr_data.data.shape[:2])
 
         if math_morpho:
-            self.progress_bar_function(steps, self.curr_data.mm_algo_spectrum, ignore_water, self.update_progress)
+            self.progress_bar_function(steps, self.curr_data.math_morpho, ignore_water, self.update_progress)
         else:
             poly_deg = self.methods.background_removal.get_params()[0]
             self.progress_bar_function(steps, self.curr_data.vancouver, poly_deg, ignore_water, self.update_progress)
@@ -306,7 +306,7 @@ class ManualPreprocessing(QFrame):
         if self.methods.background_removal.math_morpho_btn.isChecked():
             ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
             curr_spectrum = self.curr_data.data[self.curr_plot_indices[0], self.curr_plot_indices[1], :]
-            mm_bg = self.curr_data._mm_aaa(curr_spectrum, ignore_water)
+            mm_bg = self.curr_data._math_morpho_on_spectrum(curr_spectrum, ignore_water)
             self.plot.plot_background(mm_bg)
         else:
             # emit degree of poly that is currently set in line edit -> it will trigger `bgr_change_poly_on_plot` with right params

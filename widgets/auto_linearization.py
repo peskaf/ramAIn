@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit
 from PySide6.QtGui import QRegularExpressionValidator, QIcon
 
-from widgets.data import Data
+from data import Data
 
 class AutoLinearization(QFrame):
     def __init__(self, parent=None):

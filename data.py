@@ -3,7 +3,6 @@ import scipy.io
 import scipy.interpolate as si
 import os
 from scipy import signal
-from functools import reduce
 from sklearn import decomposition, cluster
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
@@ -11,11 +10,12 @@ import matplotlib.pyplot as plt
 import scipy.sparse as ss
 from scipy.sparse import linalg
 
-import widgets.sklearn_NMF
+import utils.sklearn_NMF
+import utils.indices
+import utils.math_morphology
 
 from PySide6.QtCore import Signal, QSettings
 
-# TODO: Move into different folder -> change structure of the whole app files
 class Data:
     """
     A class for raman data representation and methods on it.
@@ -212,47 +212,14 @@ class Data:
 
         self._recompute_dependent_data()
 
-    #TODO: to be done - docstrings etc.; move sth to data.func.utils
-
-    def _get_indices_range(self, x, start_value, end_value):
-        start_index = np.argmin(np.absolute(x - start_value))
-        end_index = np.argmin(np.absolute(x - end_value))
-        return np.r_[start_index:end_index]
-
-    def _get_indices_to_fit(self, x, ranges_to_ignore):
-        union = reduce(np.union1d, (self._get_indices_range(x, *i) for i in ranges_to_ignore))
-        to_fit = np.in1d(np.arange(x.shape[0]), union, invert=True)
-        return to_fit
-
-    def _get_no_water_indices(self, x: np.ndarray) -> np.ndarray:
-        to_ignore = [[2750, 3750]] # possible C-H vibrations included
-        return self._get_indices_to_fit(x, to_ignore)
-
-    def erosion(self, values: np.ndarray, window_width: int) -> np.ndarray:
-        # eroze -> minmum v okně
-        padded_values = np.pad(values, (window_width, window_width), 'constant', constant_values=(values[0], values[-1])) # pad with side values from sides
-        windows = np.lib.stride_tricks.sliding_window_view(padded_values, 2 * window_width + 1)
-        mins = np.min(windows, axis=1)
-        return mins
-
-    def dilation(self, values: np.ndarray, window_width: int) -> np.ndarray:
-        # dilatace -> maximum v okně
-        padded_values = np.pad(values, (window_width, window_width), 'constant', constant_values=(values[0], values[-1])) # pad with side values from sides
-        windows = np.lib.stride_tricks.sliding_window_view(padded_values, 2 * window_width + 1)
-        mins = np.max(windows, axis=1)
-        return mins
-
-    def opening(self, values: np.ndarray, window_width: int) -> np.ndarray:
-        return self.dilation(self.erosion(values, window_width), window_width)
-
     def get_optimal_structuring_element_width(self, values: np.ndarray) -> int:
         max_sim_counter = 3
         window_width = 1
-        opened_array = self.opening(values, window_width)
+        opened_array = utils.math_morphology.opening(values, window_width)
 
         while True:
             window_width += 1
-            new_opened_array = self.opening(opened_array, window_width)
+            new_opened_array = utils.math_morphology.opening(opened_array, window_width)
             if np.any(new_opened_array != opened_array):
                 similarity_counter = 0
                 opened_array = new_opened_array
@@ -263,13 +230,13 @@ class Data:
                     return window_width - max_sim_counter + 1 # restore window width of the first similar result
 
     #TODO rename
-    def _mm_algo_step(self, y, window_width: int = None):
-        spectrum_opening = self.opening(y, window_width)
-        approximation = np.mean(self.erosion(spectrum_opening, window_width) + self.dilation(spectrum_opening, window_width), axis=0)
+    def _math_morpho_step(self, y, window_width: int = None):
+        spectrum_opening = utils.math_morphology.opening(y, window_width)
+        approximation = np.mean(utils.math_morphology.erosion(spectrum_opening, window_width) + utils.math_morphology.dilation(spectrum_opening, window_width), axis=0)
         return np.minimum(spectrum_opening, approximation)
 
     #TODO rename
-    def _mm_aaa(self, y: np.ndarray, ignore_water: bool, signal_to_emit: Signal = None) -> np.ndarray:
+    def _math_morpho_on_spectrum(self, y: np.ndarray, ignore_water: bool, signal_to_emit: Signal = None) -> np.ndarray:
         if signal_to_emit is not None:
             signal_to_emit.emit()
 
@@ -283,27 +250,27 @@ class Data:
             window_width_water = int(np.round(len(water_part_y) / 3)) # TODO: best??
             window_width_no_water = self.get_optimal_structuring_element_width(not_water_part_y)
 
-            bg_water = self._mm_algo_step(water_part_y, window_width_water)
-            bg_no_water = self._mm_algo_step(not_water_part_y, window_width_no_water)
+            bg_water = self._math_morpho_step(water_part_y, window_width_water)
+            bg_no_water = self._math_morpho_step(not_water_part_y, window_width_no_water)
 
             background = np.concatenate((bg_no_water, bg_water))
             return background
 
         window_width = self.get_optimal_structuring_element_width(y)
 
-        spectrum_opening = self.opening(y, window_width)
-        approximation = np.mean(self.erosion(spectrum_opening, window_width) + self.dilation(spectrum_opening, window_width), axis=0)
+        spectrum_opening = utils.math_morphology.opening(y, window_width)
+        approximation = np.mean(utils.math_morphology.erosion(spectrum_opening, window_width) + utils.math_morphology.dilation(spectrum_opening, window_width), axis=0)
         background = np.minimum(spectrum_opening, approximation)
         return background
 
-    def mm_algo_spectrum(self, ignore_water: bool, signal_to_emit: Signal = None):
+    def math_morpho(self, ignore_water: bool, signal_to_emit: Signal = None):
         # no speed-up version - possible speed-ups: multithreading, clustering
-        backgrounds = np.apply_along_axis(self._mm_aaa, 2, self.data, ignore_water, signal_to_emit)
+        backgrounds = np.apply_along_axis(self._math_morpho_on_spectrum, 2, self.data, ignore_water, signal_to_emit)
         self.data -= backgrounds
         self._recompute_dependent_data()
 
     def auto_math_morpho(self, ignore_water: bool):
-        self.mm_algo_spectrum(ignore_water)
+        self.math_morpho(ignore_water)
 
     def vancouver(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None):
         backgrounds = np.apply_along_axis(self.vancouver_poly_bg, 2, self.data, degree, ignore_water, signal_to_emit)
@@ -320,7 +287,7 @@ class Data:
         x = self.x_axis
 
         if ignore_water:
-            no_water_indices = self._get_no_water_indices(x)
+            no_water_indices = utils.indices._get_no_water_indices(x)
             x = x[no_water_indices]
             y = y[no_water_indices]
 
@@ -352,7 +319,7 @@ class Data:
         x = self.x_axis
 
         if ignore_water:
-            no_water_indices = self._get_no_water_indices(x)
+            no_water_indices = utils.indices._get_no_water_indices(x)
             x = x[no_water_indices]
             y = y[no_water_indices]
         
@@ -405,7 +372,7 @@ class Data:
 
         #abs
         reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
-        nmf = widgets.sklearn_NMF.NMF(n_components=n_components, init="nndsvd", signal_to_emit=signal_to_emit) # TODO: mozna nejaka regularizace apod.
+        nmf = utils.sklearn_NMF.NMF(n_components=n_components, init="nndsvd", signal_to_emit=signal_to_emit) # TODO: mozna nejaka regularizace apod.
         nmf.fit(reshaped_data)
         nmf_transformed_data = nmf.transform(reshaped_data)
 
@@ -525,7 +492,7 @@ class Data:
         return Z
 
     def calculate_spikes_indices(self):
-        Z_score_threshold = 6.5
+        Z_score_threshold = 5.5 # 6.5
         window_width = 5
         n_comp = 8
         correlation_threshold = 0.9
@@ -533,7 +500,7 @@ class Data:
 
         clf = cluster.MiniBatchKMeans(n_clusters=n_comp, random_state=42, max_iter=60)
         # flatten data and ingore silent region
-        flattened_data = np.reshape(self.data, (-1, self.data.shape[-1]))[:,self._get_indices_to_fit(self.x_axis, [silent_region])]
+        flattened_data = np.reshape(self.data, (-1, self.data.shape[-1]))[:, utils.indices._get_indices_to_fit(self.x_axis, [silent_region])]
         clf.fit(flattened_data)
         cluster_map = np.reshape(clf.predict(flattened_data), self.data.shape[:2])
 

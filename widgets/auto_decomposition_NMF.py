@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLineEdit, QLabel
 from PySide6.QtGui import QRegularExpressionValidator, QIcon
 
-from widgets.data import Data
+from data import Data
 
 class AutoNMF(QFrame):
 

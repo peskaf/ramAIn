@@ -1,11 +1,9 @@
-from PySide6.QtGui import QIcon, QFontDatabase, QScreen, QCloseEvent
+from PySide6.QtGui import QIcon, QFontDatabase, QScreen
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
 from PySide6.QtCore import QCoreApplication, QSettings
 
 from widgets.menu import Menu
 from widgets.header import Header
-
-import os
 
 class MainWindow(QMainWindow):
     def __init__(self):
