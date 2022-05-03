@@ -287,7 +287,7 @@ class Data:
         x = self.x_axis
 
         if ignore_water:
-            no_water_indices = utils.indices._get_no_water_indices(x)
+            no_water_indices = utils.indices.get_no_water_indices(x)
             x = x[no_water_indices]
             y = y[no_water_indices]
 
@@ -319,7 +319,7 @@ class Data:
         x = self.x_axis
 
         if ignore_water:
-            no_water_indices = utils.indices._get_no_water_indices(x)
+            no_water_indices = utils.indices.get_no_water_indices(x)
             x = x[no_water_indices]
             y = y[no_water_indices]
         
@@ -500,7 +500,7 @@ class Data:
 
         clf = cluster.MiniBatchKMeans(n_clusters=n_comp, random_state=42, max_iter=60)
         # flatten data and ingore silent region
-        flattened_data = np.reshape(self.data, (-1, self.data.shape[-1]))[:, utils.indices._get_indices_to_fit(self.x_axis, [silent_region])]
+        flattened_data = np.reshape(self.data, (-1, self.data.shape[-1]))[:, utils.indices.get_indices_to_fit(self.x_axis, [silent_region])]
         clf.fit(flattened_data)
         cluster_map = np.reshape(clf.predict(flattened_data), self.data.shape[:2])
 
