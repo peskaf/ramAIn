@@ -1,9 +1,7 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QWidget
-from PySide6.QtGui import QRegularExpressionValidator, QIcon
-from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QWidget
+from PySide6.QtGui import QIcon
 
-import pyqtgraph as pg
-import numpy as np
+from widgets.data import Data
 
 class AutoBGRairPLS(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
@@ -25,6 +23,9 @@ class AutoBGRairPLS(QFrame):
 
     def params_to_text(self) -> str:
         return f""
+
+    def function_name(self) -> str:
+        return Data.auto_airPLS.__name__
 
     def get_string_name(self) -> str:
         return "Background Removal - airPLS"

@@ -185,18 +185,23 @@ class AutoProcessing(QFrame):
 
     def apply_pipeline(self):
         #TODO: add progress bar update after each iteration
+        self.setEnabled(False)
+
         for file_name in self.file_list:
             try:
                 curr_data = Data(file_name)
-                print(curr_data.in_file)
+                print(curr_data.in_file) # TODO: to file
                 # TODO: call functions on that data
                 for item_index in range(self.pipeline_list.count()):
                     # function call
+                    print(f"{self.pipeline_list.item(item_index).func}{self.pipeline_list.item(item_index).params}") # TODO: to file
                     getattr(curr_data, self.pipeline_list.item(item_index).func)(*self.pipeline_list.item(item_index).params)
-                    #TODO: some logging that it was OK
+                    print("OK") # TODO: to file
                     #TODO: add progress bar update after each iteration
             except Exception as e:
-                print(f"{e} ({self.pipeline_list.item(item_index).func}{self.pipeline_list.item(item_index).params})")
+                print(e) # TODO: to file
+
+        self.setEnabled(True)
 
     def get_string_name(self):
         return "Auto Processing"
