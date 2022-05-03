@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog, QHBoxLayout
-from PySide6.QtCore import Qt, Signal, QSettings
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog, QHBoxLayout, QProgressDialog
+from PySide6.QtCore import Qt, Signal, QSettings, QEventLoop, QCoreApplication
 from PySide6.QtGui import QIcon, QPixmap
 
 from widgets.files_view import FilesView
@@ -12,6 +12,8 @@ from widgets.data import Data
 import os
 
 class SpectraDecomposition(QFrame):
+    update_progress = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -122,11 +124,12 @@ class SpectraDecomposition(QFrame):
 
     def NMF_apply(self):
         n_comps = self.methods.NMF.get_params()[0]
-        self.methods.setEnabled(False)
-        self.export_button.setEnabled(False)
-        self.curr_data.NMF(n_comps)
-        self.methods.setEnabled(True)
-        self.export_button.setEnabled(True)
+        NMF_max_iter = 200
+        # multiply max_iter by 2 as colver is being used while both transform and fit, both with max_iter = 200
+        self.make_progress_bar(2*NMF_max_iter)
+        self.curr_data.NMF(n_comps, self.update_progress)
+        self.progress.setValue(2*NMF_max_iter)
+        self.destroy_progress_bar()
         self.show_components()
 
     def show_components(self):
@@ -180,6 +183,48 @@ class SpectraDecomposition(QFrame):
             self.files_view.set_curr_file(self.curr_file)
             # connect again
             self.files_view.file_list.currentItemChanged.connect(self.update_file)
+
+    def make_progress_bar(self, maximum):
+
+        # disable widgets
+
+        self.progress = QProgressDialog("Progress", "...", 0, maximum)
+        self.progress.setValue(0)
+        self.progress.setCancelButton(None)
+
+        # style for progress bar that is inside progress dialog must be set here for some reason...
+        self.progress.setStyleSheet(
+            """
+            QProgressBar {
+                border: 1px solid;
+                border-radius: 5px;
+                text-align: center;
+            }
+
+            QProgressBar::chunk {
+                background-color: rgb(248, 188, 36);
+                width: 1px;
+            }
+            """
+        )
+
+        # hide borders, title and "X" in the top right corner
+        self.progress.setWindowFlags(Qt.WindowTitleHint) # Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowTitleHint
+        self.progress.setWindowIcon(QIcon("icons/message.svg"))
+
+        self.progress.setWindowTitle("Work in progress")
+        self.update_progress.connect(self.set_progress)
+
+    def set_progress(self):
+        QCoreApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+        val = self.progress.value()
+        self.progress.setValue(val + 1)
+    
+    def destroy_progress_bar(self):
+        # enable widgets again
+
+        self.update_progress.disconnect()
+        self.progress.deleteLater()
 
     def get_string_name(self):
         return "Spectra Decomposition"

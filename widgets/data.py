@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import scipy.sparse as ss
 from scipy.sparse import linalg
 
+import widgets.sklearn_NMF
+
 from PySide6.QtCore import Signal, QSettings
 
 # TODO: Move into different folder -> change structure of the whole app files
@@ -389,7 +391,7 @@ class Data:
     def auto_PCA(self, n_components: int) -> None:
         self.PCA(n_components)
 
-    def NMF(self, n_components: int) -> None:
+    def NMF(self, n_components: int, signal_to_emit: Signal = None) -> None:
         self.components = [] # reset to init state
 
         # np.abs has to be present since NMF requires positive values
@@ -402,7 +404,7 @@ class Data:
 
         #abs
         reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
-        nmf = decomposition.NMF(n_components=n_components, init="nndsvd") #TODO: mozna nejaka regularizace apod.
+        nmf = widgets.sklearn_NMF.NMF(n_components=n_components, init="nndsvd", signal_to_emit=signal_to_emit) # TODO: mozna nejaka regularizace apod.
         nmf.fit(reshaped_data)
         nmf_transformed_data = nmf.transform(reshaped_data)
 
