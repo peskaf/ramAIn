@@ -1,6 +1,7 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButton, QCheckBox, QPushButton
-from PySide6.QtGui import QRegularExpressionValidator, QIcon
-from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QCheckBox
+from PySide6.QtGui import QIcon
+
+from widgets.data import Data
 
 class AutoBGRMathMorpho(QFrame):
 
@@ -34,6 +35,9 @@ class AutoBGRMathMorpho(QFrame):
 
     def reset(self) -> None:
         self.ignore_water_band.setChecked(True)
+
+    def function_name(self) -> str:
+        return Data.auto_math_morpho.__name__
 
     def get_string_name(self) -> str:
         return "Background Removal - Mathematical Morphology"

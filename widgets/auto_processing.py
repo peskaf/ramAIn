@@ -191,23 +191,12 @@ class AutoProcessing(QFrame):
                 print(curr_data.in_file)
                 # TODO: call functions on that data
                 for item_index in range(self.pipeline_list.count()):
-                    print(self.pipeline_list.item(item_index).func, self.pipeline_list.item(item_index).params)
                     # function call
                     getattr(curr_data, self.pipeline_list.item(item_index).func)(*self.pipeline_list.item(item_index).params)
-                    print("Done xd")
+                    #TODO: some logging that it was OK
                     #TODO: add progress bar update after each iteration
             except Exception as e:
-                print(e)
+                print(f"{e} ({self.pipeline_list.item(item_index).func}{self.pipeline_list.item(item_index).params})")
 
     def get_string_name(self):
         return "Auto Processing"
-
-# TODO: may be handy
-"""
-for item_index in range(self.pipeline_list.count()):
-            print(self.pipeline_list.item(item_index).func)
-            print(self.pipeline_list.item(item_index).params)
-
-"""
-
-    

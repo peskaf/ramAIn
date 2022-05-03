@@ -1,6 +1,7 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButton, QCheckBox, QPushButton
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QCheckBox
 from PySide6.QtGui import QRegularExpressionValidator, QIcon
-from PySide6.QtCore import Signal
+
+from widgets.data import Data
 
 class AutoBGRVancouver(QFrame):
 
@@ -46,18 +47,19 @@ class AutoBGRVancouver(QFrame):
         elif poly_deg > self.poly_deg_range[1]:
             self.poly_deg.setText(str(self.poly_deg_range[1]))
 
-    def get_params(self) -> tuple[int]:
-        #TODO: add ignore water
-        parameters = (int(self.poly_deg.text()), )
+    def get_params(self) -> tuple[int, bool]:
+        parameters = (int(self.poly_deg.text()), self.ignore_water_band.isChecked(), )
         return parameters
 
     def params_to_text(self) -> str:
         return f"poly deg: {int(self.poly_deg.text())}, ignore water: {self.ignore_water_band.isChecked()}"
 
     def reset(self) -> None:
-
         self.ignore_water_band.setChecked(True)
         self.poly_deg.setText(str(self.init_poly_deg))
+
+    def function_name(self) -> str:
+        return Data.auto_vancouver.__name__
 
     def get_string_name(self) -> str:
         return "Background Removal - Vancouver"

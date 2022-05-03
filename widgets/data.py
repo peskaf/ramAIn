@@ -100,7 +100,7 @@ class Data:
             scipy.io.savemat(out_file, appendmat=True, mdict=self._mdict)
 
         except Exception as e:
-            raise Exception(f"{self.in_file}: save file; {e}")
+            raise Exception(f"{self.in_file}: {e}")
 
     def auto_save_data(self, out_folder: str, file_tag: str) -> None:
         file_name, ext = os.path.basename(self.in_file).split('.')
@@ -164,7 +164,7 @@ class Data:
                 self.x_axis = self.x_axis[spectra_start_crop:]
                 self.data = self.data[:, :, spectra_start_crop:]
         except Exception as e:
-            raise Exception(f"{self.in_file}: auto cropping - relative; {e}")
+            raise Exception(f"{self.in_file}: {e}")
 
 
         # NOTE: dependent data are not recomputed here as it is used for visualization only
@@ -288,10 +288,16 @@ class Data:
         self.data -= backgrounds
         self._recompute_dependent_data()
 
+    def auto_math_morpho(self, ignore_water: bool):
+        self.mm_algo_spectrum(ignore_water)
+
     def vancouver(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None):
         backgrounds = np.apply_along_axis(self.vancouver_poly_bg, 2, self.data, degree, ignore_water, signal_to_emit)
         self.data -= backgrounds
         self._recompute_dependent_data()
+
+    def auto_vancouver(self, degree: int, ignore_water: bool) -> None:
+        self.vancouver(degree, ignore_water)
 
     def vancouver_poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
         if signal_to_emit is not None:
@@ -328,18 +334,16 @@ class Data:
 
         return poly_obj(self.x_axis)
 
-    def linearize(self, step: float, auto: bool = False) -> None:
+    def linearize(self, step: float) -> None:
         spectrum_spline = si.CubicSpline(self.x_axis, self.data, axis=2, extrapolate=False)
         new_x = np.arange(np.ceil(self.x_axis[0]), np.floor(self.x_axis[-1]), step)
         self.x_axis = new_x
         self.data = spectrum_spline(new_x)
 
-        # NOTE: dependent data are not recomputed for auto as it is used for visualization only
-        if not auto:
-            self._recompute_dependent_data()
+        self._recompute_dependent_data()
 
     def auto_linearize(self, step: float) -> None:
-        self.linearize(step, True)
+        self.linearize(step)
 
     # decomposition methods
 
@@ -355,6 +359,9 @@ class Data:
         for i in range(len(pca.components_)):
             self.components.append({"map": pca_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": pca.components_[i]})
 
+    def auto_PCA(self, n_components: int) -> None:
+        self.PCA(n_components)
+
     def NMF(self, n_components: int) -> None:
         self.components = [] # reset to init state
 
@@ -366,6 +373,9 @@ class Data:
 
         for i in range(len(nmf.components_)):
             self.components.append({"map": nmf_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": nmf.components_[i]})
+
+    def auto_NMF(self, n_components: int) -> None:
+        self.NMF(n_components)
 
     def export_components(self, file_name: str, file_format: str) -> None:
         # matplotlib pic export
@@ -452,6 +462,11 @@ class Data:
         plt.tight_layout()
         plt.savefig(file_name, bbox_inches='tight', format=file_format)
 
+    def auto_export(self, out_folder: str, file_tag: str, file_format: str):
+        file_name, _ = os.path.basename(self.in_file).split('.')
+        out_file = os.path.join(out_folder, file_name + file_tag + '.' + file_format)
+        self.export_components(out_file, file_format)
+
     def _calculate_Z_scores(self, data: np.ndarray) -> np.ndarray:
         abs_differences = np.abs(np.diff(data, axis=1))
         percentile_90 = np.percentile(abs_differences, 90)
@@ -531,7 +546,7 @@ class Data:
         self.spikes["map_indices"] = map_indices
         self.spikes["peak_positions"] = peak_positions
 
-    def remove_spikes(self, auto: bool = False) -> None:
+    def remove_spikes(self) -> None:
         # NOTE: remove spikes before cropping!
 
         window_width = 5
@@ -553,10 +568,8 @@ class Data:
 
             self.data[spectrum_indices[0], spectrum_indices[1], left:right+1:1] = new_values
 
-        # do not recompute dependent data on auto methods
-        if not auto:
-            self._recompute_dependent_data()
+        self._recompute_dependent_data()
 
     def auto_remove_spikes(self):
         self.calculate_spikes_indices()
-        self.remove_spikes(auto=True)
+        self.remove_spikes()

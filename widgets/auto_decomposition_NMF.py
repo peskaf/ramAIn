@@ -1,6 +1,7 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLineEdit, QLabel
+from PySide6.QtWidgets import QFrame, QGridLayout, QLineEdit, QLabel
 from PySide6.QtGui import QRegularExpressionValidator, QIcon
-from PySide6.QtCore import Signal
+
+from widgets.data import Data
 
 class AutoNMF(QFrame):
 
@@ -26,8 +27,7 @@ class AutoNMF(QFrame):
         self.setLayout(layout)
 
     def reset(self):
-        ...
-        # TODO: dopsat
+        self.num_of_components.setText(str(self.init_num_of_components))
 
     def validate_components_range(self) -> None:
         """
@@ -53,6 +53,9 @@ class AutoNMF(QFrame):
 
     def params_to_text(self) -> str:
         return f"components: {int(self.num_of_components.text())}"
+
+    def function_name(self) -> str:
+        return Data.auto_NMF.__name__
 
     def get_string_name(self):
         return "Decomposition - NMF"
