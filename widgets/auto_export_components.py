@@ -24,6 +24,8 @@ class AutoExportComponents(QFrame):
         
         self.setLayout(layout)
     
+    # TODO: add format! -> select from list
+
     def get_params(self) -> tuple[str]:
         parameters = (self.data_folder, )
         return parameters

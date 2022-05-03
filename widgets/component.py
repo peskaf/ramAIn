@@ -17,24 +17,10 @@ class ScrollablePlotWidget(pg.PlotWidget):
         self.parent.wheelEvent(event)
 
     def mousePressEvent(self, QMouseEvent):
-        ...
+        pass
 
     def mouseReleaseEvent(self, QMouseEvent):
-        ...
-
-"""
-class ScrollableViewBox(pg.ViewBox):
-    def __init__(self, parent=None):
-        super().__init__(enableMouse=False)
-        self.parent = parent
-
-    def wheelEvent(self, event: QGraphicsSceneWheelEvent):
-
-        pixel_delta = event.delta()
-        # this does not scroll scrolling widget..
-        print(self.parent.parent.scroll(0, pixel_delta))
-"""
-# TODO: scrolling over map?
+        pass
 
 class Component(QFrame):
     def __init__(self, x, y, map, parent=None):
@@ -49,14 +35,14 @@ class Component(QFrame):
         self.y_data = y
         self.map_data = map
         
-        self.component_map = pg.ImageView(parent)#, view=ScrollableViewBox(parent))
+        self.component_map = pg.ImageView(parent)
         self.component_map.ui.histogram.hide()
         self.component_map.ui.roiBtn.hide()
         self.component_map.ui.menuBtn.hide()
 
         bg_color = (240,240,240)
         color_map = COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
-        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map)
 
         self.component_map.setColorMap(cmap)
         self.component_map.setImage(self.map_data, autoRange=False)
@@ -68,7 +54,6 @@ class Component(QFrame):
         self.component_map.setMaximumWidth(250)
 
         self.component_plot = ScrollablePlotWidget(parent)
-        #self.component_plot.getPlotItem().getViewBox().setMouseEnabled(False, False)
         self.component_plot.setBackground(bg_color)
         plot_pen = pg.mkPen(color="#266867", width=1.5)
         self.line = self.component_plot.plot(self.x_data, self.y_data, pen=plot_pen)

@@ -1,11 +1,9 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QWidget
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QWidget
 from PySide6.QtGui import QRegularExpressionValidator, QIcon
-from PySide6.QtCore import Signal
 
-import pyqtgraph as pg
-import numpy as np
+from widgets.data import Data
 
-class AutoCropping(QFrame):
+class AutoCroppingAbsolute(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
         self.setObjectName("method_instance")
@@ -19,9 +17,8 @@ class AutoCropping(QFrame):
 
         # put widgets into layout
         layout = QGridLayout()
-
         # Spectral plot cropping parameters
-        layout.addWidget(QLabel("Spectral Plot Cropping"), 0, 0)
+        layout.addWidget(QLabel("Spectral Plot Cropping - Absolute"), 0, 0)
 
         layout.addWidget(QLabel("Start Position"), 1, 0)
         layout.addWidget(QLabel("End Position"), 2, 0)
@@ -48,5 +45,8 @@ class AutoCropping(QFrame):
         for input in inputs:
             input.setText(str(self.init_inputs_value))
 
+    def function_name(self) -> str:
+        return Data.auto_crop_absolute.__name__
+
     def get_string_name(self) -> str:
-        return "Cropping"
+        return "Cropping - Absolute"

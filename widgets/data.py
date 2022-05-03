@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.io
 import scipy.interpolate as si
+import os
 from scipy import signal
 from functools import reduce
 from sklearn import decomposition, cluster
@@ -28,6 +29,7 @@ class Data:
         """
 
         self._mdict = {} # dict to save matlab dict into
+        self.in_file = in_file
         self.x_axis = None
         self.data = None
         self.maxima = None
@@ -36,40 +38,41 @@ class Data:
         self.components = []
         self.spikes = {}
         
-        self.load_data(in_file)
+        self.load_data()
 
-    def load_data(self, in_file: str) -> None:
+    def load_data(self) -> None:
         """
-        The function to load the data from file with given name.
-
-        Parameters:
-            in_file (str): Matlab file containing the data.  
+        The function to load the data from `self.in_file`.
         """
+        try:
+            # load .mat data with expected structure
+            matlab_data = scipy.io.loadmat(self.in_file, mdict=self._mdict)
 
-        # load .mat data with expected structure
-        matlab_data = scipy.io.loadmat(in_file, mdict=self._mdict)
+            # extract relevant information
+            # last one is the name of the data structure
+            name = list(self._mdict)[-1]
+            matlab_data = matlab_data[name][0,0]
 
-        # extract relevant information
-        # last one is the name of the data structure
-        name = list(self._mdict)[-1]
-        matlab_data = matlab_data[name][0,0]
+            # flattened data (individual spectra)
+            data = matlab_data[7]
 
-        # flattened data (individual spectra)
-        data = matlab_data[7]
+            # num of rows, num of cols
+            image_size = tuple(matlab_data[5][0])
 
-        # num of rows, num of cols
-        image_size = tuple(matlab_data[5][0])
+            # units = matlab_data[9][1][1]
 
-        # units = matlab_data[9][1][1]
+            self.x_axis = matlab_data[9][1][0][0]
 
-        self.x_axis = matlab_data[9][1][0][0]
+            self.data = np.reshape(data,(image_size[1], image_size[0], -1))
 
-        self.data = np.reshape(data,(image_size[1], image_size[0], -1))
+            # maxima for intuitive cosmic rays positions (used in manual removal)
+            self.maxima = np.max(self.data, axis=2)
+            # averages for spectral map visualization
+            self.averages = np.mean(self.data, axis=2)
 
-        # maxima for intuitive cosmic rays positions (used in manual removal)
-        self.maxima = np.max(self.data, axis=2)
-        # averages for spectral map visualization
-        self.averages = np.mean(self.data, axis=2)
+        except Exception as e:
+            raise Exception(f"{self.in_file}: file could not be loaded; {e}")
+
 
     def save_data(self, out_file: str) -> None:
         """
@@ -79,12 +82,7 @@ class Data:
             out_file (str): Matlab file that is to be created.  
         """
 
-        # add .mat if it's not present (app won't find other extensions)
-        if not out_file.endswith(".mat"):
-            out_file = out_file + ".mat"
-
-        # m_dict is not empty -> some data was loaded
-        if self._mdict:
+        try:
             # keep the structure of input file (as in load_data)
 
             # name of the data structure
@@ -99,7 +97,15 @@ class Data:
             # set spectral map size (may change after cropping)
             self._mdict[name][0,0][5][0] = self.data.shape[:2][::-1]
 
-            scipy.io.savemat(out_file, mdict=self._mdict)
+            scipy.io.savemat(out_file, appendmat=True, mdict=self._mdict)
+
+        except Exception as e:
+            raise Exception(f"{self.in_file}: save file; {e}")
+
+    def auto_save_data(self, out_folder: str, file_tag: str) -> None:
+        file_name, ext = os.path.basename(self.in_file).split('.')
+        out_file = os.path.join(out_folder, file_name + file_tag + '.' + ext)
+        self.save_data(out_file)
 
     def _recompute_dependent_data(self) -> None:
         """
@@ -134,88 +140,34 @@ class Data:
 
         # recompute what depends on self.data because it changed
         self._recompute_dependent_data()
-    """
-    def _calculate_Z_scores(self) -> None:
-        
-        The function to calculate the modified Z-scores for the data.
-        
 
-        # "detrend" the data
-        diff = np.diff(self.data, axis=2)
+    def auto_crop_absolute(self, spectra_start: float, spectra_end: float):
+        # find the closest index into x_axis array to given value on x axis
+        x_axis_start = np.argmin(np.abs(self.x_axis - spectra_start))
+        x_axis_end = np.argmin(np.abs(self.x_axis - spectra_end))
 
-        # median of each spectrum
-        M = np.median(diff, axis=2)
+        # crop the x axis; +1 added because of upper bound is exclusivity
+        self.x_axis = self.x_axis[x_axis_start:x_axis_end+1]
 
-        # widen the median to `diff` dimension for vectorized computation
-        wide_M = np.repeat(M[:,:,np.newaxis], diff.shape[2], 2)
+        # crop the data
+        self.data = self.data[:, :, x_axis_start:x_axis_end+1]
 
-        # median absolute deviation of each spectrum
-        MAD = np.median(np.abs(diff-wide_M), axis=2)
+        # NOTE: dependent data are not recomputed here as it is used for visualization only
 
-        # calculate the modified Z scores and save it in the attribute as it will be reused frequently
-        self.Z_scores = 0.6745 * (diff - wide_M) / np.repeat(MAD[:,:,np.newaxis], diff.shape[2], 2)
-    """
-    """
-    def get_spikes_positions(self, threshold: float) -> np.ndarray:
-        
-        The function to get indices of the spikes according to the given threshold.
+    def auto_crop_relative(self, spectra_start_crop: int, spectra_end_crop: int):
 
-        Parameters:
-            threshold (float): Value on which to separate valid and invalid data.
+        try:
+            if spectra_end_crop != 0:
+                self.x_axis = self.x_axis[spectra_start_crop:-spectra_end_crop]
+                self.data = self.data[:, :, spectra_start_crop:-spectra_end_crop]
+            else:
+                self.x_axis = self.x_axis[spectra_start_crop:]
+                self.data = self.data[:, :, spectra_start_crop:]
+        except Exception as e:
+            raise Exception(f"{self.in_file}: auto cropping - relative; {e}")
 
-        Returns:
-            spikes_positions (np.ndarray): Array of indices of spectra containing spikes in a spectral map.
-        
 
-        if self.Z_scores is None:
-            self._calculate_Z_scores()
-
-        spikes_positions = np.unique(np.vstack(np.where(np.abs(self.Z_scores) > threshold)[:2]).T, axis=0)
-
-        return spikes_positions
-    """
-    """
-    def remove_spikes(self, threshold: float, window_width: int) -> None: # TODO: zkusit nahradit nejen ty spiky (data s 0) ale celé okno okolo těchto spiků!
-        
-        The function to remove the spikes using the sliding-window-filter.
-
-        Note that the `window_width` must be large enough so that some valid signal falls into it (typically at least 4).
-        Parameters:
-            threshold (float): Value on which to separate valid and invalid data.
-            window_width (int): Width of the sliding window; it's size is then 2 * window_width + 1.
-        
-
-        #TODO: pokud je kono moc male, aby tam bylo neco validniho, vlozi se misto celeho spektra "NaN", vyresit! (zdetsit okno na minimum z nejmensiho mozneho a zadaneho uzivatelem)
-
-        # add first Z value (was not computed as we "detrended" the data) so that it exceeds the threshold automatically (in case it has spike)
-        new_Z = np.insert(self.Z_scores, [0], np.full((self.Z_scores.shape[0], self.Z_scores.shape[1], 1), threshold + 1), axis=2)
-        # make the last Z-score to exceed the threshold as well in case CR appears there -> sliding window would not restore it properly
-        new_Z[:,:,-1] = threshold + 1
-
-        # get mask for the convolution (0 .. spike is present, 1 .. spike is not present)
-        window_mask = np.less_equal(np.abs(new_Z), np.full(new_Z.shape, threshold)).astype(np.float64)
-        # pad with zeros for preservation of the size of the input after convolution
-        window_mask_padded = np.pad(window_mask, ((0,0), (0,0), (window_width, window_width)))
-
-        # counts how many ones are in each window (i.e. values that are below threshold)
-        divisors = np.apply_along_axis(np.convolve, 2, window_mask_padded, np.ones(2 * window_width + 1), 'valid')
-
-        # replaces invalid data with 0 ->kernel of all ones can be used everywhere
-        masked_data = self.data * window_mask
-
-        # pad with zeros for preservation of the size of the input after convolution
-        masked_data_padded = np.pad(masked_data, ((0,0), (0,0), (window_width, window_width)))
-        convolved_data = np.apply_along_axis(np.convolve, 2, masked_data_padded, np.ones(2 * window_width + 1), 'valid')
-
-        # divide each intensity by the number of non_zero values it was computed from in the convolution
-        restored_data = convolved_data / divisors
-
-        # replace only spikes with restored data values -> assigning restored data everywhere
-        # would cause smoothing of the data which is not desirable
-        self.data = np.where(masked_data > 0, self.data, restored_data)
-
-        self._recompute_dependent_data()
-    """
+        # NOTE: dependent data are not recomputed here as it is used for visualization only
 
     # linear interpolation between the end-points
     def remove_manual(self, spectrum_index_x: int, spectrum_index_y: int, start: float, end: float) -> None:
@@ -376,12 +328,18 @@ class Data:
 
         return poly_obj(self.x_axis)
 
-    def linearize(self, step: float) -> None:
+    def linearize(self, step: float, auto: bool = False) -> None:
         spectrum_spline = si.CubicSpline(self.x_axis, self.data, axis=2, extrapolate=False)
         new_x = np.arange(np.ceil(self.x_axis[0]), np.floor(self.x_axis[-1]), step)
         self.x_axis = new_x
         self.data = spectrum_spline(new_x)
-        self._recompute_dependent_data()
+
+        # NOTE: dependent data are not recomputed for auto as it is used for visualization only
+        if not auto:
+            self._recompute_dependent_data()
+
+    def auto_linearize(self, step: float) -> None:
+        self.linearize(step, True)
 
     # decomposition methods
 
@@ -573,7 +531,7 @@ class Data:
         self.spikes["map_indices"] = map_indices
         self.spikes["peak_positions"] = peak_positions
 
-    def remove_spikes(self):
+    def remove_spikes(self, auto: bool = False) -> None:
         # NOTE: remove spikes before cropping!
 
         window_width = 5
@@ -595,4 +553,10 @@ class Data:
 
             self.data[spectrum_indices[0], spectrum_indices[1], left:right+1:1] = new_values
 
-        self._recompute_dependent_data()
+        # do not recompute dependent data on auto methods
+        if not auto:
+            self._recompute_dependent_data()
+
+    def auto_remove_spikes(self):
+        self.calculate_spikes_indices()
+        self.remove_spikes(auto=True)

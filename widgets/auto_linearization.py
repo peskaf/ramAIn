@@ -1,6 +1,7 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButton, QCheckBox, QPushButton
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit
 from PySide6.QtGui import QRegularExpressionValidator, QIcon
-from PySide6.QtCore import Signal
+
+from widgets.data import Data
 
 class AutoLinearization(QFrame):
     def __init__(self, parent=None):
@@ -50,6 +51,9 @@ class AutoLinearization(QFrame):
         """
 
         self.data_step.setText(str(self.init_data_step))
+
+    def function_name(self) -> str:
+        return Data.auto_linearize.__name__
 
     def get_string_name(self):
         return "Linearization"

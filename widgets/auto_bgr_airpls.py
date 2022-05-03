@@ -17,8 +17,8 @@ class AutoBGRairPLS(QFrame):
         layout.addWidget(QLabel("No parameters to be set."), 1, 0)
         self.setLayout(layout)
 
-    def get_params(self) -> None:
-        return None
+    def get_params(self) -> tuple:
+        return ()
 
     def reset(self) -> None:
         return
