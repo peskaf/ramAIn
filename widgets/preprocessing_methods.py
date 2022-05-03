@@ -36,7 +36,7 @@ class PreprocessingMethods(QFrame):
 
         self.list = QListWidget(self)
 
-        self.list.setObjectName("methods_list") # TODO: set fixed size ?
+        self.list.setObjectName("methods_list")
         self.list.addItems([method.get_string_name() for method in self.methods])
         
         self.list.setCurrentItem(self.list.item(0))

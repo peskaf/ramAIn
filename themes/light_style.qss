@@ -128,7 +128,78 @@ QListView {
     background-color: rgb(245, 245, 245);
 }
 
-#files_view .QPushButton {
+.QListWidget#files_list  {
+    color: rgb(0,0,0);
+    background-color: rgb(235,235,235);
+    border: none;
+    border-radius: 10px;
+}
+
+.QListWidget::item#files_list  {
+    height: 20px;
+    border-top-left-radius: 10;
+    border-bottom-left-radius: 10;
+}
+
+.QListWidget::item:selected#files_list {
+    color: rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+}
+
+.QListWidget::item:hover#files_list {
+    color: rgb(0, 0, 0);
+    background-color: rgb(245, 245, 245);
+}
+
+.QListWidget#pipeline  {
+    color: rgb(0,0,0);
+    background-color: rgb(235,235,235);
+    border: none;
+    border-radius: 10px;
+}
+
+.QListWidget::item#pipeline  {
+    height: 20px;
+    border-top-left-radius: 10;
+    border-bottom-left-radius: 10;
+}
+
+.QListWidget::item:selected#pipeline {
+    color: rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+}
+
+.QListWidget::item:hover#pipeline {
+    color: rgb(0, 0, 0);
+    background-color: rgb(245, 245, 245);
+}
+
+.QListWidget#methods_list {
+    color: rgb(0,0,0);
+    background-color: rgb(235,235,235);
+    border: none;
+    border-radius: 10px;
+}
+
+.QListWidget::item#methods_list {
+    height: 30px;
+    width: 60px;
+    border-top-left-radius: 10;
+    border-bottom-left-radius: 10;
+}
+
+.QListWidget::item:selected#methods_list {
+    color: rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+}
+
+.QListWidget::item:hover#methods_list {
+    color: rgb(0, 0, 0);
+    background-color: rgb(245, 245, 245);
+}
+
+
+.QPushButton {
     border: none;
     border-radius: 10px;
     background-color: rgb(230, 230, 230);

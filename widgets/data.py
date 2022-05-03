@@ -155,17 +155,21 @@ class Data:
         self._recompute_dependent_data()
 
     def auto_crop_absolute(self, spectra_start: float, spectra_end: float):
-        # find the closest index into x_axis array to given value on x axis
-        x_axis_start = np.argmin(np.abs(self.x_axis - spectra_start))
-        x_axis_end = np.argmin(np.abs(self.x_axis - spectra_end))
 
-        # crop the x axis; +1 added because of upper bound is exclusivity
-        self.x_axis = self.x_axis[x_axis_start:x_axis_end+1]
+        try:
+            # find the closest index into x_axis array to given value on x axis
+            x_axis_start = np.argmin(np.abs(self.x_axis - spectra_start))
+            x_axis_end = np.argmin(np.abs(self.x_axis - spectra_end))
 
-        # crop the data
-        self.data = self.data[:, :, x_axis_start:x_axis_end+1]
+            # crop the x axis; +1 added because of upper bound is exclusivity
+            self.x_axis = self.x_axis[x_axis_start:x_axis_end+1]
 
-        # NOTE: dependent data are not recomputed here as it is used for visualization only
+            # crop the data
+            self.data = self.data[:, :, x_axis_start:x_axis_end+1]
+            
+        except Exception as e:
+            raise Exception(f"{self.in_file}: {e}")
+
 
     def auto_crop_relative(self, spectra_start_crop: int, spectra_end_crop: int):
 
@@ -178,9 +182,6 @@ class Data:
                 self.data = self.data[:, :, spectra_start_crop:]
         except Exception as e:
             raise Exception(f"{self.in_file}: {e}")
-
-
-        # NOTE: dependent data are not recomputed here as it is used for visualization only
 
     # linear interpolation between the end-points
     def remove_manual(self, spectrum_index_x: int, spectrum_index_y: int, start: float, end: float) -> None:

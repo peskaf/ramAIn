@@ -21,7 +21,7 @@ class AutoCroppingRelative(QFrame):
         # Spectral plot cropping parameters
         layout.addWidget(QLabel("Spectral Plot Cropping - Relative"), 0, 0)
 
-        layout.addWidget(QLabel("Data Points to Crop from the Beggining"), 1, 0)
+        layout.addWidget(QLabel("Data Points to Crop from the Beginning"), 1, 0)
         layout.addWidget(QLabel("Data Points to Crop from the End"), 2, 0)
 
         layout.addWidget(self.from_start, 1, 1)

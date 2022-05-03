@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QFrame, QFileDialog, QPushButton, QListWidget, QStackedLayout, QVBoxLayout, QHBoxLayout, QAbstractItemView, QListWidgetItem, QProgressDialog
+from PySide6.QtWidgets import QFrame, QFileDialog, QPushButton, QListWidget, QStackedLayout, QVBoxLayout, QHBoxLayout, QAbstractItemView, QListWidgetItem, QProgressDialog, QLabel
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Signal, Qt, QSettings, QCoreApplication, QEventLoop
+from PySide6.QtCore import Qt, QSettings, QCoreApplication, QEventLoop
 
 from widgets.auto_cropping_absolute import AutoCroppingAbsolute
 from widgets.auto_cropping_relative import AutoCroppingRelative
@@ -17,6 +17,7 @@ from widgets.auto_export_components import AutoExportComponents
 from widgets.data import Data
 
 import os
+import datetime
 
 class FunctionItem(QListWidgetItem):
     def __init__(self, label, func=None, params=None, parent=None):
@@ -33,6 +34,7 @@ class AutoProcessing(QFrame):
 
         # file selection widget
         self.file_list_widget = QListWidget(self)
+        self.file_list_widget.setObjectName("files_list")
         self.file_list = []
         
         self.add_file_btn = QPushButton("Add file")
@@ -41,8 +43,15 @@ class AutoProcessing(QFrame):
         self.remove_file_btn = QPushButton("Remove file")
         self.remove_file_btn.clicked.connect(self.remove_file)
 
+        # logs folder
+        self.logs_dir = self.settings.value('logs_dir', os.getcwd())
+        self.logs_dir_label = QLabel(f"Logs Directory: {self.logs_dir}")
+        self.select_logs_dir = QPushButton("Select Logs Directory")
+        self.select_logs_dir.clicked.connect(self.logs_dir_dialog)
+
         # methods selection
         self.methods_list = QListWidget(self)
+        self.methods_list.setObjectName("methods_list")
         self.methods_list.currentItemChanged.connect(self.change_method)
 
         self.auto_cropping_absolute = AutoCroppingAbsolute(self)
@@ -85,24 +94,26 @@ class AutoProcessing(QFrame):
         self.methods_list.setCurrentItem(self.methods_list.item(0))
         self.methods_layout.setCurrentIndex(0)
 
-        self.add_to_pipeline_btn = QPushButton("Add to pipeline")
+        self.add_to_pipeline_btn = QPushButton("Add to Pipeline")
         self.add_to_pipeline_btn.clicked.connect(self.add_to_pipeline)
 
         # methods pipeline
         self.pipeline_list = QListWidget(self)
+        self.pipeline_list.setObjectName("pipeline")
         self.pipeline_list.setDragDropMode(QAbstractItemView.InternalMove)
 
-        self.remove_from_pipeline_btn = QPushButton("Remove step")
+        self.remove_from_pipeline_btn = QPushButton("Remove Step")
         self.remove_from_pipeline_btn.clicked.connect(self.remove_from_pipeline)
+
+        self.clear_pipeline_btn = QPushButton("Clear Pipeline")
+        self.clear_pipeline_btn.clicked.connect(self.clear_pipeline)
 
         self.apply_button = QPushButton("Apply")
         self.apply_button.clicked.connect(self.apply_pipeline)
         self.apply_button.setEnabled(False)
 
-        # common
-        self.log_file = ...
-        
         layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Files to Process"))
         layout.addWidget(self.file_list_widget)
 
         buttons_layout = QHBoxLayout()
@@ -111,6 +122,15 @@ class AutoProcessing(QFrame):
         buttons_layout.addWidget(self.add_file_btn)
 
         layout.addLayout(buttons_layout)
+
+        logs_layout = QHBoxLayout()
+        logs_layout.addWidget(self.select_logs_dir)
+        logs_layout.addStretch()
+        logs_layout.addWidget(self.logs_dir_label)
+
+        layout.addLayout(logs_layout)
+
+        layout.addWidget(QLabel("Methods Selection"))
 
         methods_list_layout = QHBoxLayout()
         methods_list_layout.addWidget(self.methods_list)
@@ -124,16 +144,37 @@ class AutoProcessing(QFrame):
 
         layout.addLayout(add_method_layout)
 
+        layout.addWidget(QLabel("Pipeline"))
+
         layout.addWidget(self.pipeline_list)
 
-        remove_btn_layout = QHBoxLayout()
-        remove_btn_layout.addWidget(self.remove_from_pipeline_btn)
-        remove_btn_layout.addStretch()
+        pipeline_btns_layout = QHBoxLayout()
+        pipeline_btns_layout.addWidget(self.remove_from_pipeline_btn)
+        pipeline_btns_layout.addStretch()
+        pipeline_btns_layout.addWidget(self.clear_pipeline_btn)
 
-        layout.addLayout(remove_btn_layout)
+        layout.addLayout(pipeline_btns_layout)
         layout.addWidget(self.apply_button)
 
         self.setLayout(layout)
+
+    def logs_dir_dialog(self):
+        if not os.path.exists(self.logs_dir_label.text()):
+            self.logs_dir_label.setText(os.getcwd())
+
+        temp_dir = QFileDialog.getExistingDirectory(self, "Select Directory", self.logs_dir_label.text())
+
+        if temp_dir is None or len(temp_dir) == 0:
+            return
+
+        self.settings.setValue("logs_dir", temp_dir)      
+        self.logs_dir = temp_dir
+        self.logs_dir_label.setText(f"Logs Directory: {temp_dir}")
+
+    def clear_pipeline(self):
+        for item_index in reversed(range(self.pipeline_list.count())):
+            self.pipeline_list.takeItem(item_index)
+        self.clear_pipeline_btn.setEnabled(False)
 
     def add_files(self):
         temp_folder = self.settings.value("source_dir", os.getcwd())
@@ -175,6 +216,7 @@ class AutoProcessing(QFrame):
         # Enable apply button only if some file is in the list
         if self.file_list_widget.count() != 0:
             self.apply_button.setEnabled(True)
+        self.clear_pipeline_btn.setEnabled(True)
 
         curr_item = self.methods_list.currentItem()
         curr_item_index = self.methods_list.row(curr_item)
@@ -192,6 +234,7 @@ class AutoProcessing(QFrame):
 
         if self.pipeline_list.count() == 0:
             self.apply_button.setEnabled(False)
+            self.clear_pipeline_btn.setEnabled(False)
 
     def enable_widgets(self, enable: bool) -> None:
         self.pipeline_list.setEnabled(enable)
@@ -202,6 +245,10 @@ class AutoProcessing(QFrame):
         self.add_to_pipeline_btn.setEnabled(enable)
         self.remove_from_pipeline_btn.setEnabled(enable)
         self.apply_button.setEnabled(enable)
+        self.clear_pipeline_btn.setEnabled(enable)
+
+        for method in self.auto_methods:
+            method.setEnabled(enable)
 
     def make_progress_bar(self, maximum):
         
@@ -242,29 +289,35 @@ class AutoProcessing(QFrame):
         self.progress.deleteLater()
 
     def apply_pipeline(self):
+        
+        logs_file = os.path.join(self.logs_dir, "logs_" + datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S") + ".txt")
 
-        steps = len(self.file_list) * self.pipeline_list.count() + 1
-        self.make_progress_bar(steps)
-        self.update_progress(1)
+        with open(logs_file, "w", encoding="utf-8") as logs:
 
-        for i, file_name in enumerate(self.file_list, 1):
-            try:
-                curr_data = Data(file_name)
-                print(curr_data.in_file) # TODO: to file
-                for item_index in range(self.pipeline_list.count()):
-                    # function call
-                    print(f"{self.pipeline_list.item(item_index).func}{self.pipeline_list.item(item_index).params}") # TODO: to file
-                    getattr(curr_data, self.pipeline_list.item(item_index).func)(*self.pipeline_list.item(item_index).params)
-                    print("OK") # TODO: to file
-                    self.update_progress(self.progress.value() + 1)
+            steps = len(self.file_list) * self.pipeline_list.count() + 1
+            self.make_progress_bar(steps)
+            self.update_progress(1)
 
-            except Exception as e:
-                print(e) # TODO: to file
-            self.update_progress(i*self.pipeline_list.count())
+            for i, file_name in enumerate(self.file_list, 1):
+                try:
+                    curr_data = Data(file_name)
+                    print(curr_data.in_file, file=logs)
+                    for item_index in range(self.pipeline_list.count()):
+                        # function call
+                        print(f"{self.pipeline_list.item(item_index).func}{self.pipeline_list.item(item_index).params}", file=logs)
+                        getattr(curr_data, self.pipeline_list.item(item_index).func)(*self.pipeline_list.item(item_index).params)
+                        print("OK", file=logs)
+                        self.update_progress(self.progress.value() + 1)
 
-        # set progress to maximum so that it shows 100 %
-        self.update_progress(steps)
-        self.destroy_progress_bar()
+                except Exception as e:
+                    print(e, file=logs)
+                print("---------------------------------", file=logs)
+
+                self.update_progress(i*self.pipeline_list.count())
+
+            # set progress to maximum so that it shows 100 %
+            self.update_progress(steps)
+            self.destroy_progress_bar()
 
     def get_string_name(self):
         return "Auto Processing"
