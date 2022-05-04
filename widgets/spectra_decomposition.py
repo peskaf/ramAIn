@@ -17,7 +17,7 @@ class SpectraDecomposition(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
-        self.icon = QIcon("icons/view.svg") #TODO: change
+        self.icon = QIcon("icons/pie.svg")
 
         self.settings = QSettings()
 
@@ -260,6 +260,7 @@ class SpectraDecomposition(QFrame):
         self.progress = QProgressDialog("Progress", "...", 0, maximum)
         self.progress.setValue(0)
         self.progress.setCancelButton(None)
+        self.progress.setObjectName("progress_dialog")
 
         # style for progress bar that is inside progress dialog must be set here for some reason
         self.progress.setStyleSheet(

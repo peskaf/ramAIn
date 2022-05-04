@@ -471,6 +471,10 @@ class Data:
         plt.savefig(file_name, bbox_inches='tight', format=file_format)
 
     def auto_export(self, out_folder: str, file_tag: str, file_format: str):
+
+        if len(self.components) == 0:
+            raise Exception("Error: components have not been made yet.")
+
         file_name, _ = os.path.basename(self.in_file).split('.')
         out_file = os.path.join(out_folder, file_name + file_tag + '.' + file_format)
 

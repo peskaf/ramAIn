@@ -28,7 +28,7 @@ class ManualPreprocessing(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
-        self.icon = QIcon("icons/view.svg") # TODO: change
+        self.icon = QIcon("icons/monitor.svg")
 
         self.settings = QSettings()
 
@@ -461,12 +461,10 @@ class ManualPreprocessing(QFrame):
         self.enable_widgets(False)
 
         self.progress = QProgressDialog("Progress", "...", 0, maximum)
-        self.progress.setObjectName("progress_dialog")
         self.progress.setValue(0)
         self.progress.setCancelButton(None)
 
-        # TODO: try once again
-        # style for progress bar that is inside progress dialog must be set here for some reason...
+        # style for progress bar that is inside progress dialog must be set here for some reason
         self.progress.setStyleSheet(
             """
             QProgressBar {

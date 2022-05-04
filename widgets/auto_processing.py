@@ -39,7 +39,7 @@ class AutoProcessing(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
-        self.icon = QIcon("icons/settings.svg")
+        self.icon = QIcon("icons/play-circle.svg")
 
         self.settings = QSettings()
 
@@ -317,7 +317,6 @@ class AutoProcessing(QFrame):
         self.progress.setCancelButton(None)
 
         # style for progress bar that is inside progress dialog must be set here for some reason...
-        # TODO: look at it once again
         self.progress.setStyleSheet(
             """
             QProgressBar {
@@ -371,6 +370,7 @@ class AutoProcessing(QFrame):
             steps = len(self.file_list) * self.pipeline_list.count() + 1
             self.make_progress_bar(steps)
             self.update_progress(1)
+            self.update_progress(0)
 
             for i, file_name in enumerate(self.file_list, 1):
                 try:

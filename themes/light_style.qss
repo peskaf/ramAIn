@@ -232,15 +232,3 @@ QScrollBar::sub-line:vertical {
     subcontrol-position: top;
     subcontrol-origin: margin;
 }
-
-/* Progress bar */
-QProgressBar#progress_dialog {
-    border: 1px solid;
-    border-radius: 5px;
-    text-align: center;
-}
-
-QProgressBar::chunk#progress_dialog {
-    background-color: rgb(248, 188, 36);
-    width: 1px;
-}
