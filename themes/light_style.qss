@@ -206,6 +206,14 @@ QListView {
     padding: 7px 7px 7px 7px;
 }
 
+.QPushButton:hover {
+    background-color: rgb(240, 240, 240);
+}
+
+.QPushButton:selected {
+    background-color: rgb(250, 250, 250);
+}
+
 /* Scroll Bar*/
 QScrollBar:vertical {
     border: 2px;
