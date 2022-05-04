@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QFrame, QFileDialog, QPushButton, QListWidget, QStackedLayout, QVBoxLayout, QHBoxLayout, QAbstractItemView, QListWidgetItem, QProgressDialog, QLabel, QWidget
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt, QSettings, QCoreApplication, QEventLoop, QThread, Signal
+from PySide6.QtCore import Qt, QSettings, QThread, Signal
 
 from widgets.auto_cropping_absolute import AutoCroppingAbsolute
 from widgets.auto_cropping_relative import AutoCroppingRelative

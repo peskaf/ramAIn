@@ -9,7 +9,11 @@ import os
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    """
+    The main widnow of the application.
+    """
+
+    def __init__(self) -> None:
         super().__init__()
 
         QCoreApplication.setOrganizationName("RamAIn")
@@ -36,12 +40,20 @@ class MainWindow(QMainWindow):
         with open(os.path.abspath(stylesheet)) as f:
             self.setStyleSheet(f.read())
     
-    def show(self):
+    def show(self) -> None:
+        """
+        A functino to show the main window.
+        """
+
         # centering has to be called after show -> overriding
         super().show()
         self.center()
 
-    def center(self):
+    def center(self) -> None:
+        """
+        A function to center the window on the screen.
+        """
+
         center_point = QScreen.availableGeometry(QApplication.primaryScreen()).center()
         frame_geometry = self.frameGeometry()
         frame_geometry.moveCenter(center_point)

@@ -223,14 +223,17 @@ class SpectraDecomposition(QFrame):
         A function to silently update the file list without any signals being emitted.
         """
 
+        # disconnect the signal so that nothing reloads
+        self.files_view.file_list.currentItemChanged.disconnect()
+
+        # update file list so that new file is visible
+        self.files_view.update_list()
+        # set that required file is visually selected
         if self.curr_file is not None:
-            self.files_view.file_list.currentItemChanged.disconnect()
-            # update file list so that new file is visible
-            self.files_view.update_list()
-            # set that required file is visually selected
             self.files_view.set_curr_file(self.curr_file)
-            # connect again
-            self.files_view.file_list.currentItemChanged.connect(self.update_file)
+
+        # connect again
+        self.files_view.file_list.currentItemChanged.connect(self.update_file)
 
     def enable_widgets(self, enable: bool) -> None:
         """
