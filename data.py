@@ -1,27 +1,24 @@
 import numpy as np
-import scipy.io
-import scipy.interpolate as si
 import os
-from scipy import signal
 from sklearn import decomposition, cluster
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+import scipy.io
+import scipy.interpolate as si
 import scipy.sparse as ss
+from scipy import signal
 from scipy.sparse import linalg
+
+from PySide6.QtCore import Signal, QSettings
 
 import utils.sklearn_NMF
 import utils.indices
 import utils.math_morphology
 
-from PySide6.QtCore import Signal, QSettings
-
 class Data:
     """
     A class for raman data representation and methods on it.
-
-    Attributes: # TODO: prepsat sem vsechny atributy
-        in_file (str): Matlab file containing the data.
     """
 
     def __init__(self, in_file: str) -> None:
@@ -77,7 +74,6 @@ class Data:
         except Exception as e:
             raise Exception(f"{self.in_file}: file could not be loaded; {e}")
 
-
     def save_data(self, out_file: str) -> None:
         """
         The function to save the data to file with given name.
@@ -107,10 +103,19 @@ class Data:
             raise Exception(f"{self.in_file}: {e}")
 
     def auto_save_data(self, out_folder: str, file_tag: str) -> None:
+        """
+        A function for automatic data saving.
+
+        Parameters:
+            out_folder (str): Folder where to store the data.
+            file_tag (str): String to append to the `self.in_file` name.
+        """
+
+        # create resulting file name
         file_name, ext = os.path.basename(self.in_file).split('.')
         out_file = os.path.join(out_folder, file_name + file_tag + '.' + ext)
         
-        # do not overwrite on auto save
+        # do not overwrite on auto save -> append ('number') to the name instead
         if os.path.exists(out_file):
             i = 2
             out_file = os.path.join(out_folder, file_name + file_tag + f"({i})" + '.' + ext)
@@ -154,7 +159,15 @@ class Data:
         # recompute what depends on self.data because it changed
         self._recompute_dependent_data()
 
-    def auto_crop_absolute(self, spectra_start: float, spectra_end: float):
+    def auto_crop_absolute(self, spectra_start: float, spectra_end: float) -> None:
+        """
+        A function for absolute automatic data cropping.
+        Absolute means that specific values for x axis are provided.
+
+        Parameters:
+            spectra_start (float): Value from which to crop the data.
+            spectra_end (float): Value to which to crop the data.
+        """
 
         try:
             # find the closest index into x_axis array to given value on x axis
@@ -171,7 +184,19 @@ class Data:
             raise Exception(f"{self.in_file}: {e}")
 
 
-    def auto_crop_relative(self, spectra_start_crop: int, spectra_end_crop: int):
+    def auto_crop_relative(self, spectra_start_crop: int, spectra_end_crop: int) -> None:
+        """
+        A function for relative automatic data cropping.
+        Relative means that relative units to be cropped from each of the sides are provided,
+        e.g. spectra_start_crop = 50 -> crop first 50 values (datapoibts) from the data.
+
+        Parameters:
+            spectra_start_crop (int): Value from which to crop the data.
+            spectra_end_crop (int): Value to which to crop the data.
+        """
+
+        # NOTE: user may provide indices that result in empty array, this is OK for cropping,
+        #       exception will be raised somewhere else
 
         try:
             if spectra_end_crop != 0:
@@ -180,10 +205,10 @@ class Data:
             else:
                 self.x_axis = self.x_axis[spectra_start_crop:]
                 self.data = self.data[:, :, spectra_start_crop:]
+
         except Exception as e:
             raise Exception(f"{self.in_file}: {e}")
 
-    # linear interpolation between the end-points
     def remove_manual(self, spectrum_index_x: int, spectrum_index_y: int, start: float, end: float) -> None:
         """
         The function to remove spike using linear interpolation of the end-points in the given spectrum.
@@ -213,7 +238,20 @@ class Data:
         self._recompute_dependent_data()
 
     def get_optimal_structuring_element_width(self, values: np.ndarray) -> int:
+        """
+        A function to compute optimal structuring element for the math morphology bg removal approach.
+        Implementation of algorithm by Perez-Pueyo et al (doi: 10.1366/000370210791414281).
+
+        Parameters:
+            values (np.ndarray): Values for which to compute the optimal structuring elementd width.
+        
+        Returns:
+            window_width (int): Optimal structuring element width.
+        """
+
+        # how many similar results have to occure to end the algorithm
         max_sim_counter = 3
+
         window_width = 1
         opened_array = utils.math_morphology.opening(values, window_width)
 
@@ -229,14 +267,39 @@ class Data:
                 if similarity_counter == max_sim_counter:
                     return window_width - max_sim_counter + 1 # restore window width of the first similar result
 
-    #TODO rename
-    def _math_morpho_step(self, y, window_width: int = None):
+
+    def _math_morpho_step(self, y: np.ndarray, window_width: int) -> np.ndarray:
+        """
+        One step of the math morpgo bg subtraction algorithm.
+        Implementation of algorithm by Perez-Pueyo et al (doi: 10.1366/000370210791414281).
+
+        Parameters:
+            y (np.ndarray): Values on which mathematical morphology methods are performed.
+            window_width (int): Width of the structuring element for MM operations.
+
+        Returns:
+            result (np.ndarray): Values after one step of the alogrithm.
+        """
+
         spectrum_opening = utils.math_morphology.opening(y, window_width)
         approximation = np.mean(utils.math_morphology.erosion(spectrum_opening, window_width) + utils.math_morphology.dilation(spectrum_opening, window_width), axis=0)
         return np.minimum(spectrum_opening, approximation)
 
-    #TODO rename
+
     def _math_morpho_on_spectrum(self, y: np.ndarray, ignore_water: bool, signal_to_emit: Signal = None) -> np.ndarray:
+        """
+        A function to perform math morpho algorithm on one spectrum, icluding water ignorance and signal emiting.
+        Implementation of changed algorithm by Perez-Pueyo et al (doi: 10.1366/000370210791414281).
+
+        Parameters:
+            y (np.ndarray): Spectrum on which the algorithm will be performed.
+            ignore_water (bool): Info whether variation of the algo with water ignorace should be performed.
+            signal_to_emit (PySide6.QtCore.Signal): Signal to emit while executing the algorithm. Default: None.
+
+        Returns:
+            result (np.ndarray): Estimated background of the provided spectrum `y`.
+        """
+
         if signal_to_emit is not None:
             signal_to_emit.emit()
 
@@ -263,29 +326,53 @@ class Data:
         background = np.minimum(spectrum_opening, approximation)
         return background
 
-    def math_morpho(self, ignore_water: bool, signal_to_emit: Signal = None):
-        # no speed-up version - possible speed-ups: multithreading, clustering
+    def math_morpho(self, ignore_water: bool, signal_to_emit: Signal = None) -> None:
+        """
+        No speed-up version of the math morpho bg subtraction algorithm Perez-Pueyo et al (doi: 10.1366/000370210791414281)
+        with version for water ignorance. Algorithm is performed on all spectra in the spectral map.
+
+        Possible speed-ups: clustering for optimal structuring element estimation, multithreading.
+
+        Parameters:
+            ignore_water (bool): Info whether variation of the algo with water ignorace should be performed.
+            signal_to_emit (PySide6.QtCore.Signal): Signal to emit while executing the algorithm. Default: None.
+        """
+
         backgrounds = np.apply_along_axis(self._math_morpho_on_spectrum, 2, self.data, ignore_water, signal_to_emit)
         self.data -= backgrounds
         self._recompute_dependent_data()
 
-    def auto_math_morpho(self, ignore_water: bool):
+    def auto_math_morpho(self, ignore_water: bool) -> None:
+        """
+        A function to perform automatic math morpho bg subtraction on the spectral map.
+
+        Parameters:
+            ignore_water (bool): Info whether variation of the algo with water ignorace should be performed.
+        """
+
         self.math_morpho(ignore_water)
 
-    def vancouver(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None):
-        backgrounds = np.apply_along_axis(self.vancouver_poly_bg, 2, self.data, degree, ignore_water, signal_to_emit)
-        self.data -= backgrounds
-        self._recompute_dependent_data()
-
-    def auto_vancouver(self, degree: int, ignore_water: bool) -> None:
-        self.vancouver(degree, ignore_water)
-
     def vancouver_poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
+        """
+        Implementation of Vancouver algorithm for bg subtraction (Zhao et al, doi: 10.1366/000370207782597003), added vaersion
+        with possible water ignorance and signal emission.
+
+        Parameters:
+            y (np.ndarray): Spectrum on which the algorithm will be performed.
+            degree (int): Degree of the polynomial used for interpolation.
+            ignore_water (bool): Info whether variation of the algo with water ignorace should be performed. Default: True.
+            signal_to_emit (PySide6.QtCore.Signal): Signal to emit while executing the algorithm. Default: None.
+
+        Returns:
+            result (np.ndarray): Estimated background of the provided spectrum `y`.
+        """
+
         if signal_to_emit is not None:
             signal_to_emit.emit()
 
         x = self.x_axis
 
+        # ignore indices of water
         if ignore_water:
             no_water_indices = utils.indices.get_no_water_indices(x)
             x = x[no_water_indices]
@@ -296,6 +383,7 @@ class Data:
         devs = [0]
         criterium = np.inf
 
+        # algorithm based on the article
         while criterium > 0.05:
             poly_obj = np.polynomial.Polynomial(None).fit(x, signal, deg=degree)
             poly = poly_obj(x)
@@ -313,9 +401,47 @@ class Data:
                 signal = np.where(signal < poly + DEV, signal, poly + DEV)
             criterium = np.abs((DEV - devs[-2]) / DEV)
 
+        # NOTE: ploynomial has to be evaluated at every point of `self.x_axis` here as it is background for the whole spectrum
         return poly_obj(self.x_axis)
 
+    def vancouver(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> None:
+        """
+        A function that applies the Vancouver algorithm on the whole spectral map. Zhao et al (doi: 10.1366/000370207782597003)
+
+        Parameters:
+            degree (int): Degree of the polynomial used for interpolation.
+            ignore_water (bool): Info whether variation of the algo with water ignorace should be performed. Default: True.
+            signal_to_emit (PySide6.QtCore.Signal): Signal to emit while executing the algorithm. Default: None.
+        """
+
+        backgrounds = np.apply_along_axis(self.vancouver_poly_bg, 2, self.data, degree, ignore_water, signal_to_emit)
+        self.data -= backgrounds
+        self._recompute_dependent_data()
+
+    def auto_vancouver(self, degree: int, ignore_water: bool) -> None:
+        """
+        A function to perform Vancouver algorithm in auto processing.
+
+        Parameters:
+            degree (int): Degree of the polynomial used for interpolation.
+            ignore_water (bool): Info whether variation of the algo with water ignorace should be performed.
+        """
+
+        self.vancouver(degree, ignore_water)
+
     def poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True) -> np.ndarray:
+        """
+        A function to perform simple polynomial interpolation on the spectrum to estimate the backgrounds.
+        Water can be ingored.
+
+        Parameters:
+            y (np.ndarray): Spectrum on which the algorithm will be performed.
+            degree (int): Degree of the polynomial used for interpolation.
+            ignore_water (bool): Info whether variation of the algo with water ignorace should be performed. Default: True.
+
+        Returns:
+            result (np.ndarray): Estimated background of the provided spectrum `y`.
+        """
         x = self.x_axis
 
         if ignore_water:
@@ -324,14 +450,32 @@ class Data:
             y = y[no_water_indices]
         
         poly_obj = np.polynomial.Polynomial(None).fit(x, y, deg=degree)
+        # NOTE: ploynomial has to be evaluated at every point of `self.x_axis` here as it is background for the whole spectrum
         return poly_obj(self.x_axis)
 
     def auto_poly(self, degree: int, ignore_water: bool) -> None:
+        """
+        A function to perform polynomial background estimation and subtraction on the whole
+        spectral map.
+
+        Parameters:
+            degree (int): Degree of the polynomial used for interpolation.
+            ignore_water (bool): Info whether variation of the algo with water ignorace should be performed.
+        """
+
         backgrounds = np.apply_along_axis(self.poly_bg, 2, self.data, degree, ignore_water)
         self.data -= backgrounds
         self._recompute_dependent_data()
 
     def linearize(self, step: float) -> None:
+        """
+        A function to perform data linearization on the whole spectral map.
+        That means that there will be equal steps between the data points.
+
+        Parameters:
+            step (float): Required step between the data points.
+        """
+
         spectrum_spline = si.CubicSpline(self.x_axis, self.data, axis=2, extrapolate=False)
         new_x = np.arange(np.ceil(self.x_axis[0]), np.floor(self.x_axis[-1]), step)
         self.x_axis = new_x
@@ -340,16 +484,29 @@ class Data:
         self._recompute_dependent_data()
 
     def auto_linearize(self, step: float) -> None:
+        """
+        A function to perform linearization on auto processing.
+
+        Parameters:
+            step (float): Required step between the data points.
+        """
+
         self.linearize(step)
 
     # decomposition methods
 
     def PCA(self, n_components: int) -> None:
+        """
+        A function to perform simple PCA method on the spectral map.
+
+        Parameters:
+            n_components (int): Number of component to be estimated.
+        """
+
         self.components = [] # reset to init state
 
-        # TODO: abs?
-        reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
-        pca = decomposition.PCA(n_components=n_components) #TODO: mozna nejaka regularizace apod.
+        reshaped_data = np.reshape(self.data, (-1, self.data.shape[2]))
+        pca = decomposition.PCA(n_components=n_components)
         pca.fit(reshaped_data)
         pca_transformed_data = pca.transform(reshaped_data)
 
@@ -357,22 +514,38 @@ class Data:
             self.components.append({"map": pca_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": pca.components_[i]})
 
     def auto_PCA(self, n_components: int) -> None:
+        """
+        A function to perform PCA on auto processing.
+
+        Parameters:
+            n_components (int): Number of component to be estimated.
+        """
+
         self.PCA(n_components)
 
     def NMF(self, n_components: int, signal_to_emit: Signal = None) -> None:
+        """
+        A function to perform NMF method on the spectral map with NNDSVD initialization,
+        that is initialization based on SVD/PCA for better estimation.
+        Note that NMF method is local check point from sklear implementation.
+
+        Parameters:
+            n_components (int): Number of component to be estimated.
+            signal_to_emit (PySide6.QtCore.Signal): Signal to emit while executing the algorithm. Default: None.
+        """
+
         self.components = [] # reset to init state
 
-        # np.abs has to be present since NMF requires positive values
-
-        """
+        # NOTE: version with min subtraction instead of making the values absolute -> performed bad
+        #       currently not used but may be after some more testing
         # sub min to make non-negative
-        temp_data = self.data - np.repeat(np.min(self.data, axis=2)[:,:,np.newaxis], self.data.shape[2], 2)
-        reshaped_data = np.reshape(temp_data, (-1, self.data.shape[2]))
-        """
+        # temp_data = self.data - np.repeat(np.min(self.data, axis=2)[:,:,np.newaxis], self.data.shape[2], 2)
+        # reshaped_data = np.reshape(temp_data, (-1, self.data.shape[2]))
 
-        #abs
+        # np.abs has to be present since NMF requires non-negative values (sometimes even positive)
         reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
-        nmf = utils.sklearn_NMF.NMF(n_components=n_components, init="nndsvd", signal_to_emit=signal_to_emit) # TODO: mozna nejaka regularizace apod.
+        # NOTE: some regularization or max_iter may be changed for better performance
+        nmf = utils.sklearn_NMF.NMF(n_components=n_components, init="nndsvd", signal_to_emit=signal_to_emit)
         nmf.fit(reshaped_data)
         nmf_transformed_data = nmf.transform(reshaped_data)
 
@@ -380,9 +553,23 @@ class Data:
             self.components.append({"map": nmf_transformed_data[:,i].reshape(self.data.shape[0], self.data.shape[1]), "plot": nmf.components_[i]})
 
     def auto_NMF(self, n_components: int) -> None:
+        """
+        A function to perform NMF on auto processing.
+
+        Parameters:
+            n_components (int): Number of component to be estimated.
+        """
+
         self.NMF(n_components)
 
     def export_components(self, file_name: str, file_format: str) -> None:
+        """
+        A function for components exporting for publications.
+
+        Parameters:
+            file_name (str): Name of the file where the output should be stored.
+            file_format (str): Format of the output, possible formats: png, pdf, ps, eps, svg.
+        """
         # matplotlib pic export
         n_components = len(self.components)
 
@@ -410,7 +597,6 @@ class Data:
         index = 1
 
         # maps
-
         for i in range(n_components):
             ax = plt.subplot(n_rows, n_cols, index)
             plt.axis('off')
@@ -441,6 +627,7 @@ class Data:
         shift = 0
 
         plt.subplot(n_components, 2, (2, 2 * n_components))
+
         # set ylim so that upper plot has same space above as other plots
         plt.ylim(top=shift_step * n_components, bottom=-1)
         plt.xlim(self.x_axis[0], self.x_axis[-1])
@@ -456,12 +643,10 @@ class Data:
 
             # letter annotation
             plt.annotate(comp_letters[n_components - 1 - i], (self.x_axis[-1] + letter_shift_x, (i + 1)*shift_step + letter_shift_y), size="xx-large", weight="bold")
-            # component_plots[i][-1]
             shift += shift_step
 
         # reduce space between maps and plots
         # plt.subplots_adjust(wspace=-0.2, hspace=0.1)
-        
 
         plt.xlabel("Raman shift (cm$^{-1}$)")
         plt.ylabel("Intensity (a.u.)")
@@ -470,15 +655,24 @@ class Data:
         plt.tight_layout()
         plt.savefig(file_name, bbox_inches='tight', format=file_format)
 
-    def auto_export(self, out_folder: str, file_tag: str, file_format: str):
+    def auto_export(self, out_folder: str, file_tag: str, file_format: str) -> None:
+        """
+        A function for exporting in automatic pipeline.
+
+        Parameters:
+            out_folder (str): Folder where the exported file will be stored.
+            file_tag (str): String to append to the `self.in_file` name.
+            file_format (str): Format of the output, possible formats: png, pdf, ps, eps, svg.
+        """
 
         if len(self.components) == 0:
             raise Exception("Error: components have not been made yet.")
 
+        # construct the file name
         file_name, _ = os.path.basename(self.in_file).split('.')
         out_file = os.path.join(out_folder, file_name + file_tag + '.' + file_format)
 
-        # do not overwrite on auto export
+        # do not overwrite on auto export -> apend ('number') to the file name instead
         if os.path.exists(out_file):
             i = 2
             out_file = os.path.join(out_folder, file_name + file_tag + f"({i})" + '.' + file_format)
@@ -489,20 +683,47 @@ class Data:
         self.export_components(out_file, file_format)
 
     def _calculate_Z_scores(self, data: np.ndarray) -> np.ndarray:
+        """
+        A function to calculate modified modified Z scores of the spectra.
+        Note that modified is written twice in previous sentence as it is in fact
+        modification of modified Z score.
+
+        Paramaters:
+            data (np.ndarray): Data on whichc to calculate the modified modified Z scores.
+        """
+
+        # detrend the data
         abs_differences = np.abs(np.diff(data, axis=1))
+        # use 90th percentile instead of the median
         percentile_90 = np.percentile(abs_differences, 90)
+        # deviation will still be medain
         deviation = np.median(np.abs(abs_differences - percentile_90))
+        # multiplication constant stays the same as in modified Z score as the algorithm is optimalized to it
         Z = 0.6745 * (abs_differences - percentile_90) / deviation
         return Z
 
-    def calculate_spikes_indices(self):
+    def calculate_spikes_indices(self) -> None:
+        """
+        A function to calculate spikes positions in spectral map and in spectral plot using newly developed algorithm.
+        """
+
+        # modified modified Z score threshold -> lower thresholds removes also bigger noise
         Z_score_threshold = 5.5 # 6.5
+
+        # window widht for spike deletion and spike alignment
         window_width = 5
+
+        # components for clustering
         n_comp = 8
+
+        # correlation threshold for correlation filter
         correlation_threshold = 0.9
+
+        # silent region of the data to be ignored during clustering
         silent_region = [1900, 2600]
 
         clf = cluster.MiniBatchKMeans(n_clusters=n_comp, random_state=42, max_iter=60)
+
         # flatten data and ingore silent region
         flattened_data = np.reshape(self.data, (-1, self.data.shape[-1]))[:, utils.indices.get_indices_to_fit(self.x_axis, [silent_region])]
         clf.fit(flattened_data)
@@ -564,13 +785,21 @@ class Data:
                     map_indices.append(position)
                     peak_positions.append(spike_position)
 
+        # store the indices so that it does not have to be computed again
         self.spikes["map_indices"] = map_indices
         self.spikes["peak_positions"] = peak_positions
 
     def remove_spikes(self) -> None:
-        # NOTE: remove spikes before cropping!
+        """
+        A function to remove estimated spikes from the data using newly developed algorithm.
 
+        NOTE: spikes should be removed before cropping because artificial values may be added to the end
+        or to the beginning.
+        """
+
+        # window widgt for spikes removal
         window_width = 5
+
         for spectrum_indices, spike_position in zip(self.spikes["map_indices"], self.spikes["peak_positions"]):
             curr_spectrum = self.data[spectrum_indices[0], spectrum_indices[1], :]
 
@@ -578,25 +807,31 @@ class Data:
             left = int(np.maximum(spike_position - window_width, 0))
             right = int(np.minimum(spike_position + window_width + 1, len(curr_spectrum) - 1))
 
-            # use median when "normal" value is not obtainable (extreme indices)
-            median = np.median(curr_spectrum)
+            # values to linearly interpolate
+            # place the other bound if value would be part of spike (else branches)
+            start_value = curr_spectrum[left] if left > 0 else curr_spectrum[right]
+            end_value = curr_spectrum[right] if right < len(curr_spectrum) - 1 else curr_spectrum[left]
 
-            start_value = curr_spectrum[left] if left > 0 else median
-            end_value = curr_spectrum[right] if right < len(curr_spectrum) - 1 else median
+            values_count = right - left
 
-            values_count = right - left 
+            # create linear interpolation
             new_values = np.linspace(start_value, end_value, num=values_count + 1)
 
+            # replace values
             self.data[spectrum_indices[0], spectrum_indices[1], left:right+1:1] = new_values
 
         self._recompute_dependent_data()
 
-    def auto_remove_spikes(self):
+    def auto_remove_spikes(self) -> None:
+        """
+        A function for automatic spikes removal.
+        """
+
         self.calculate_spikes_indices()
         self.remove_spikes()
 
-    '''
-    whittaker_smooth, airPLS:
+    """
+    - whittaker_smooth and airPLS were implemented by someone else:
 
     Source: https://raw.githubusercontent.com/zmzhang/airPLS/master/airPLS.py
 
@@ -625,46 +860,49 @@ class Data:
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>
-    '''
+    """
 
-    def whittaker_smooth(self, x, w, lambda_, differences=1):
-        '''
-        Penalized least squares algorithm for background fitting
+    def whittaker_smooth(self, x: np.ndarray, w: np.ndarray, lambda_: int, differences: int = 1) -> np.ndarray:
+        """"
+        Penalized least squares algorithm for background fitting.
         
-        input
-            x: input data (i.e. chromatogram of spectrum)
-            w: binary masks (value of the mask is zero if a point belongs to peaks and one otherwise)
-            lambda_: parameter that can be adjusted by user. The larger lambda is,  the smoother the resulting background
-            differences: integer indicating the order of the difference of penalties
+        Parameters:
+            x (np.ndarray): Input data (i.e. chromatogram of spectrum).
+            w (np.ndarray): Binary masks (value of the mask is zero if a point belongs to peaks and one otherwise).
+            lambda_ (int): Parameter that can be adjusted by user. The larger lambda is,  the smoother the resulting background.
+            differences (int): Integer indicating the order of the difference of penalties.
         
-        output
-            the fitted background vector
-        '''
+        Returns:
+            result (np.ndarray): The fitted background vector.
+        """
 
         X = np.matrix(x)
         m = X.size
         E = ss.eye(m,format='csc')
+
         for _ in range(differences):
             E = E[1:]-E[:-1]
+
         W = ss.diags(w, 0, shape=(m, m))
         A = ss.csc_matrix(W + (lambda_ * E.T *E))
         B = ss.csc_matrix(W * X.T)
+
         background = linalg.spsolve(A, B)
         return np.array(background)
 
-    #TODO: nechat uzivatele lambdu nastavit? 
-    def airPLS(self, x, lambda_=10**4.4, porder=1, itermax=20):
-        '''
-        Adaptive iteratively reweighted penalized least squares for baseline fitting
+    def airPLS(self, x: np.ndarray, lambda_: int = 10**4.4, porder: int = 1, itermax: int = 20) -> np.ndarray:
+        """
+        Adaptive iteratively reweighted penalized least squares for baseline fitting.
         
-        input
-            x: input data (i.e. chromatogram of spectrum)
-            lambda_: parameter that can be adjusted by user. The larger lambda is,  the smoother the resulting background, z
-            porder: adaptive iteratively reweighted penalized least squares for baseline fitting
-        
-        output
-            the fitted background vector
-        '''
+        Parameters:
+            x (np.ndarray): Input data (i.e. chromatogram of spectrum).
+            lambda_ (int): Parameter that can be adjusted by user. The larger lambda is,  the smoother the resulting background. Default: 10**4.4.
+            porder (int): Adaptive iteratively reweighted penalized least squares for baseline fitting. Default: 1.
+            itermax (int): Maximum iterations. Default: 20.
+
+        Returns:
+            result (np.ndarray): The fitted background vector.
+        """
 
         m = x.shape[0]
         w = np.ones(m)
@@ -672,16 +910,23 @@ class Data:
             z = self.whittaker_smooth(x, w, lambda_, porder)
             d = x-z
             dssn = np.abs(d[d<0].sum())
+
             if (dssn < 0.001*(abs(x)).sum() or i==itermax):
                 break
+
             # d>0 means that this point is part of a peak, so its weight is set to 0 in order to ignore it
             w[d>=0] = 0
             w[d<0] = np.exp(i*np.abs(d[d<0])/dssn)
             w[0] = np.exp(i*(d[d<0]).max()/dssn)
             w[-1] = w[0]
+
         return z
 
-    def auto_airPLS(self):
+    def auto_airPLS(self) -> None:
+        """
+        A function to perform airPLS algorithm on the whole spectral map in the auto processing module.
+        """
+
         backgrounds = np.apply_along_axis(self.airPLS, 2, self.data)
         self.data -= backgrounds
         self._recompute_dependent_data()
