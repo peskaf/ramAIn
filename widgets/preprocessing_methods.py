@@ -1,6 +1,5 @@
-from PySide6.QtWidgets import QFrame, QStackedLayout, QHBoxLayout, QListWidget
+from PySide6.QtWidgets import QFrame, QStackedLayout, QHBoxLayout, QListWidget, QWidget
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QIcon
 
 from widgets.cropping import Cropping
 from widgets.cosmic_ray_removal import CosmicRayRemoval
@@ -9,15 +8,21 @@ from widgets.normalization import Normalization
 from widgets.linearization import Linearization
 from widgets.view import View
 
+
 class PreprocessingMethods(QFrame):
+    """
+    A widget for method selection for 'manual' spectra preprocessing.
+    """
+
     method_changed = Signal(QFrame)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
         # name for qss styling
         self.setObjectName("methods")
 
+        # individual methods instances
         self.view = View(self)
         self.cropping = Cropping(self)
         self.cosmic_ray_removal = CosmicRayRemoval(self)
@@ -57,15 +62,23 @@ class PreprocessingMethods(QFrame):
         layout = QHBoxLayout()
         layout.addWidget(self.list)
         layout.addLayout(self.methods_layout)
-        # layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
     
-    # resets to init mode - first method (view)
-    def reset(self):
+    def reset(self) -> None:
+        """
+        A function to reset the widgets to init state.
+        """
+
+        # init method is the first one
         self.list.setCurrentItem(self.list.item(0))
 
-    def emit_method_changed(self):
+    def emit_method_changed(self) -> None:
+        """
+        A function to emit that current method has changed so that corresponding
+        params selection is displayed.
+        """
+
         curr_method_index = self.list.currentRow()
         self.methods_layout.setCurrentIndex(curr_method_index)
         self.method_changed.emit(self.methods[curr_method_index])

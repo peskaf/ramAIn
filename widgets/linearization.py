@@ -1,23 +1,29 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButton, QCheckBox, QPushButton
-from PySide6.QtGui import QRegularExpressionValidator, QIcon
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QPushButton, QWidget
+from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
 
+from utils import validators
+
+
 class Linearization(QFrame):
+    """
+    A widget for parameters selection for linarization method in manual preprocessing section.
+    """
+
+    # singal that apply button was clicked
     apply_clicked = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
+
         self.setObjectName("method_instance")
         self.icon = QIcon("icons/equal.svg")
-
-        # TODO: move these validators to sep. utils file ??
-        real_validator = QRegularExpressionValidator("-?[0-9]+(\.[0-9]+)?")
 
         self.init_data_step = 1
 
         # range is inclusive on both sides
         self.data_step_range = (0.1, 5)
-        self.data_step = QLineEdit(str(self.init_data_step), validator=real_validator)
+        self.data_step = QLineEdit(str(self.init_data_step), validator=validators.REAL_VALIDATOR)
     
         self.data_step.editingFinished.connect(self.validate_data_step_range)
 
@@ -35,6 +41,10 @@ class Linearization(QFrame):
         self.setLayout(layout)
     
     def validate_data_step_range(self) -> None:
+        """
+        A function to validate inputs for `self.data_step`, setting it to one of the bounds
+        if it's invalid.
+        """
 
         step = float(self.data_step.text())
         if step < self.data_step_range[0]:
@@ -47,10 +57,11 @@ class Linearization(QFrame):
         The function to get parameters from all inputs.
 
         Returns:
-            parameters (tuple): Tuple of equidistantification method parameters converted to correct types.
+            parameters (tuple): Tuple of linarizatoin method parameters converted to correct types.
         """
 
         parameters = (float(self.data_step.text()), )
+
         return parameters
 
     def reset(self) -> None:
@@ -60,5 +71,12 @@ class Linearization(QFrame):
 
         self.data_step.setText(str(self.init_data_step))
 
-    def get_string_name(self):
+    def get_string_name(self) -> str:
+        """
+        A function to return name of this widget as a string.
+
+        Returns:
+            widget_name (str): Name of the widget so that it can be recognized by the user.
+        """
+
         return "Linearization"

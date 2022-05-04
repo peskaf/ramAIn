@@ -5,9 +5,13 @@ from widgets.PCA import PCA
 from widgets.NMF import NMF
 
 class DecompositionMethods(QFrame):
-    method_changed = Signal(QFrame) #TODO: delete?
+    """
+    A widget for method selection for 'manual' spectra decomposition.
+    """
 
-    def __init__(self, parent=None):
+    method_changed = Signal(QFrame) #TODO: delete
+
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
 
         # name for qss styling
@@ -23,7 +27,7 @@ class DecompositionMethods(QFrame):
 
         self.list = QListWidget(self)
 
-        self.list.setObjectName("methods_list") # TODO: set fixed size ?
+        self.list.setObjectName("methods_list")
         self.list.addItems([method.get_string_name() for method in self.methods])
         
         self.list.setCurrentItem(self.list.item(0))
@@ -46,13 +50,20 @@ class DecompositionMethods(QFrame):
         layout.addLayout(self.methods_layout)
         layout.setSpacing(0)
         self.setLayout(layout)
+
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-    
-    # resets to init mode - first method
-    def reset(self):
+
+    def reset(self) -> None:
+        """
+        The function to reset all widgets to init state.
+        """
+
         self.list.setCurrentItem(self.list.item(0))
 
+    #TODO: delete
+    """
     def emit_method_changed(self):
         curr_method_index = self.list.currentRow()
         self.methods_layout.setCurrentIndex(curr_method_index)
         self.method_changed.emit(self.methods[curr_method_index])
+    """

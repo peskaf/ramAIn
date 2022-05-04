@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QFrame, QListWidget, QStackedLayout, QHBoxLayout
+from types import NoneType
+from PySide6.QtWidgets import QFrame, QListWidget, QStackedLayout, QHBoxLayout, QWidget
 from PySide6.QtCore import Signal
 
 from widgets.auto_processing import AutoProcessing
@@ -6,29 +7,35 @@ from widgets.manual_preprocessing import ManualPreprocessing
 from widgets.spectra_decomposition import SpectraDecomposition
 from widgets.settings import Settings
 
-# OK
+
 class Menu(QFrame):
+    """
+    A widget representing main menu of the application.
+    """
+
     menu_item_changed = Signal(QFrame)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
-        # TODO: menu styling
-
+        # methods instances
         self.manual_preprocessing = ManualPreprocessing(self)
         self.spectra_decomposition = SpectraDecomposition(self)
-        self.settings_widget = Settings(self)
         self.auto_processing = AutoProcessing(self)
-
+        self.settings_widget = Settings(self)
+        
 
         self.menu_items = [
             self.manual_preprocessing,
             self.spectra_decomposition,
+            self.auto_processing,
             self.settings_widget,
-            self.auto_processing
+            
         ]
 
         self.list = QListWidget(self)
+
+        # name for qss styling
         self.list.setObjectName("menu")
 
         self.list.addItems([menu_item.get_string_name() for menu_item in self.menu_items])
@@ -52,16 +59,24 @@ class Menu(QFrame):
         layout = QHBoxLayout()
         layout.addWidget(self.list)
         layout.addLayout(self.main_layout)
-        # layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
     
-    # resets to init mode - first method (view)
-    def reset(self):
+    def reset(self) -> None:
+        """
+        A function to reset the widgets to init state.
+        """
+
+        # first method is the init one
         self.list.setCurrentItem(self.list.item(0))
 
-    def emit_menu_item_changed(self):
+    def emit_menu_item_changed(self) -> None:
+        """
+        A function to emit that current intem in the list has changed so that the method is changed.
+        """
+
         curr_item_index = self.list.currentRow()
         self.main_layout.setCurrentIndex(curr_item_index)
         self.spectra_decomposition.update_file_list()
+        self.manual_preprocessing.update_file_list()
         self.menu_item_changed.emit(self.menu_items[curr_item_index])

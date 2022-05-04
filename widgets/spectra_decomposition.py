@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog, QHBoxLayout, QProgressDialog
+from types import NoneType
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog, QHBoxLayout, QProgressDialog, QWidget
 from PySide6.QtCore import Qt, Signal, QSettings, QEventLoop, QCoreApplication
 from PySide6.QtGui import QIcon, QPixmap
 
@@ -14,7 +15,7 @@ import os
 class SpectraDecomposition(QFrame):
     update_progress = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
         self.icon = QIcon("icons/view.svg") #TODO: change
@@ -34,6 +35,7 @@ class SpectraDecomposition(QFrame):
         # method selection + params
         self.methods = DecompositionMethods(self)
 
+        # connect signals from the methods
         self.init_pca()
         self.init_nmf()
 
@@ -54,8 +56,8 @@ class SpectraDecomposition(QFrame):
 
         # misc
         self.init_file_error_widget()
+        self.file_error.hide()
 
-        # TODO: style button
         self.export_button = QPushButton("Export Components")
         self.export_button.clicked.connect(self.export_components)
 
@@ -79,6 +81,13 @@ class SpectraDecomposition(QFrame):
         self.setLayout(layout)
 
     def update_file(self, file: QListWidgetItem) -> None:
+        """
+        A function to update the file that is to be processed.
+
+        Parameters:
+            file (QListWidgetItem): File to be processed.
+        """
+
         if file is None:
             return # do nothing if no file is provided
         else:
@@ -95,10 +104,18 @@ class SpectraDecomposition(QFrame):
 
         self.curr_file = temp_curr_file
 
-    def update_folder(self, new_folder_name: str):
+    def update_folder(self, new_folder_name: str) -> None:
+        """
+        A function to set `self.curr_folder` to `new_folder_name`.
+        """
+
         self.curr_folder = new_folder_name
 
-    def init_file_error_widget(self):
+    def init_file_error_widget(self) -> None:
+        """
+        A function to create an error message box.
+        """
+
         self.file_error = QMessageBox()
         self.file_error.setIconPixmap(QPixmap("icons/x-circle.svg"))
         self.file_error.setText("File has invalide structure and cannot be loaded.")
@@ -107,13 +124,25 @@ class SpectraDecomposition(QFrame):
         self.file_error.setWindowIcon(QIcon("icons/message.svg"))
         self.file_error.setStandardButtons(QMessageBox.Ok)
 
-    def init_pca(self):
+    def init_pca(self) -> None:
+        """
+        A function to connect PCAs apply button to `PCA_apply` function.
+        """
+
         self.methods.PCA.apply_clicked.connect(self.PCA_apply)
 
-    def init_nmf(self):
+    def init_nmf(self) -> None:
+        """
+        A function to connect NMFs apply button to `NMF_apply` function.
+        """
+
         self.methods.NMF.apply_clicked.connect(self.NMF_apply)
 
-    def PCA_apply(self):
+    def PCA_apply(self) -> None:
+        """
+        A function to apply PCA on the data and to show the result.
+        """
+
         n_comps = self.methods.PCA.get_params()[0]
         self.methods.setEnabled(False)
         self.export_button.setEnabled(False)
@@ -122,7 +151,11 @@ class SpectraDecomposition(QFrame):
         self.export_button.setEnabled(True)
         self.show_components()
 
-    def NMF_apply(self):
+    def NMF_apply(self) -> None:
+        """
+        A function to apply NMF on the data and to show the result.
+        """
+
         n_comps = self.methods.NMF.get_params()[0]
         NMF_max_iter = 200
         # multiply max_iter by 2 as colver is being used while both transform and fit, both with max_iter = 200
@@ -132,7 +165,11 @@ class SpectraDecomposition(QFrame):
         self.destroy_progress_bar()
         self.show_components()
 
-    def show_components(self):
+    def show_components(self) -> None:
+        """
+        A function to display the components obtained by one of the methods.
+        """
+
         # remove components if some are present
         self.remove_components()
 
@@ -142,11 +179,19 @@ class SpectraDecomposition(QFrame):
         
         self.export_button.setEnabled(True)
 
-    def remove_components(self):
+    def remove_components(self) -> None:
+        """
+        A function to remove all components in the components area.
+        """
+
+        # NOTE: reversed needed here as the items would shift to lower index and would be never deleted
         for i in reversed(range(self.components.count())): 
             self.components.takeAt(i).widget().deleteLater()
 
-    def export_components(self):
+    def export_components(self) -> None:
+        """
+        A function to open file dialog for export file selection and export method call.
+        """
 
         # do nothing if no components are generated yet
         if len(self.curr_data.components) == 0:
@@ -174,7 +219,11 @@ class SpectraDecomposition(QFrame):
 
         self.curr_data.export_components(file_name, format)
 
-    def update_file_list(self):
+    def update_file_list(self) -> None:
+        """
+        A function to silently update the file list without any signals being emitted.
+        """
+
         if self.curr_file is not None:
             self.files_view.file_list.currentItemChanged.disconnect()
             # update file list so that new file is visible
@@ -184,15 +233,36 @@ class SpectraDecomposition(QFrame):
             # connect again
             self.files_view.file_list.currentItemChanged.connect(self.update_file)
 
-    def make_progress_bar(self, maximum):
+    def enable_widgets(self, enable: bool) -> None:
+        """
+        A function to enable/disable widgets in ManulPreprocessing instance.
+
+        Parameters:
+            enable (bool): Whether widgets should be enabled or disabled.
+        """
+
+        self.files_view.setEnabled(enable)
+        self.methods.setEnabled(enable)
+        self.export_button.setEnabled(enable)
+        self.components_area.setEnabled(enable)
+
+
+    def make_progress_bar(self, maximum: int) -> None:
+        """
+        A function to make a progress bar dialog with `maximum` steps.
+
+        Parameters:
+            maximum (int): A number of steps that has to be reached so that 100 % is displayed.
+        """
 
         # disable widgets
+        self.enable_widgets(False)
 
         self.progress = QProgressDialog("Progress", "...", 0, maximum)
         self.progress.setValue(0)
         self.progress.setCancelButton(None)
 
-        # style for progress bar that is inside progress dialog must be set here for some reason...
+        # style for progress bar that is inside progress dialog must be set here for some reason
         self.progress.setStyleSheet(
             """
             QProgressBar {
@@ -215,16 +285,35 @@ class SpectraDecomposition(QFrame):
         self.progress.setWindowTitle("Work in progress")
         self.update_progress.connect(self.set_progress)
 
-    def set_progress(self):
+    def set_progress(self) -> None:
+        """
+        A functino to increment the progress in the progress bar.
+        """
+
+        # process other events in the file loop
         QCoreApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+
+        # increment
         val = self.progress.value()
         self.progress.setValue(val + 1)
     
-    def destroy_progress_bar(self):
+    def destroy_progress_bar(self) -> None:
+        """
+        A function to destroy the progress bar dialog and to disconnect all its signals.
+        """
+
         # enable widgets again
+        self.enable_widgets(True)
 
         self.update_progress.disconnect()
         self.progress.deleteLater()
 
-    def get_string_name(self):
+    def get_string_name(self) -> str:
+        """
+        A function to return name of this widget as a string.
+
+        Returns:
+            widget_name (str): Name of the widget so that it can be recognized by the user.
+        """
+
         return "Spectra Decomposition"

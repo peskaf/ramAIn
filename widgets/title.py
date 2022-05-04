@@ -1,11 +1,14 @@
 from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QWidget
 from PySide6.QtCore import Qt
 
-# OK
 class Title(QFrame):
-    def __init__(self):
-        super(Title, self).__init__()
+    """
+    A widget for application title (name).
+    """
+
+    def __init__(self, parent: QWidget = None) -> None:
+        super().__init__(parent)
 
         # name for qss styling
         self.setObjectName("title")

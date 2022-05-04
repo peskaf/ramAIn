@@ -1,33 +1,46 @@
-from pydoc import Doc
-from PySide6.QtGui import QColor, QWheelEvent
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget, QLineEdit, QGraphicsSceneWheelEvent
-from PySide6.QtCore import Qt, QPoint, QSettings
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget
+from PySide6.QtCore import Qt, QSettings, QEvent
+
+from utils import colors
 
 import pyqtgraph as pg
 import numpy as np
 
-from widgets.settings import COLORMAPS
 
 class ScrollablePlotWidget(pg.PlotWidget):
-    def __init__(self, parent=None):
+    """
+    Subclass of `pg.PlotWidget` that overrides `wheelEvent` and `mouse(Press/Release)Event`
+    so that user scrolls the parent widget when scrolling on the plot.
+    Widget performs no action on mouse press/release.
+    """
+
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__()
+
         self.parent = parent
 
     def wheelEvent(self,event):
         self.parent.wheelEvent(event)
 
-    def mousePressEvent(self, QMouseEvent):
+    def mousePressEvent(self, QMouseEvent: QEvent):
         pass
 
-    def mouseReleaseEvent(self, QMouseEvent):
+    def mouseReleaseEvent(self, QMouseEvent: QEvent):
         pass
+
 
 class Component(QFrame):
-    def __init__(self, x, y, map, parent=None):
+    """
+    A widget representing one Raman component. It displays a spectral map and a single spectral plot.
+    """
+
+    def __init__(self, x: np.ndarray, y: np.ndarray, map: np.ndarray, parent: QWidget = None) -> None:
         super().__init__(parent)
 
         self.settings = QSettings()
 
+        # limit size of one component
         self.setMinimumHeight(175)
         self.setMaximumHeight(400)
 
@@ -35,15 +48,21 @@ class Component(QFrame):
         self.y_data = y
         self.map_data = map
         
+        # NOTE: scrolling over spectral map does nothing at all as wheelEvent works
+        #       different for `pg.ImageView`
         self.component_map = pg.ImageView(parent)
+
+        # hide controll buttons
         self.component_map.ui.histogram.hide()
         self.component_map.ui.roiBtn.hide()
         self.component_map.ui.menuBtn.hide()
 
+        # set colors
         bg_color = (240,240,240)
-        color_map = COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
+        color_map = colors.COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map)
 
+        # component map properties
         self.component_map.setColorMap(cmap)
         self.component_map.setImage(self.map_data, autoRange=False)
         self.component_map.getView().setMouseEnabled(False, False)
@@ -53,19 +72,13 @@ class Component(QFrame):
         self.component_map.setMinimumWidth(175)
         self.component_map.setMaximumWidth(250)
 
+        # spectral plot is the scrollable one
         self.component_plot = ScrollablePlotWidget(parent)
         self.component_plot.setBackground(bg_color)
         plot_pen = pg.mkPen(color="#266867", width=1.5)
         self.line = self.component_plot.plot(self.x_data, self.y_data, pen=plot_pen)
 
-        # TODO: solve labels
-        """
-        styles = { "font-family" : "montserrat", "color" : "#1A4645", "font-size": "14px" }
-        self.component_plot.getPlotItem().setLabel("top", f"x = {0000.00}, y = {000.00}", **styles)
-        self.component_plot.getPlotItem().setLabel("left", "Intensity (a.u.)", **styles)
-        self.component_plot.getPlotItem().setLabel("bottom", "Raman shift (1/cm)", **styles) # jednotky ?
-        """
-
+        # make final layout
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignHCenter)
         layout.addWidget(self.component_map)

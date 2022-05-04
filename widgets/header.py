@@ -2,11 +2,16 @@ from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget
 from PySide6.QtCore import Qt
 
 from widgets.title import Title
+# NOTE: import currently unsued, will be used in future versions
 from widgets.control_buttons import ControlButtons
 
-# OK
+
 class Header(QFrame):
-    def __init__(self, parent: QWidget = None):
+    """
+    A widget for application header (section above the main section and the menu).
+    """
+
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
 
         # name for styling in qss file
@@ -16,10 +21,11 @@ class Header(QFrame):
 
         layout.addWidget(Title())
 
-         # fills the area between the widgets (title & constrol btns)
+        # fills the area between the widgets (title & constrol btns)
         layout.addStretch()
 
         # control buttons for frameless version
+        # NOTE: for the future app styling
         # layout.addWidget(ControlButtons())
 
         layout.setAlignment(Qt.AlignLeft)

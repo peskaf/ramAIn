@@ -2,12 +2,16 @@ from PySide6.QtGui import QIcon, QCursor
 from PySide6.QtWidgets import QFrame, QPushButton, QWidget
 from PySide6.QtCore import Qt
 
-# OK
+
 class CollapseButton(QPushButton):
-    def __init__(self, frame : QFrame, text="", parent: QWidget = None):
+    """
+    Subclass of `QPushButton` that collapses given `QFrame` when clicked. 
+    """
+
+    def __init__(self, frame: QFrame, label: str = "", parent: QWidget = None):
         super().__init__(parent)
 
-        # name for future styling in qss
+        # name for qss styling
         self.setObjectName("collapse_button")
 
         # frame to be collapsed/expanded on button click
@@ -19,8 +23,10 @@ class CollapseButton(QPushButton):
 
         self.setIcon(self.checked_icon)
 
+        # this button has two states, alternating on click
         self.setCheckable(True)
-        self.setText(text)
+
+        self.setText(label)
 
         # cursor on button hover
         self.setCursor(QCursor(Qt.PointingHandCursor))
@@ -28,7 +34,11 @@ class CollapseButton(QPushButton):
         # connect function that is to be executed on btn click
         self.clicked.connect(self.collapse_layout)
 
-    def collapse_layout(self):
+    def collapse_layout(self) -> None:
+        """
+        A function to change the icon of the button and to hide/show the frame it is responsible for.
+        """
+
         if self.isChecked():
             self.setIcon(self.unchecked_icon)
             self.frame.hide()

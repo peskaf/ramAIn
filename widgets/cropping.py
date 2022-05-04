@@ -1,15 +1,15 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QWidget
-from PySide6.QtGui import QRegularExpressionValidator, QIcon
+from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
 
 import pyqtgraph as pg
 import numpy as np
 
+from utils import validators
+
 class Cropping(QFrame):
     """
-    A widget for data cropping.
-
-    Attributes: # TODO: prepsat sem vsechny atributy
+    A widget for cropping parameters selection in manual preprocessing.
     """
 
     # custom signal that `apply_button` has been clicked on
@@ -24,21 +24,20 @@ class Cropping(QFrame):
         """
 
         super().__init__(parent)
+
         self.setObjectName("method_instance")
         self.icon = QIcon("icons/cut.svg")
-
-        real_validator = QRegularExpressionValidator("-?[0-9]+(\.[0-9]+)?")
 
         self.init_inputs_value = 0
 
         # inputs
-        self.input_plot_start = QLineEdit(str(self.init_inputs_value), validator=real_validator)
-        self.input_plot_end = QLineEdit(str(self.init_inputs_value), validator=real_validator)
+        self.input_plot_start = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
+        self.input_plot_end = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
 
-        self.input_map_left = QLineEdit(str(self.init_inputs_value), validator=real_validator)
-        self.input_map_top = QLineEdit(str(self.init_inputs_value), validator=real_validator)
-        self.input_map_right = QLineEdit(str(self.init_inputs_value), validator=real_validator)
-        self.input_map_bottom = QLineEdit(str(self.init_inputs_value), validator=real_validator)
+        self.input_map_left = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
+        self.input_map_top = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
+        self.input_map_right = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
+        self.input_map_bottom = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
 
         # emit signal on button click (mainly for encapsulation purposes)
         self.apply_button = QPushButton("Apply")
@@ -50,13 +49,14 @@ class Cropping(QFrame):
         # Spectral map cropping parameters
         layout.addWidget(QLabel("Spectral Map Cropping"), 0, 0)
 
-        layout.addWidget(QLabel("Upper Left Corner"), 2, 0)
-        layout.addWidget(QLabel("Lower Right Corner"), 3, 0)
         layout.addWidget(QLabel("X"), 1, 1)
         layout.addWidget(QLabel("Y"), 1, 2)
 
+        layout.addWidget(QLabel("Upper Left Corner"), 2, 0)
         layout.addWidget(self.input_map_left, 2, 1)
         layout.addWidget(self.input_map_top, 2, 2)
+
+        layout.addWidget(QLabel("Lower Right Corner"), 3, 0)
         layout.addWidget(self.input_map_right, 3, 1)
         layout.addWidget(self.input_map_bottom, 3, 2)
 
@@ -64,9 +64,9 @@ class Cropping(QFrame):
         layout.addWidget(QLabel("Spectral Plot Cropping"), 4, 0)
 
         layout.addWidget(QLabel("Start Position"), 5, 0)
-        layout.addWidget(QLabel("End Position"), 6, 0)
-
         layout.addWidget(self.input_plot_start, 5, 1)
+
+        layout.addWidget(QLabel("End Position"), 6, 0)
         layout.addWidget(self.input_plot_end, 6, 1)
 
         layout.addWidget(self.apply_button, 6, 2)
@@ -111,11 +111,13 @@ class Cropping(QFrame):
 
         Returns:
             parameters (tuple): Tuple of cropping method parameters converted to correct types.
+                                Order: plot start, plot end, map left, map top, map right, map bottom
         """
 
         parameters = (float(self.input_plot_start.text()), float(self.input_plot_end.text()), \
             int(np.floor(float(self.input_map_left.text()))), int(np.floor(float(self.input_map_top.text()))), \
             int(np.ceil(float(self.input_map_right.text()))), int(np.ceil(float(self.input_map_bottom.text()))))
+
         return parameters
 
     def reset(self) -> None:
@@ -136,4 +138,11 @@ class Cropping(QFrame):
             input.setText(str(self.init_inputs_value))
 
     def get_string_name(self) -> str:
+        """
+        A function to return name of this widget as a string.
+
+        Returns:
+            widget_name (str): Name of the widget so that it can be recognized by the user.
+        """
+
         return "Cropping"

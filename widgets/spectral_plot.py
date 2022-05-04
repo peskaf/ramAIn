@@ -9,8 +9,6 @@ from widgets.plot_mode import PlotMode
 class SpectralPlot(QFrame):
     """
     A widget for visualizing spectral plot.
-
-    Attributes: # TODO: prepsat sem vsechny atributy
     """
 
     def __init__(self, x: np.ndarray, y: np.ndarray, parent: QWidget = None) -> None:
@@ -271,11 +269,23 @@ class SpectralPlot(QFrame):
         self.linear_region.setRegion(new_region)
 
     def plot_background(self, background: np.ndarray) -> None:
-        #remove prev bg in case there is some
+        """
+        A function to plot the background line.
+
+        Parameters:
+            background (np.ndarray): Background line to be plotted.
+        """
+
+        #remove prev bg in case there is some already
         if self.background is not None:
             self.hide_background()
+
         self.background = self.plot_widget.plot(self.x_data, background, pen=self.bg_pen)
 
     def hide_background(self) -> None:
+        """
+        A function to remove the background line from the plot.
+        """
+
         self.background.hide()
         self.background = None

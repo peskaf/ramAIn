@@ -1,11 +1,18 @@
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QFrame, QPushButton, QHBoxLayout
+from PySide6.QtWidgets import QFrame, QPushButton, QHBoxLayout, QWidget
 from PySide6.QtCore import Qt
 
-# OK
+
 class ControlButtons(QFrame):
-    def __init__(self):
-        super(ControlButtons, self).__init__()
+    """
+    A widget representing control buttons for collapsing, minimizing/maximizing and exiting
+    the main window.
+
+    # NOTE: currently not used, implemented for future needs
+    """
+
+    def __init__(self, parent: QWidget = None):
+        super().__init__(parent)
 
         # name for styling in qss file
         self.setObjectName("control_buttons")

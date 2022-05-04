@@ -1,14 +1,15 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QRadioButton, QWidget, QCheckBox
-from PySide6.QtGui import QRegularExpressionValidator, QIcon
+from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
 
 import pyqtgraph as pg
 
+from utils import validators
+
+
 class CosmicRayRemoval(QFrame):
     """
-    A widget for cosmic ray removal.
-
-    Attributes: # TODO: prepsat sem vsechny atributy
+    A widget for cosmic ray removal parameters selection in manual preprocessing.
     """
 
     # custom signals
@@ -25,11 +26,9 @@ class CosmicRayRemoval(QFrame):
         """
 
         super().__init__(parent)
+
         self.setObjectName("method_instance")
         self.icon = QIcon("icons/signal.svg")
-
-        # input validators
-        real_validator = QRegularExpressionValidator("-?[0-9]+(\.[0-9]+)?")
 
         self.auto_removal_btn = QRadioButton("Automatic removal")
         self.auto_removal_btn.setChecked(True)
@@ -37,10 +36,11 @@ class CosmicRayRemoval(QFrame):
         self.manual_removal_btn = QRadioButton("Manual removal")
         self.manual_removal_btn.toggled.connect(self.emit_manual_removal_toggled)
 
-        self.input_manual_start = QLineEdit("0", validator=real_validator)
+        # inputs for manual ray removal
+        self.input_manual_start = QLineEdit("0", validator=validators.REAL_VALIDATOR)
         self.input_manual_start.setEnabled(False)
 
-        self.input_manual_end = QLineEdit("0", validator=real_validator)
+        self.input_manual_end = QLineEdit("0", validator=validators.REAL_VALIDATOR)
         self.input_manual_end.setEnabled(False)
 
         self.show_maxima = QCheckBox()
@@ -58,9 +58,9 @@ class CosmicRayRemoval(QFrame):
         layout.addWidget(self.manual_removal_btn, 2, 0)
 
         layout.addWidget(QLabel("Start Position"), 3, 0)
-        layout.addWidget(QLabel("End Position"), 4, 0)
-
         layout.addWidget(self.input_manual_start, 3, 1)
+
+        layout.addWidget(QLabel("End Position"), 4, 0)
         layout.addWidget(self.input_manual_end, 4, 1)
 
         layout.addWidget(QLabel("Show Maxima"), 5, 0)
@@ -72,12 +72,10 @@ class CosmicRayRemoval(QFrame):
 
     def emit_manual_removal_toggled(self) -> None:
         """
-        Handler for `manual_removal_toggled` signal emitting.
+        Handler for `self.manual_removal_toggled` signal emitting.
         """
 
         is_checked = self.manual_removal_btn.isChecked()
-
-        # enable/disable corresponding widgets to prevent input into unused inputs
 
         # manual removal editable widgets
         self.input_manual_end.setEnabled(is_checked)
@@ -88,7 +86,7 @@ class CosmicRayRemoval(QFrame):
 
     def emit_show_maxima(self) -> None:
         """
-        Handler for `.show_maxima_toggled` signal emitting.
+        Handler for `self.show_maxima_toggled` signal emitting.
         """
 
         self.show_maxima_toggled.emit(self.show_maxima.isChecked())
@@ -115,7 +113,8 @@ class CosmicRayRemoval(QFrame):
 
         # make sure "show maxima" is false and maxima are not being displayed
         self.show_maxima.setChecked(False)
-        self.emit_show_maxima() # will emit False as it was set on prev line
+        # will emit False as it was set on prev line -> info for spectral map visualizers
+        self.emit_show_maxima()
 
     def get_params(self) -> tuple[float, float]:
         """
@@ -129,4 +128,11 @@ class CosmicRayRemoval(QFrame):
         return parameters
 
     def get_string_name(self) -> str:
+        """
+        A function to return name of this widget as a string.
+
+        Returns:
+            widget_name (str): Name of the widget so that it can be recognized by the user.
+        """
+
         return "Cosmic Ray Removal"

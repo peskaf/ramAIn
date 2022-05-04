@@ -1,22 +1,27 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLineEdit, QLabel
-from PySide6.QtGui import QRegularExpressionValidator, QIcon
+from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLineEdit, QLabel, QWidget
+from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
 
+from utils import validators
+
+# NOTE: may be deleted as it does not provide satisfactory results
 class PCA(QFrame):
+    """
+    A widget for parameters selection for the PCA decomposition method.
+    """
 
     apply_clicked = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None) -> None:
         super().__init__(parent)
+
         self.setObjectName("method_instance")
         self.icon = QIcon("icons/pie.svg")
-
-        int_validator = QRegularExpressionValidator("-?[0-9]+")
 
         self.init_num_of_components = 5
         self.components_range = (2, 10)
 
-        self.num_of_components = QLineEdit(str(self.init_num_of_components), validator=int_validator)
+        self.num_of_components = QLineEdit(str(self.init_num_of_components), validator=validators.POSITIVE_INT_VALIDATOR)
         self.num_of_components.editingFinished.connect(self.validate_components_range)
 
         self.apply_button = QPushButton("Apply")
@@ -30,12 +35,16 @@ class PCA(QFrame):
 
         self.setLayout(layout)
 
-    def reset(self):
+    def reset(self) -> None:
+        """
+        A function to reset all widgets to init state.
+        """
         ...
 
     def validate_components_range(self) -> None:
         """
-        The function to validate range of number of components input.
+        A function to validate range of number of components input, setting it to one of the bounds
+        if the input is invalid.
         """
 
         components = float(self.num_of_components.text())
@@ -55,5 +64,12 @@ class PCA(QFrame):
         parameters = (int(self.num_of_components.text()),)
         return parameters
 
-    def get_string_name(self):
+    def get_string_name(self) -> str:
+        """
+        A function to return name of this widget as a string.
+
+        Returns:
+            widget_name (str): Name of the widget so that it can be recognized by the user.
+        """
+
         return "PCA"

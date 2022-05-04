@@ -2,12 +2,13 @@ from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget
 from PySide6.QtCore import QRectF, QPoint, QSettings
 
-import pyqtgraph as pg
-import numpy as np
-
-from widgets.settings import COLORMAPS, SCATTER_COLORMAPS
 from widgets.plot_mode import PlotMode
 from widgets.adjustable_handles_roi import AdjustableHandlesROI
+
+from utils import colors
+
+import pyqtgraph as pg
+import numpy as np
 
 class SpectralMap(QFrame):
     """
@@ -35,7 +36,7 @@ class SpectralMap(QFrame):
         self.image_view.ui.roiBtn.hide()
         self.image_view.ui.menuBtn.hide()
 
-        color_map = COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
+        color_map = colors.COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
         self.image_view.setColorMap(cmap)
         self.image_view.setImage(self.data, autoRange=False)
@@ -97,8 +98,7 @@ class SpectralMap(QFrame):
             new_data (np.ndarray): New data to visualize.
         """
 
-        
-        color_map = COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
+        color_map = colors.COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
         self.image_view.setColorMap(cmap)
 
@@ -273,7 +273,7 @@ class SpectralMap(QFrame):
         if self.scatter is not None:
             self.scatter.setData([])
         else:
-            scatter_color = SCATTER_COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
+            scatter_color = colors.SCATTER_COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
             scatter_brush = pg.mkBrush(*(scatter_color[0]), 255)
             self.scatter = pg.ScatterPlotItem(size=3, brush=scatter_brush)
 

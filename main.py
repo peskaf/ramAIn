@@ -5,6 +5,9 @@ from PySide6.QtCore import QCoreApplication, QSettings
 from widgets.menu import Menu
 from widgets.header import Header
 
+import os
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -29,7 +32,8 @@ class MainWindow(QMainWindow):
 
         QFontDatabase.addApplicationFont("fonts/montserrat.ttf")
 
-        with open("themes/light_style.qss") as f:
+        stylesheet = "themes/light_style.qss"
+        with open(os.path.abspath(stylesheet)) as f:
             self.setStyleSheet(f.read())
     
     def show(self):
