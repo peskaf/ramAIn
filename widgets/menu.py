@@ -1,4 +1,3 @@
-from types import NoneType
 from PySide6.QtWidgets import QFrame, QListWidget, QStackedLayout, QHBoxLayout, QWidget
 from PySide6.QtCore import Signal
 

@@ -1,4 +1,3 @@
-from types import NoneType
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog, QHBoxLayout, QProgressDialog, QWidget
 from PySide6.QtCore import Qt, Signal, QSettings, QEventLoop, QCoreApplication
 from PySide6.QtGui import QIcon, QPixmap

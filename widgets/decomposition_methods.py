@@ -9,7 +9,7 @@ class DecompositionMethods(QFrame):
     A widget for method selection for 'manual' spectra decomposition.
     """
 
-    method_changed = Signal(QFrame) #TODO: delete
+    method_changed = Signal(QFrame)
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -60,10 +60,8 @@ class DecompositionMethods(QFrame):
 
         self.list.setCurrentItem(self.list.item(0))
 
-    #TODO: delete
-    """
     def emit_method_changed(self):
         curr_method_index = self.list.currentRow()
         self.methods_layout.setCurrentIndex(curr_method_index)
         self.method_changed.emit(self.methods[curr_method_index])
-    """
+
