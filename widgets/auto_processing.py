@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QFrame, QFileDialog, QPushButton, QListWidget, QStackedLayout, QVBoxLayout, QHBoxLayout, QAbstractItemView, QListWidgetItem, QProgressDialog, QLabel, QWidget
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt, QSettings, QCoreApplication, QEventLoop
+from PySide6.QtCore import Qt, QSettings, QCoreApplication, QEventLoop, QThread, Signal
 
 from widgets.auto_cropping_absolute import AutoCroppingAbsolute
 from widgets.auto_cropping_relative import AutoCroppingRelative
@@ -122,6 +122,10 @@ class AutoProcessing(QFrame):
         self.apply_button = QPushButton("Apply")
         self.apply_button.clicked.connect(self.apply_pipeline)
         self.apply_button.setEnabled(False)
+
+        self.progress = None
+        self.pipeline_worker = PipelineWorker(self)
+        self.pipeline_worker.progress_update.connect(self.update_progress)
 
         # put everything into layout
         layout = QVBoxLayout(self)
@@ -346,7 +350,6 @@ class AutoProcessing(QFrame):
             val (int): Value to which to set the progress in the progress bar.
         """
 
-        QCoreApplication.processEvents(QEventLoop.ExcludeUserInputEvents, 1000)
         self.progress.setValue(val)
     
     def destroy_progress_bar(self) -> None:
@@ -356,42 +359,16 @@ class AutoProcessing(QFrame):
         
         self.enable_widgets(True)
         self.progress.deleteLater()
+        self.progress = None
 
     def apply_pipeline(self):
         """
-        A function to apply the pipeline on the batch of files.
+        A function to apply the pipeline on the batch of files by calling the worker.
         """
-        
-        # log file has name according to current time
-        logs_file = os.path.join(self.logs_dir, "logs_" + datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S") + ".txt")
 
-        with open(logs_file, "w", encoding="utf-8") as logs:
-
-            steps = len(self.file_list) * self.pipeline_list.count() + 1
-            self.make_progress_bar(steps)
-            self.update_progress(1)
-            self.update_progress(0)
-
-            for i, file_name in enumerate(self.file_list, 1):
-                try:
-                    curr_data = Data(file_name)
-                    print(curr_data.in_file, file=logs)
-                    for item_index in range(self.pipeline_list.count()):
-                        # function call
-                        print(f"{self.pipeline_list.item(item_index).func}{self.pipeline_list.item(item_index).params}", file=logs)
-                        getattr(curr_data, self.pipeline_list.item(item_index).func)(*self.pipeline_list.item(item_index).params)
-                        print("OK", file=logs)
-                        self.update_progress(self.progress.value() + 1)
-
-                except Exception as e:
-                    print(e, file=logs)
-                print("---------------------------------", file=logs)
-
-                self.update_progress(i*self.pipeline_list.count())
-
-            # set progress to maximum so that it shows 100 %
-            self.update_progress(steps)
-            self.destroy_progress_bar()
+        steps = len(self.file_list) * self.pipeline_list.count()
+        self.make_progress_bar(steps)
+        self.pipeline_worker.start()
 
     def get_string_name(self) -> str:
         """
@@ -402,3 +379,54 @@ class AutoProcessing(QFrame):
         """
 
         return "Auto Processing"
+
+class PipelineWorker(QThread):
+    """
+    A worker in another thread for the automatic pipeline as it may take some time.
+    """
+
+    progress_update = Signal(int)
+
+    def __init__(self, auto_processing_widget: AutoProcessing) -> None:
+        QThread.__init__(self)
+        self.auto_proceesing_widget = auto_processing_widget
+
+    def destroy(self) -> None:
+        """
+        Function to quit the thread and to destroy the progress bar.
+        """
+
+        self.quit()
+        if self.auto_proceesing_widget.progress is not None:
+            self.auto_proceesing_widget.destroy_progress_bar()
+
+    def run(self) -> None:
+        """
+        A function to run the work in the pipeline while logging it and updating the progress bar.
+        """
+
+        # log file has name according to current time
+        logs_file = os.path.join(self.auto_proceesing_widget.logs_dir, "logs_" + datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S") + ".txt")
+
+        with open(logs_file, "w", encoding="utf-8") as logs:
+
+            for i, file_name in enumerate(self.auto_proceesing_widget.file_list, 1):
+                try:
+                    curr_data = Data(file_name)
+                    print(curr_data.in_file, file=logs)
+                    for item_index in range(self.auto_proceesing_widget.pipeline_list.count()):
+                        
+                        print(f"{self.auto_proceesing_widget.pipeline_list.item(item_index).func}{self.auto_proceesing_widget.pipeline_list.item(item_index).params}", file=logs)
+                        # function call
+                        getattr(curr_data, self.auto_proceesing_widget.pipeline_list.item(item_index).func)(*self.auto_proceesing_widget.pipeline_list.item(item_index).params)
+
+                        print("OK", file=logs)
+                        self.progress_update.emit((i - 1)*self.auto_proceesing_widget.pipeline_list.count() + item_index + 1)
+
+                except Exception as e:
+                    print(f"Error: {e}", file=logs)
+                print("---------------------------------", file=logs)
+
+                self.progress_update.emit(i*self.auto_proceesing_widget.pipeline_list.count())
+
+        self.destroy()

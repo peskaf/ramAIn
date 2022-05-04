@@ -666,7 +666,7 @@ class Data:
         """
 
         if len(self.components) == 0:
-            raise Exception("Error: components have not been made yet.")
+            raise Exception("components have not been made yet.")
 
         # construct the file name
         file_name, _ = os.path.basename(self.in_file).split('.')
