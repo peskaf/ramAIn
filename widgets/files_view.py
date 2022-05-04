@@ -63,10 +63,11 @@ class FilesView(QFrame):
         A function to provide OS file dialog that will manage that valid directory will be chosen.
         """
 
-        self.data_folder = QFileDialog.getExistingDirectory(self, "Select directory")
+        temp_data_folder = QFileDialog.getExistingDirectory(self, "Select directory")
 
         # some folder selected
-        if self.data_folder:
+        if temp_data_folder is not None and len(temp_data_folder) != 0:
+            self.data_folder = temp_data_folder
             self.update_list()
             self.folder_changed.emit(self.data_folder)
             self.settings.setValue("source_dir", self.data_folder)
