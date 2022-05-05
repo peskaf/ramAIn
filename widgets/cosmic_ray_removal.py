@@ -66,8 +66,10 @@ class CosmicRayRemoval(QFrame):
         layout.addWidget(QLabel("Show Maxima"), 5, 0)
         layout.addWidget(self.show_maxima, 5, 1)
         
-        layout.addWidget(self.apply_button, 6, 1)
-        
+        layout.addWidget(self.apply_button, 6, 3)
+
+        layout.setColumnStretch(2, 1)
+
         self.setLayout(layout)
 
     def emit_manual_removal_toggled(self) -> None:

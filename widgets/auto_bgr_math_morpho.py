@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QCheckBox, QWidget
 from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
 
 from data import Data
 
@@ -31,6 +32,9 @@ class AutoBGRMathMorpho(QFrame):
 
         layout.addWidget(QLabel("Ignore Water Band"), 1, 0)
         layout.addWidget(self.ignore_water_band, 1, 1)
+
+        layout.setColumnStretch(layout.columnCount(), 1)
+        layout.setAlignment(Qt.AlignVCenter)
 
         # TODO: lower envelope,spectrum opening?
 

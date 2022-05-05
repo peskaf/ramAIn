@@ -69,8 +69,10 @@ class Cropping(QFrame):
         layout.addWidget(QLabel("End Position"), 6, 0)
         layout.addWidget(self.input_plot_end, 6, 1)
 
-        layout.addWidget(self.apply_button, 6, 2)
+        layout.addWidget(self.apply_button, 6, 4)
 
+        layout.setColumnStretch(3, 1)
+        
         self.setLayout(layout)
 
     def update_crop_plot_inputs(self, new_region: pg.LinearRegionItem) -> None:

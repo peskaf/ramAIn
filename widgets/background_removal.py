@@ -1,7 +1,6 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButton, QCheckBox, QPushButton, QWidget
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
-
 from utils import validators
 
 
@@ -62,7 +61,9 @@ class BackgroundRemoval(QFrame):
 
         layout.addWidget(self.math_morpho_btn, 3, 0)
 
-        layout.addWidget(self.apply_button, 4, 1)
+        layout.addWidget(self.apply_button, 4, 3)
+
+        layout.setColumnStretch(2, 1)
         
         self.setLayout(layout)
 

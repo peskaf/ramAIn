@@ -158,9 +158,9 @@ class AutoProcessing(QFrame):
         layout.addLayout(buttons_layout)
 
         logs_layout = QHBoxLayout()
-        logs_layout.addWidget(self.select_logs_dir)
-        logs_layout.addStretch()
         logs_layout.addWidget(self.logs_dir_label)
+        logs_layout.addStretch()
+        logs_layout.addWidget(self.select_logs_dir)
 
         layout.addLayout(logs_layout)
 

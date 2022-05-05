@@ -39,7 +39,9 @@ class PCA(QFrame):
 
         layout.addWidget(QLabel("Number of components"), 0, 0)
         layout.addWidget(self.num_of_components, 0, 1)
-        layout.addWidget(self.apply_button, 1, 1)
+        layout.addWidget(self.apply_button, 1, 3)
+
+        layout.setColumnStretch(2, 1)
 
         self.setLayout(layout)
 

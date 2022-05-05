@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLineEdit, QLabel, QWidget
 from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
 
 from data import Data
 from utils import validators
@@ -35,6 +36,9 @@ class AutoNMF(QFrame):
 
         layout.addWidget(QLabel("Number of components"), 1, 0)
         layout.addWidget(self.num_of_components, 1, 1)
+
+        layout.setColumnStretch(layout.columnCount(), 1)
+        layout.setAlignment(Qt.AlignVCenter)
 
         self.setLayout(layout)
 

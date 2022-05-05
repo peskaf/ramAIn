@@ -46,6 +46,6 @@ def get_no_water_indices(x: np.ndarray) -> np.ndarray:
         x (np.ndarray): Sorted array in which to ignore the water band area.
     """
 
-    to_ignore = [[2750, 3750]]  # possible C-H vibrations + water
+    to_ignore = [[2800, 3700]]  # possible C-H vibrations + water
 
     return get_indices_to_fit(x, to_ignore)

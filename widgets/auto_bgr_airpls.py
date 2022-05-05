@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QWidget
 from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
 
 from data import Data
 
@@ -28,6 +29,9 @@ class AutoBGRairPLS(QFrame):
 
         layout.addWidget(QLabel("Background Removal - airPLS"), 0, 0)
         layout.addWidget(QLabel("No parameters to be set."), 1, 0)
+
+        layout.setColumnStretch(layout.columnCount(), 1)
+        layout.setAlignment(Qt.AlignVCenter)
 
         self.setLayout(layout)
 

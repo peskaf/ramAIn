@@ -240,3 +240,54 @@ QScrollBar::sub-line:vertical {
     subcontrol-position: top;
     subcontrol-origin: margin;
 }
+
+/* LineEdits, ComboBoxes */
+
+QLineEdit {
+    border: 1px solid;
+    border-color: #266867;
+    border-radius: 4px;
+}
+
+QLineEdit:disabled {
+    border-color: lightgray;
+}
+
+QLineEdit:focus {
+    border: 1px solid;
+    border-color: #051821;
+}
+
+QComboBox {
+    background: white;
+    border: 1px solid;
+    border-color: #266867;
+    border-radius: 4px;
+    padding: 1px;
+    padding-left: 5px;
+}
+
+QComboBox:focus {
+    border: 1px solid;
+    border-color: #051821;
+}
+
+QComboBox:disabled {
+    border-color: lightgray;
+}
+
+QComboBox::drop-down {
+    border: none;
+    padding-right: 5px;
+}
+
+QComboBox::down-arrow {
+    image: url(./icons/chevron_down.svg);
+    width: 30px;
+}
+
+QComboBox QAbstractItemView {
+    background: white;
+    border: 1px solid;
+    border-radius: 4px;
+}

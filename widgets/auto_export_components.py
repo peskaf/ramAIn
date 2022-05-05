@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QFileDialog, QComboBox, QLineEdit, QWidget
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QFileDialog, QComboBox, QLineEdit, QWidget, QVBoxLayout, QHBoxLayout
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import QSettings
+from PySide6.QtCore import QSettings, Qt
 
 from data import Data
 
@@ -44,19 +44,31 @@ class AutoExportComponents(QFrame):
         self.file_tag = QLineEdit("")
 
         # put windgets into layout
-        layout = QGridLayout()
-        layout.addWidget(QLabel("Export Components"), 0, 0)
+        layout = QVBoxLayout()
 
-        layout.addWidget(QLabel("Output Format"), 1, 0)
-        layout.addWidget(self.format, 1, 1)
 
-        layout.addWidget(QLabel("Files tag"), 2, 0)
-        layout.addWidget(self.file_tag, 2, 1)
+        grid_layout = QGridLayout()
+        grid_layout.addWidget(QLabel("Export Components"), 0, 0)
 
-        layout.addWidget(self.curr_dir, 3, 0)
+        grid_layout.addWidget(QLabel("Output Format"), 1, 0)
+        grid_layout.addWidget(self.format, 1, 1)
 
-        layout.addWidget(self.change_dir_btn, 4, 0)
-        
+        grid_layout.addWidget(QLabel("Files tag"), 2, 0)
+        grid_layout.addWidget(self.file_tag, 2, 1)
+
+        grid_layout.setColumnStretch(grid_layout.columnCount(), 1)
+        grid_layout.setAlignment(Qt.AlignVCenter)
+
+        layout.addLayout(grid_layout)
+
+        layout.addWidget(self.curr_dir)
+
+        change_btn_layout = QHBoxLayout()
+        change_btn_layout.addWidget(self.change_dir_btn)
+        change_btn_layout.addStretch()
+
+        layout.addLayout(change_btn_layout)
+
         self.setLayout(layout)
     
 

@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QWidget
 from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
 
 from data import Data
 from utils import validators
@@ -37,6 +38,9 @@ class AutoLinearization(QFrame):
 
         layout.addWidget(QLabel("Step"), 1, 0)
         layout.addWidget(self.data_step, 1, 1)
+
+        layout.setColumnStretch(layout.columnCount(), 1)
+        layout.setAlignment(Qt.AlignVCenter)
       
         self.setLayout(layout)
     

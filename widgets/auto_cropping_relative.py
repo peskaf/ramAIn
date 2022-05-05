@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QWidget
 from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
 
 from data import Data
 from utils import validators
@@ -41,6 +42,9 @@ class AutoCroppingRelative(QFrame):
 
         layout.addWidget(QLabel("Data Points to Crop (End)"), 2, 0)
         layout.addWidget(self.from_end, 2, 1)
+
+        layout.setColumnStretch(layout.columnCount(), 1)
+        layout.setAlignment(Qt.AlignVCenter)
 
         self.setLayout(layout)
 
