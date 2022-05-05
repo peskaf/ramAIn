@@ -4,6 +4,7 @@ from PySide6.QtCore import Signal
 
 from utils import validators
 
+
 # NOTE: may be deleted as it does not provide satisfactory results
 class PCA(QFrame):
     """
@@ -34,12 +35,6 @@ class PCA(QFrame):
         layout.addWidget(self.apply_button, 1, 1)
 
         self.setLayout(layout)
-
-    def reset(self) -> None:
-        """
-        A function to reset all widgets to init state.
-        """
-        ...
 
     def validate_components_range(self) -> None:
         """

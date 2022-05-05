@@ -4,6 +4,7 @@ from PySide6.QtGui import QCursor
 
 import os
 
+
 class FilesView(QFrame):
     """
     A widget for visualization of files from selected folder.
@@ -63,7 +64,7 @@ class FilesView(QFrame):
         A function to provide OS file dialog that will manage that valid directory will be chosen.
         """
 
-        temp_data_folder = QFileDialog.getExistingDirectory(self, "Select directory")
+        temp_data_folder = QFileDialog.getExistingDirectory(self, "Select directory", self.data_folder)
 
         # some folder selected
         if temp_data_folder is not None and len(temp_data_folder) != 0:

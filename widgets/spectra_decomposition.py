@@ -11,6 +11,7 @@ from data import Data
 
 import os
 
+
 class SpectraDecomposition(QFrame):
     update_progress = Signal()
 
@@ -98,7 +99,6 @@ class SpectraDecomposition(QFrame):
             self.file_error.show()
             return
 
-        self.methods.reset()
         self.methods.setEnabled(True)
 
         self.curr_file = temp_curr_file

@@ -15,7 +15,7 @@ class AutoExportComponents(QFrame):
         super().__init__(parent)
 
         self.setObjectName("method_instance")
-        self.icon = QIcon("icons/save.svg")
+        self.icon = QIcon("icons/export.svg")
 
         # app settings for obtaining user's prefered folders
         self.settings = QSettings()
