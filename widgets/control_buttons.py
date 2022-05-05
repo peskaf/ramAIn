@@ -12,6 +12,13 @@ class ControlButtons(QFrame):
     """
 
     def __init__(self, parent: QWidget = None):
+        """
+        The constructor for control buttons widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         # name for styling in qss file

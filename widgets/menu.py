@@ -15,6 +15,13 @@ class Menu(QFrame):
     menu_item_changed = Signal(QFrame)
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for main menu widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         # methods instances

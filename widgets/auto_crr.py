@@ -3,12 +3,20 @@ from PySide6.QtGui import QIcon
 
 from data import Data
 
+
 class AutoCRR(QFrame):
     """
     A widget for parameters selection for automatic cosmic ray removal method.
     """
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for auto cosmic ray removal parameters selection widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.setObjectName("method_instance")

@@ -26,6 +26,14 @@ class ManualPreprocessing(QFrame):
     update_progress = Signal()
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for manual preprocessing menu page that allows selection and application of the methods
+        on selected files, and its visualization.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.icon = QIcon("icons/monitor.svg")

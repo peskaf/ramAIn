@@ -4,6 +4,7 @@ from PySide6.QtGui import QIcon
 from data import Data
 from utils import validators
 
+
 class AutoCroppingRelative(QFrame):
     """
     A widget for parameters selection for automatic relative cropping method.
@@ -12,6 +13,13 @@ class AutoCroppingRelative(QFrame):
     """
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for auto relative cropping parameters selection widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.setObjectName("method_instance")

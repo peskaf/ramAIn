@@ -1,15 +1,23 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QCheckBox
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QCheckBox, QWidget
 from PySide6.QtGui import QIcon
 
 from data import Data
 from utils import validators
+
 
 class AutoBGRVancouver(QFrame):
     """
     A widget for parameters selection for automatic Vancouver bg subtraction method.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for auto Vancouver bg subtraction parameters selection widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.setObjectName("method_instance")

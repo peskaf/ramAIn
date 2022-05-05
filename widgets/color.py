@@ -9,6 +9,14 @@ class Color(QFrame):
     """
 
     def __init__(self, color: str, parent: QWidget = None) -> None:
+        """
+        The constructor for color placeholder widget.
+  
+        Parameters:
+            color (str): Name or hex string of the color to fill the frame. Examples: 'red', '#1256ff'.
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         # name for styling in the qss file

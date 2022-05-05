@@ -23,7 +23,8 @@ class Data:
 
     def __init__(self, in_file: str) -> None:
         """
-        The constructor for Data class.
+        The constructor for Data class representing Raman spectral map to be processed
+        with methods availible on this class' instance.
   
         Parameters:
            in_file (str): Matlab file containing the data.  

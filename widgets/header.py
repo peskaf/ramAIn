@@ -12,6 +12,13 @@ class Header(QFrame):
     """
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for main window header to combine title with controll buttons.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         # name for styling in qss file

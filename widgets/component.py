@@ -16,17 +16,45 @@ class ScrollablePlotWidget(pg.PlotWidget):
     """
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for scrollable plot widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__()
 
         self.parent = parent
 
-    def wheelEvent(self,event):
+    def wheelEvent(self, event: QEvent):
+        """
+        A function that overrides `pg.PlotWidget`'s `wheelEvent` so that parent widget is scrolled.
+  
+        Parameters:
+            event (QEvent): Scrolling event.
+        """
+
         self.parent.wheelEvent(event)
 
     def mousePressEvent(self, QMouseEvent: QEvent):
+        """
+        A function that overrides `pg.PlotWidget`'s `mousePressEvent` so that it does nothing.
+  
+        Parameters:
+            event (QEvent): Mouse press event.
+        """
+
         pass
 
     def mouseReleaseEvent(self, QMouseEvent: QEvent):
+        """
+        A function that overrides `pg.PlotWidget`'s `mouseReleaseEvent` so that it does nothing.
+  
+        Parameters:
+            event (QEvent): Mouse release event.
+        """
+
         pass
 
 

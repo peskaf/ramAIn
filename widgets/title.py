@@ -8,6 +8,13 @@ class Title(QFrame):
     """
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for main title widget displaying apps logo.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         # name for qss styling

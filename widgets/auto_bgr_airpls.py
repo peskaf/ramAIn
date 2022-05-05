@@ -10,6 +10,13 @@ class AutoBGRairPLS(QFrame):
     """
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for auto airPLS parameters selection widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.setObjectName("method_instance")

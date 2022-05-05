@@ -9,6 +9,14 @@ class CollapseButton(QPushButton):
     """
 
     def __init__(self, frame: QFrame, label: str = "", parent: QWidget = None):
+        """
+        The constructor for button that collapses/expands given `frame` on click.
+  
+        Parameters:
+            frame (QFrame): QFrame to be collapsed.
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         # name for qss styling

@@ -15,6 +15,10 @@ class MainWindow(QMainWindow):
     """
 
     def __init__(self) -> None:
+        """
+        The constructor of the main window of the application.
+        """
+
         super().__init__()
 
         QCoreApplication.setOrganizationName("RamAIn")

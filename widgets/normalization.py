@@ -12,6 +12,13 @@ class Normalization(QFrame):
     apply_clicked = Signal()
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for manual normalization parameters selection widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.setObjectName("method_instance")

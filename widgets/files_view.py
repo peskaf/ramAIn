@@ -12,11 +12,21 @@ class FilesView(QFrame):
 
     folder_changed = Signal(str) # custom signal that folder has changed
 
-    def __init__(self, parent: QWidget = None) -> None:
-        super().__init__() # note that parent is missing here due to the bug in the library
+    def __init__(self, format: str = ".mat", parent: QWidget = None) -> None:
+        """
+        The constructor for file list widget that allows selection of the file folder.
+  
+        Parameters:
+            format (str): Format (extension) of the files to be displayed. Default: ".mat".
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
+        super().__init__() # NOTE: parent is missing here due to the bug in the library
 
         # name for qss styling
         self.setObjectName("files_view")
+
+        self.format = format
 
         # settings for init folders retrieval
         self.settings = QSettings()
@@ -33,7 +43,7 @@ class FilesView(QFrame):
         self.curr_directory = QLabel(f"Current directory: {self.data_folder}")
 
         # .mat files in given folder
-        files = [file for file in os.listdir(self.data_folder) if file.endswith(".mat")]
+        files = [file for file in os.listdir(self.data_folder) if file.endswith(self.format)]
         self.file_list.addItems(files)
 
         button = QPushButton("Change directory")
@@ -79,7 +89,7 @@ class FilesView(QFrame):
         """
 
         # get .mat files in curr data folder
-        files = [file for file in os.listdir(self.data_folder) if file.endswith(".mat")]
+        files = [file for file in os.listdir(self.data_folder) if file.endswith(self.format)]
         # remove everything that was present before
         self.file_list.clear()
         self.file_list.addItems(files)

@@ -13,9 +13,18 @@ import os
 
 
 class SpectraDecomposition(QFrame):
+
     update_progress = Signal()
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for main widget for spectra decomposition and visualization of its components.
+        Allows file seleciton, method selection and components exporting.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.icon = QIcon("icons/pie.svg")

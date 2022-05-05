@@ -19,6 +19,7 @@ from data import Data
 import os
 import datetime
 
+
 class FunctionItem(QListWidgetItem):
     """
     Subclass of `QListWidgetItem`, instance of this class holds name of the function it represents
@@ -26,6 +27,16 @@ class FunctionItem(QListWidgetItem):
     """
 
     def __init__(self, label: str, func: str = None, params: tuple = None, parent: QWidget = None) -> None:
+        """
+        The constructor for FunctionItem widget usable in QListWidget.
+  
+        Parameters:
+            label (str): Text to be displayed in the list.
+            func (str): Function on the `Data` obejct that this item represents. Default: None.
+            params (tuple): Parameters for the `func` function. Default: None.
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(label, parent)
         self.func = func
         self.params = params
@@ -37,6 +48,13 @@ class AutoProcessing(QFrame):
     """
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for automatic processing widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.icon = QIcon("icons/play-circle.svg")
@@ -397,6 +415,13 @@ class PipelineWorker(QThread):
     progress_update = Signal(int)
 
     def __init__(self, auto_processing_widget: AutoProcessing) -> None:
+        """
+        The constructor `AutoProcessing` PipelineWorker. Its job is to run the pipeline in another thread.
+  
+        Parameters:
+            auto_processing_widget (AutoProcessing): AutoProcessing widget on which this worker operates.
+        """
+
         QThread.__init__(self)
         self.auto_proceesing_widget = auto_processing_widget
 

@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QFileDialog, QLineEdit
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QFileDialog, QLineEdit, QWidget
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import QSettings
 
@@ -6,12 +6,20 @@ from data import Data
 
 import os
 
+
 class AutoSave(QFrame):
     """
     A widget for parameters selection for saving the data in tha automatic pipeline.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for auto saving parameters selection widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.setObjectName("method_instance")

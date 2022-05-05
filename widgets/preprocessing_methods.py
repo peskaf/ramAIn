@@ -17,6 +17,13 @@ class PreprocessingMethods(QFrame):
     method_changed = Signal(QFrame)
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for manual preprocessing methods selection widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         # name for qss styling

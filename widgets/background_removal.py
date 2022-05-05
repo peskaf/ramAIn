@@ -4,6 +4,7 @@ from PySide6.QtCore import Signal
 
 from utils import validators
 
+
 class BackgroundRemoval(QFrame):
     """
     A widget for parameters selection for manual background removal.
@@ -16,6 +17,13 @@ class BackgroundRemoval(QFrame):
     apply_clicked = Signal()
 
     def __init__(self, parent: QWidget = None) -> None:
+        """
+        The constructor for manual bg subtraction parameters selection widget.
+  
+        Parameters:
+            parent (QWidget): Parent widget of this widget. Default: None.
+        """
+
         super().__init__(parent)
 
         self.setObjectName("method_instance")
