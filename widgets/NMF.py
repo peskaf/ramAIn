@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLineEdit, QLabel, QWidget
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal
 
 from utils import validators
 
@@ -40,8 +40,6 @@ class NMF(QFrame):
         layout.addWidget(self.apply_button, 1, 3)
 
         layout.setColumnStretch(2, 1)
-
-        layout.setAlignment(Qt.AlignVCenter)
 
         self.setLayout(layout)
 
