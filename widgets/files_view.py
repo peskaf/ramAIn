@@ -12,12 +12,12 @@ class FilesView(QFrame):
 
     folder_changed = Signal(str) # custom signal that folder has changed
 
-    def __init__(self, format: str = ".mat", parent: QWidget = None) -> None:
+    def __init__(self, format: str, parent: QWidget = None) -> None:
         """
         The constructor for file list widget that allows selection of the file folder.
   
         Parameters:
-            format (str): Format (extension) of the files to be displayed. Default: ".mat".
+            format (str): Format (extension) of the files to be displayed.
             parent (QWidget): Parent widget of this widget. Default: None.
         """
 

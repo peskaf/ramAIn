@@ -32,7 +32,7 @@ class SpectraDecomposition(QFrame):
         self.settings = QSettings()
 
         # files
-        self.files_view = FilesView(self)
+        self.files_view = FilesView(format=".mat", parent=self)
 
         self.curr_folder = self.files_view.data_folder
         self.curr_file = None
