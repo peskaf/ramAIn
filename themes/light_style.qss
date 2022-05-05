@@ -291,3 +291,7 @@ QComboBox QAbstractItemView {
     border: 1px solid;
     border-radius: 4px;
 }
+
+QScrollArea {
+    border: none;
+}
