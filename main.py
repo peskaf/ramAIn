@@ -6,6 +6,7 @@ from widgets.menu import Menu
 from widgets.header import Header
 
 import os
+import sys
 
 basedir = os.path.dirname(__file__)
 

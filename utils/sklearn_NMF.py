@@ -1,3 +1,5 @@
+# from scikit learn library, added extra parameters for signal emitting in solvers
+
 """ Non-negative matrix factorization.
 """
 # Author: Vlad Niculae

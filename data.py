@@ -732,7 +732,7 @@ class Data:
         component_plots = [component["plot"] for component in self.components][::-1]
         component_maps = [component["map"] for component in self.components][::-1]
 
-        plt.figure(figsize=(14, n_components * 2.5))
+        plt.figure(figsize=(14, n_components * 2.5), clear=True)
 
         # set white background on exported images
         plt.rcParams["savefig.facecolor"] = "white"
@@ -803,6 +803,8 @@ class Data:
         
         plt.tight_layout()
         plt.savefig(file_name, bbox_inches='tight', format=file_format)
+        # close the figure as this may not run in the main thread
+        plt.close()
 
     def auto_export(self, out_folder: str, file_tag: str, file_format: str) -> None:
         """
