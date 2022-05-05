@@ -28,6 +28,8 @@ class AutoSave(QFrame):
         self.settings = QSettings()
 
         self.data_folder = self.settings.value("save_dir", os.getcwd())
+        if not os.path.exists(self.data_folder):
+            self.data_folder = os.getcwd()
 
         self.change_dir_btn = QPushButton("Change directory")
         self.change_dir_btn.clicked.connect(self.change_folder)

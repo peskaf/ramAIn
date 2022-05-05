@@ -407,6 +407,7 @@ class AutoProcessing(QFrame):
 
         return "Auto Processing"
 
+
 class PipelineWorker(QThread):
     """
     A worker in another thread for the automatic pipeline as it may take some time.
@@ -444,22 +445,27 @@ class PipelineWorker(QThread):
 
         with open(logs_file, "w", encoding="utf-8") as logs:
 
+            files_count = len(self.auto_proceesing_widget.file_list)
+            steps_count = self.auto_proceesing_widget.pipeline_list.count()
+
             for i, file_name in enumerate(self.auto_proceesing_widget.file_list, 1):
+                print(f"[FILE {i}/{files_count}]: {file_name}", file=logs)
                 try:
                     curr_data = Data(file_name)
-                    print(curr_data.in_file, file=logs)
-                    for item_index in range(self.auto_proceesing_widget.pipeline_list.count()):
-                        
-                        print(f"{self.auto_proceesing_widget.pipeline_list.item(item_index).func}{self.auto_proceesing_widget.pipeline_list.item(item_index).params}", file=logs)
+                    for item_index in range(steps_count):
+                        curr_function_name = self.auto_proceesing_widget.pipeline_list.item(item_index).func
+                        curr_step_text = self.auto_proceesing_widget.pipeline_list.item(item_index).text()
+                        print(f"[STEP {item_index + 1}/{steps_count}]: {curr_step_text}; function: {curr_function_name}", file=logs)
+
                         # function call
                         getattr(curr_data, self.auto_proceesing_widget.pipeline_list.item(item_index).func)(*self.auto_proceesing_widget.pipeline_list.item(item_index).params)
 
-                        print("OK", file=logs)
+                        print("[SUCCESS]", file=logs)
                         self.progress_update.emit((i - 1)*self.auto_proceesing_widget.pipeline_list.count() + item_index + 1)
 
                 except Exception as e:
-                    print(f"Error: {e}", file=logs)
-                print("---------------------------------", file=logs)
+                    print(f"[ERROR]: {e}", file=logs)
+                print(file=logs)
 
                 self.progress_update.emit(i*self.auto_proceesing_widget.pipeline_list.count())
 

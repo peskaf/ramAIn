@@ -6,9 +6,7 @@ from widgets.menu import Menu
 from widgets.header import Header
 
 import os
-import sys
 
-basedir = os.path.dirname(__file__)
 
 class MainWindow(QMainWindow):
     """
@@ -27,6 +25,9 @@ class MainWindow(QMainWindow):
         QCoreApplication.setApplicationName("RamAIn")
 
         self.setWindowTitle("  " + "RamAIn")
+
+        basedir = os.path.dirname(__file__)
+
         self.setWindowIcon(QIcon(os.path.join(basedir, "icons/RamAIn_logo_R_f8bc24.svg")))
         
         self.settings = QSettings()
