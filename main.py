@@ -7,6 +7,7 @@ from widgets.header import Header
 
 import os
 
+basedir = os.path.dirname(__file__)
 
 class MainWindow(QMainWindow):
     """
@@ -21,7 +22,7 @@ class MainWindow(QMainWindow):
         QCoreApplication.setApplicationName("RamAIn")
 
         self.setWindowTitle("  " + "RamAIn")
-        self.setWindowIcon(QIcon("icons/RamAIn_logo_R_f8bc24.svg"))
+        self.setWindowIcon(QIcon(os.path.join(basedir, "icons/RamAIn_logo_R_f8bc24.svg")))
         
         self.settings = QSettings()
 
@@ -34,12 +35,12 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
-        QFontDatabase.addApplicationFont("fonts/montserrat.ttf")
-
+        QFontDatabase.addApplicationFont(os.path.join(basedir, "fonts/montserrat.ttf"))
+        
         stylesheet = "themes/light_style.qss"
-        with open(os.path.abspath(stylesheet)) as f:
+        with open(os.path.join(basedir, stylesheet)) as f: # os.path.abspath(stylesheet)
             self.setStyleSheet(f.read())
-    
+
     def show(self) -> None:
         """
         A functino to show the main window.

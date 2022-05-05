@@ -222,6 +222,10 @@ class AutoProcessing(QFrame):
             self.file_list_widget.addItem(os.path.basename(file_name))
             self.file_list.append(file_name)
 
+        # allow user to remove files
+        self.remove_file_btn.setEnabled(True)
+
+        # if there is something in the pipeline and in the file list -> pipeline can be applied
         if self.file_list_widget.count() != 0 and self.pipeline_list.count() != 0:
             self.apply_button.setEnabled(True)
 
@@ -239,6 +243,7 @@ class AutoProcessing(QFrame):
 
         if self.file_list_widget.count() == 0:
             self.apply_button.setEnabled(False)
+            self.remove_file_btn.setEnabled(False)
 
     def change_method(self) -> None:
         """
@@ -257,7 +262,10 @@ class AutoProcessing(QFrame):
         # Enable apply button only if some file is in the list
         if self.file_list_widget.count() != 0:
             self.apply_button.setEnabled(True)
+
+        # Enable buttons to remove steps from pipeline
         self.clear_pipeline_btn.setEnabled(True)
+        self.remove_from_pipeline_btn.setEnabled(True)
 
         curr_item = self.methods_list.currentItem()
         curr_item_index = self.methods_list.row(curr_item)
@@ -283,6 +291,7 @@ class AutoProcessing(QFrame):
         if self.pipeline_list.count() == 0:
             self.apply_button.setEnabled(False)
             self.clear_pipeline_btn.setEnabled(False)
+            self.remove_from_pipeline_btn.setEnabled(False)
 
     def enable_widgets(self, enable: bool) -> None:
         """
