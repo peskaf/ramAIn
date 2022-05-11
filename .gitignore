@@ -133,3 +133,6 @@ data/
 
 # All ipynb files -> experiments
 *.ipynb
+
+#Generated pictures
+*.eps

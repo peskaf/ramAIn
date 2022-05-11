@@ -29,8 +29,8 @@ class DecompositionMethods(QFrame):
         self.NMF = NMF(self)
 
         self.methods = [
+            self.NMF,
             self.PCA,
-            self.NMF
         ]
 
         self.list = QListWidget(self)
@@ -59,7 +59,8 @@ class DecompositionMethods(QFrame):
         layout.setSpacing(0)
         self.setLayout(layout)
 
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.setMaximumSize(5000, 100)
 
     def reset(self) -> None:
         """

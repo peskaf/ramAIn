@@ -67,7 +67,8 @@ class AutoCroppingRelative(QFrame):
             str_parameters (str): String of parameters and their meaning.
         """
 
-        return f"crop from start: {int(self.from_start.text())}, crop from end: {int(self.from_end.text())}"
+        str_parameters = f"crop from start: {int(self.from_start.text())}, crop from end: {int(self.from_end.text())}"
+        return str_parameters
 
     def function_name(self) -> str:
         """

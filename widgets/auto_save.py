@@ -31,7 +31,7 @@ class AutoSave(QFrame):
         if not os.path.exists(self.data_folder):
             self.data_folder = os.getcwd()
 
-        self.change_dir_btn = QPushButton("Change directory")
+        self.change_dir_btn = QPushButton("Change Directory")
         self.change_dir_btn.clicked.connect(self.change_folder)
 
         self.curr_dir = QLabel(f"Directory: {self.data_folder}")
@@ -46,7 +46,7 @@ class AutoSave(QFrame):
 
         grid_layout.addWidget(QLabel("Save Data"), 0, 0)
 
-        grid_layout.addWidget(QLabel("Files tag"), 1, 0)
+        grid_layout.addWidget(QLabel("Files Tag"), 1, 0)
         grid_layout.addWidget(self.file_tag, 1, 1)
 
         grid_layout.setColumnStretch(grid_layout.columnCount(), 1)

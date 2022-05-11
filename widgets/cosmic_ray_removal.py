@@ -30,10 +30,10 @@ class CosmicRayRemoval(QFrame):
         self.setObjectName("method_instance")
         self.icon = QIcon("icons/signal.svg")
 
-        self.auto_removal_btn = QRadioButton("Automatic removal")
+        self.auto_removal_btn = QRadioButton("Automatic Removal")
         self.auto_removal_btn.setChecked(True)
 
-        self.manual_removal_btn = QRadioButton("Manual removal")
+        self.manual_removal_btn = QRadioButton("Manual Removal")
         self.manual_removal_btn.toggled.connect(self.emit_manual_removal_toggled)
 
         # inputs for manual ray removal

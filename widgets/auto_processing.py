@@ -5,12 +5,13 @@ from PySide6.QtCore import Qt, QSettings, QThread, Signal
 from widgets.auto_cropping_absolute import AutoCroppingAbsolute
 from widgets.auto_cropping_relative import AutoCroppingRelative
 from widgets.auto_crr import AutoCRR
-from widgets.auto_bgr_vancouver import AutoBGRVancouver
+from widgets.auto_bgr_imodpoly import AutoBGRIModPoly
 from widgets.auto_bgr_airpls import AutoBGRairPLS
 from widgets.auto_bgr_poly import AutoBGRPoly
 from widgets.auto_bgr_math_morpho import AutoBGRMathMorpho
 from widgets.auto_linearization import AutoLinearization
 from widgets.auto_decomposition_NMF import AutoNMF
+from widgets.auto_decomposition_PCA import AutoPCA
 from widgets.auto_save import AutoSave
 from widgets.auto_export_components import AutoExportComponents
 
@@ -56,6 +57,7 @@ class AutoProcessing(QFrame):
         """
 
         super().__init__(parent)
+        self.parent = parent
 
         self.icon = QIcon("icons/play-circle.svg")
 
@@ -66,10 +68,10 @@ class AutoProcessing(QFrame):
         self.file_list_widget.setObjectName("files_list")
         self.file_list = []
         
-        self.add_file_btn = QPushButton("Add file")
+        self.add_file_btn = QPushButton("Add File")
         self.add_file_btn.clicked.connect(self.add_files)
 
-        self.remove_file_btn = QPushButton("Remove file")
+        self.remove_file_btn = QPushButton("Remove File")
         self.remove_file_btn.clicked.connect(self.remove_file)
 
         # logs folder
@@ -86,12 +88,13 @@ class AutoProcessing(QFrame):
         self.auto_cropping_absolute = AutoCroppingAbsolute(self)
         self.auto_cropping_relative = AutoCroppingRelative(self)
         self.auto_crr = AutoCRR(self)
-        self.auto_bgr_vancouver = AutoBGRVancouver(self)
+        self.auto_bgr_imodpoly = AutoBGRIModPoly(self)
         self.auto_bgr_airpls = AutoBGRairPLS(self)
         self.auto_bgr_poly = AutoBGRPoly(self)
         self.auto_bgr_math_morpho = AutoBGRMathMorpho(self)
         self.auto_linearization = AutoLinearization(self)
         self.auto_NMF = AutoNMF(self)
+        self.auto_PCA = AutoPCA(self)
         self.auto_save = AutoSave(self)
         self.auto_export_components = AutoExportComponents(self)
 
@@ -99,12 +102,13 @@ class AutoProcessing(QFrame):
             self.auto_cropping_absolute,
             self.auto_cropping_relative,
             self.auto_crr,
-            self.auto_bgr_vancouver,
+            self.auto_bgr_imodpoly,
             self.auto_bgr_airpls,
             self.auto_bgr_poly,
             self.auto_bgr_math_morpho,
             self.auto_linearization,
             self.auto_NMF,
+            self.auto_PCA,
             self.auto_save,
             self.auto_export_components,
         ]
@@ -329,6 +333,7 @@ class AutoProcessing(QFrame):
         self.apply_button.setEnabled(enable)
         self.clear_pipeline_btn.setEnabled(enable)
         self.select_logs_dir.setEnabled(enable)
+        self.parent.setEnabled(enable)
 
         for method in self.auto_methods:
             method.setEnabled(enable)
@@ -362,12 +367,12 @@ class AutoProcessing(QFrame):
             }
             """
         )
-
+        
         # hide borders, title and "X" in the top right corner
         self.progress.setWindowFlags(Qt.WindowTitleHint)
         self.progress.setWindowIcon(QIcon("icons/message.svg"))
-
         self.progress.setWindowTitle("Work in progress")
+        self.progress.forceShow()
 
     def update_progress(self, val: int) -> None:
         """
@@ -462,7 +467,7 @@ class PipelineWorker(QThread):
 
                         print("[SUCCESS]", file=logs)
                         self.progress_update.emit((i - 1)*self.auto_proceesing_widget.pipeline_list.count() + item_index + 1)
-
+            
                 except Exception as e:
                     print(f"[ERROR]: {e}", file=logs)
                 print(file=logs)

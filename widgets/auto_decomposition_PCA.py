@@ -1,19 +1,19 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QWidget, QLineEdit
+from PySide6.QtWidgets import QFrame, QGridLayout, QLineEdit, QLabel, QWidget
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
 
-from utils import validators
 from data import Data
+from utils import validators
 
 
-class AutoBGRairPLS(QFrame):
+class AutoPCA(QFrame):
     """
-    A widget for parameters selection for automatic airPLS method.
+    A widget for parameters selection for automatic PCA decomposition method.
     """
 
     def __init__(self, parent: QWidget = None) -> None:
         """
-        The constructor for auto airPLS parameters selection widget.
+        The constructor for auto PCA decomposition parameters selection widget.
   
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
@@ -22,25 +22,37 @@ class AutoBGRairPLS(QFrame):
         super().__init__(parent)
 
         self.setObjectName("method_instance")
+        self.icon = QIcon("icons/pie.svg")
 
-        self.icon = QIcon("icons/background.svg")
+        self.init_num_of_components = 5
+        self.components_range = (2, 10)
 
-        # inputs
-        self.init_lambda = 10000
-        self.lambda_ = QLineEdit(str(self.init_lambda), validator=validators.POSITIVE_INT_VALIDATOR)
+        self.num_of_components = QLineEdit(str(self.init_num_of_components), validator=validators.INT_VALIDATOR)
+        self.num_of_components.editingFinished.connect(self.validate_components_range)
 
-        # put widgets into layout
         layout = QGridLayout()
 
-        layout.addWidget(QLabel("Background Removal - airPLS"), 0, 0)
-        
-        layout.addWidget(QLabel("Lambda"), 1, 0)
-        layout.addWidget(self.lambda_, 1, 1)
+        layout.addWidget(QLabel("Decomposition - PCA"), 0, 0)
+
+        layout.addWidget(QLabel("Number of components"), 1, 0)
+        layout.addWidget(self.num_of_components, 1, 1)
 
         layout.setColumnStretch(layout.columnCount(), 1)
         layout.setAlignment(Qt.AlignVCenter)
 
         self.setLayout(layout)
+
+    def validate_components_range(self) -> None:
+        """
+        A function to validate range of number of components input, setting it to one of the bounds
+        if it's invalid.
+        """
+
+        components = float(self.num_of_components.text())
+        if components < self.components_range[0]:
+            self.num_of_components.setText(str(self.components_range[0]))
+        elif components > self.components_range[1]:
+            self.num_of_components.setText(str(self.components_range[1]))
 
     def get_params(self) -> tuple[int]:
         """
@@ -50,7 +62,7 @@ class AutoBGRairPLS(QFrame):
             parameters (tuple): Tuple of method's parameters.
         """
 
-        parameters = (int(self.lambda_.text()), )
+        parameters = (int(self.num_of_components.text()),)
         return parameters
 
     def params_to_text(self) -> str:
@@ -61,7 +73,7 @@ class AutoBGRairPLS(QFrame):
             str_parameters (str): String of parameters and their meaning.
         """
 
-        str_parameters = f"lambda: {int(self.lambda_.text())}"
+        str_parameters = f"components: {int(self.num_of_components.text())}"
         return str_parameters
 
     def function_name(self) -> str:
@@ -72,7 +84,7 @@ class AutoBGRairPLS(QFrame):
             function_name (str): Name of the function that the parameters from this widget are for.
         """
 
-        return Data.auto_airPLS.__name__
+        return Data.auto_PCA.__name__
 
     def get_string_name(self) -> str:
         """
@@ -82,4 +94,4 @@ class AutoBGRairPLS(QFrame):
             widget_name (str): Name of the widget so that it can be recognized by the user.
         """
 
-        return "Background Removal - airPLS"
+        return "Decomposition - PCA"

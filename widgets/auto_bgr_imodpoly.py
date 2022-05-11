@@ -6,14 +6,14 @@ from data import Data
 from utils import validators
 
 
-class AutoBGRVancouver(QFrame):
+class AutoBGRIModPoly(QFrame):
     """
-    A widget for parameters selection for automatic Vancouver bg subtraction method.
+    A widget for parameters selection for automatic I-ModPoly bg subtraction method.
     """
 
     def __init__(self, parent: QWidget = None) -> None:
         """
-        The constructor for auto Vancouver bg subtraction parameters selection widget.
+        The constructor for auto I-ModPoly bg subtraction parameters selection widget.
   
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
@@ -38,7 +38,7 @@ class AutoBGRVancouver(QFrame):
         # put windgets into layout
         layout = QGridLayout()
 
-        layout.addWidget(QLabel("Background Removal - Vancouver"))
+        layout.addWidget(QLabel("Background Removal - I-ModPoly"))
 
         layout.addWidget(QLabel("Ignore Water Band"), 1, 0)
         layout.addWidget(self.ignore_water_band, 1, 1)
@@ -95,7 +95,7 @@ class AutoBGRVancouver(QFrame):
             function_name (str): Name of the function that the parameters from this widget are for.
         """
 
-        return Data.auto_vancouver.__name__
+        return Data.auto_imodpoly.__name__
 
     def get_string_name(self) -> str:
         """
@@ -105,4 +105,4 @@ class AutoBGRVancouver(QFrame):
             widget_name (str): Name of the widget so that it can be recognized by the user.
         """
 
-        return "Background Removal - Vancouver"
+        return "Background Removal - I-ModPoly"

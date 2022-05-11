@@ -34,15 +34,15 @@ class PreprocessingMethods(QFrame):
         self.cropping = Cropping(self)
         self.cosmic_ray_removal = CosmicRayRemoval(self)
         self.background_removal = BackgroundRemoval(self)
-        self.normalization = Normalization(self)
+        # self.normalization = Normalization(self) # TODO: Add in version 1.2
         self.linearization = Linearization(self)
 
         self.methods = [
             self.view,
-            self.cropping,
             self.cosmic_ray_removal,
+            self.cropping,
             self.linearization,
-            self.normalization,
+            # self.normalization, # TODO: Add in version 1.2
             self.background_removal,
         ]
 

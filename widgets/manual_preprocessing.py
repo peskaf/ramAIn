@@ -35,6 +35,7 @@ class ManualPreprocessing(QFrame):
         """
 
         super().__init__(parent)
+        self.parent = parent
 
         self.icon = QIcon("icons/monitor.svg")
 
@@ -341,7 +342,7 @@ class ManualPreprocessing(QFrame):
         if math_morpho:
             self.progress_bar_function(steps, self.curr_data.math_morpho, ignore_water, self.update_progress)
         else:
-            self.progress_bar_function(steps, self.curr_data.vancouver, poly_deg, ignore_water, self.update_progress)
+            self.progress_bar_function(steps, self.curr_data.imodpoly, poly_deg, ignore_water, self.update_progress)
 
         self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
         self.spectral_map.update_image(self.curr_data.averages)
@@ -401,7 +402,7 @@ class ManualPreprocessing(QFrame):
 
         ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
         curr_spectrum = self.curr_data.data[self.curr_plot_indices[0], self.curr_plot_indices[1], :]
-        poly_bg = self.curr_data.vancouver_poly_bg(curr_spectrum, degree, ignore_water)
+        poly_bg = self.curr_data.imodpoly_poly_bg(curr_spectrum, degree, ignore_water)
         self.plot.plot_background(poly_bg)
 
     def bgr_update_plot(self) -> None:
@@ -456,6 +457,7 @@ class ManualPreprocessing(QFrame):
         self.methods.setEnabled(enable)
         self.save_button.setEnabled(enable)
         self.reload_discard_button.setEnabled(enable)
+        self.parent.setEnabled(enable)
 
 
     def make_progress_bar(self, maximum: int) -> None:
@@ -494,6 +496,8 @@ class ManualPreprocessing(QFrame):
 
         self.progress.setWindowTitle("Work in progress")
         self.update_progress.connect(self.set_progress)
+
+        self.progress.forceShow()
 
     def set_progress(self) -> None:
         """

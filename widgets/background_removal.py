@@ -28,10 +28,10 @@ class BackgroundRemoval(QFrame):
         self.setObjectName("method_instance")
         self.icon = QIcon("icons/background.svg")
 
-        self.poly_fit_btn = QRadioButton("Poly-fit (Vancouver)")
+        self.poly_fit_btn = QRadioButton("Poly-fit (I-ModPoly)")
         self.poly_fit_btn.setChecked(True)
 
-        self.math_morpho_btn = QRadioButton("Mathematical morphology")
+        self.math_morpho_btn = QRadioButton("Mathematical Morphology")
         self.math_morpho_btn.toggled.connect(self.emit_math_morpho_toggled)
 
         self.init_poly_deg = 5
@@ -56,7 +56,7 @@ class BackgroundRemoval(QFrame):
 
         layout.addWidget(self.poly_fit_btn, 1, 0)
 
-        layout.addWidget(QLabel("Polynom degree"), 2, 0)
+        layout.addWidget(QLabel("Polynom Degree"), 2, 0)
         layout.addWidget(self.poly_deg, 2, 1)
 
         layout.addWidget(self.math_morpho_btn, 3, 0)

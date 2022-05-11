@@ -32,7 +32,7 @@ class AutoExportComponents(QFrame):
         if not os.path.exists(self.data_folder):
             self.data_folder = os.getcwd()
 
-        self.change_dir_btn = QPushButton("Change directory")
+        self.change_dir_btn = QPushButton("Change Directory")
         self.change_dir_btn.clicked.connect(self.change_folder)
 
         self.curr_dir = QLabel(f"Directory: {self.data_folder}")
@@ -55,7 +55,7 @@ class AutoExportComponents(QFrame):
         grid_layout.addWidget(QLabel("Output Format"), 1, 0)
         grid_layout.addWidget(self.format, 1, 1)
 
-        grid_layout.addWidget(QLabel("Files tag"), 2, 0)
+        grid_layout.addWidget(QLabel("Files Tag"), 2, 0)
         grid_layout.addWidget(self.file_tag, 2, 1)
 
         grid_layout.setColumnStretch(grid_layout.columnCount(), 1)

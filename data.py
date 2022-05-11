@@ -1,3 +1,4 @@
+from turtle import back
 import numpy as np
 import os
 from sklearn import decomposition, cluster
@@ -250,7 +251,7 @@ class Data:
         modification of modified Z score.
 
         Paramaters:
-            data (np.ndarray): Data on whichc to calculate the modified modified Z scores.
+            data (np.ndarray): Data on which to calculate the modified modified Z scores.
         """
 
         # detrend the data
@@ -498,9 +499,9 @@ class Data:
 
         self.math_morpho(ignore_water)
 
-    def vancouver_poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
+    def imodpoly_poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
         """
-        Implementation of Vancouver algorithm for bg subtraction (Zhao et al, doi: 10.1366/000370207782597003), added vaersion
+        Implementation of I-ModPoly algorithm for bg subtraction (Zhao et al, doi: 10.1366/000370207782597003), added vaersion
         with possible water ignorance and signal emission.
 
         Parameters:
@@ -550,9 +551,9 @@ class Data:
         # NOTE: ploynomial has to be evaluated at every point of `self.x_axis` here as it is background for the whole spectrum
         return poly_obj(self.x_axis)
 
-    def vancouver(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> None:
+    def imodpoly(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> None:
         """
-        A function that applies the Vancouver algorithm on the whole spectral map. Zhao et al (doi: 10.1366/000370207782597003)
+        A function that applies the I-ModPoly algorithm on the whole spectral map. Zhao et al (doi: 10.1366/000370207782597003)
 
         Parameters:
             degree (int): Degree of the polynomial used for interpolation.
@@ -560,20 +561,20 @@ class Data:
             signal_to_emit (PySide6.QtCore.Signal): Signal to emit while executing the algorithm. Default: None.
         """
 
-        backgrounds = np.apply_along_axis(self.vancouver_poly_bg, 2, self.data, degree, ignore_water, signal_to_emit)
+        backgrounds = np.apply_along_axis(self.imodpoly_poly_bg, 2, self.data, degree, ignore_water, signal_to_emit)
         self.data -= backgrounds
         self._recompute_dependent_data()
 
-    def auto_vancouver(self, degree: int, ignore_water: bool) -> None:
+    def auto_imodpoly(self, degree: int, ignore_water: bool) -> None:
         """
-        A function to perform Vancouver algorithm in auto processing.
+        A function to perform I-ModPoly algorithm in auto processing.
 
         Parameters:
             degree (int): Degree of the polynomial used for interpolation.
             ignore_water (bool): Info whether variation of the algo with water ignorace should be performed.
         """
 
-        self.vancouver(degree, ignore_water)
+        self.imodpoly(degree, ignore_water)
 
     def poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True) -> np.ndarray:
         """
@@ -694,7 +695,7 @@ class Data:
         # np.abs has to be present since NMF requires non-negative values (sometimes even positive)
         reshaped_data = np.reshape(np.abs(self.data), (-1, self.data.shape[2]))
         # NOTE: some regularization or max_iter may be changed for better performance
-        nmf = utils.sklearn_NMF.NMF(n_components=n_components, init=init, max_iter=max_iter, signal_to_emit=signal_to_emit)
+        nmf = utils.sklearn_NMF.NMF(n_components=n_components, init=init, max_iter=max_iter, signal_to_emit=signal_to_emit) # l1_ratio
         nmf.fit(reshaped_data)
         nmf_transformed_data = nmf.transform(reshaped_data)
 
@@ -889,7 +890,7 @@ class Data:
 
         X = np.matrix(x)
         m = X.size
-        E = ss.eye(m,format='csc')
+        E = ss.eye(m, format='csc')
 
         for _ in range(differences):
             E = E[1:]-E[:-1]
@@ -901,7 +902,7 @@ class Data:
         background = linalg.spsolve(A, B)
         return np.array(background)
 
-    def airPLS(self, x: np.ndarray, lambda_: int = 10**4.4, porder: int = 1, itermax: int = 20) -> np.ndarray:
+    def airPLS(self, x: np.ndarray, lambda_: int = 10**4, porder: int = 1, itermax: int = 20) -> np.ndarray:
         """
         Adaptive iteratively reweighted penalized least squares for baseline fitting.
         
@@ -933,11 +934,11 @@ class Data:
 
         return z
 
-    def auto_airPLS(self) -> None:
+    def auto_airPLS(self, lambda_) -> None:
         """
         A function to perform airPLS algorithm on the whole spectral map in the auto processing module.
         """
 
-        backgrounds = np.apply_along_axis(self.airPLS, 2, self.data)
+        backgrounds = np.apply_along_axis(self.airPLS, 2, self.data, lambda_)
         self.data -= backgrounds
         self._recompute_dependent_data()
