@@ -195,7 +195,7 @@ class Data:
         """
         A function for relative automatic data cropping.
         Relative means that relative units to be cropped from each of the sides are provided,
-        e.g. spectra_start_crop = 50 -> crop first 50 values (datapoibts) from the data.
+        e.g. spectra_start_crop = 50 -> crop first 50 values (datapoints) from the data.
 
         Parameters:
             spectra_start_crop (int): Value from which to crop the data.
