@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
 
     def show(self) -> None:
         """
-        A functino to show the main window.
+        A function to show the main window.
         """
 
         # centering has to be called after show -> overriding
