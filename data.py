@@ -195,7 +195,7 @@ class Data:
         """
         A function for relative automatic data cropping.
         Relative means that relative units to be cropped from each of the sides are provided,
-        e.g. spectra_start_crop = 50 -> crop first 50 values (datapoibts) from the data.
+        e.g. spectra_start_crop = 50 -> crop first 50 values (datapoints) from the data.
 
         Parameters:
             spectra_start_crop (int): Value from which to crop the data.
@@ -417,7 +417,7 @@ class Data:
 
     def _math_morpho_step(self, y: np.ndarray, window_width: int) -> np.ndarray:
         """
-        One step of the math morpgo bg subtraction algorithm.
+        One step of the math morpho bg subtraction algorithm.
         Implementation of algorithm by Perez-Pueyo et al (doi: 10.1366/000370210791414281).
 
         Parameters:
