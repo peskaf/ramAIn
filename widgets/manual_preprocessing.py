@@ -192,34 +192,6 @@ class ManualPreprocessing(QFrame):
         """
         self.curr_folder = new_folder
 
-    def cropping_plot_region_change(self) -> None:
-        """
-        A function to change selection region on the spectral plot based on the inputs in the cropping widget.
-        """
-
-        new_region = (float(self.methods.cropping.input_plot_start.text()), float(self.methods.cropping.input_plot_end.text()))
-        self.plot.update_region(new_region)
-
-    def crr_region_change(self) -> None:
-        """
-        A function to change selection region on the spectral plot based on the inputs in the CRR widget.
-        """
-
-        new_region = (float(self.methods.cosmic_ray_removal.input_manual_start.text()), float(self.methods.cosmic_ray_removal.input_manual_end.text()))
-        self.plot.update_region(new_region)
-
-    def cropping_map_region_change(self) -> None:
-        """
-        A function to change ROI on the spectral map based on the inputs in the cropping widget.
-        """
-
-        new_pos = (float(self.methods.cropping.input_map_left.text()), float(self.methods.cropping.input_map_top.text()))
-        new_size = (float(self.methods.cropping.input_map_right.text()) - new_pos[0], float(self.methods.cropping.input_map_bottom.text()) - new_pos[1])
-        self.spectral_map.update_ROI(new_pos, new_size)
-
-        # ROI does not have to change on invalid input -> send curr ROI info to QLineEdits
-        self.spectral_map.ROI.sigRegionChanged.emit(self.spectral_map.ROI)
-
     def update_method(self, new_method: QFrame) -> None:
         """
         A function to change `self.curr_method` to provided `new_method`, performing
@@ -264,6 +236,34 @@ class ManualPreprocessing(QFrame):
             self.plot.set_mode(PlotMode.DEFAULT)
             self.spectral_map.set_mode(PlotMode.DEFAULT)
 
+    def cropping_plot_region_change(self) -> None:
+        """
+        A function to change selection region on the spectral plot based on the inputs in the cropping widget.
+        """
+
+        new_region = (float(self.methods.cropping.input_plot_start.text()), float(self.methods.cropping.input_plot_end.text()))
+        self.plot.update_region(new_region)
+
+    def cropping_map_region_change(self) -> None:
+        """
+        A function to change ROI on the spectral map based on the inputs in the cropping widget.
+        """
+
+        new_pos = (float(self.methods.cropping.input_map_left.text()), float(self.methods.cropping.input_map_top.text()))
+        new_size = (float(self.methods.cropping.input_map_right.text()) - new_pos[0], float(self.methods.cropping.input_map_bottom.text()) - new_pos[1])
+        self.spectral_map.update_ROI(new_pos, new_size)
+
+        # ROI does not have to change on invalid input -> send curr ROI info to QLineEdits
+        self.spectral_map.ROI.sigRegionChanged.emit(self.spectral_map.ROI)
+
+    def crr_region_change(self) -> None:
+        """
+        A function to change selection region on the spectral plot based on the inputs in the CRR widget.
+        """
+
+        new_region = (float(self.methods.cosmic_ray_removal.input_manual_start.text()), float(self.methods.cosmic_ray_removal.input_manual_end.text()))
+        self.plot.update_region(new_region)
+
     def crr_show_plot_region(self, show: bool) -> None:
         """
         A funtion to show selection region on crr method. Triggered on manual crr selection.
@@ -284,6 +284,51 @@ class ManualPreprocessing(QFrame):
         """
 
         self.spectral_map.update_image(self.curr_data.maxima if show else self.curr_data.averages)
+
+    def init_cropping(self) -> None:
+        """
+        A function to connect signals to inputs in cropping method parameter selection.
+        """
+
+        # connect inputs signals to function slots
+        self.methods.cropping.input_plot_start.editingFinished.connect(self.cropping_plot_region_change)
+        self.methods.cropping.input_plot_end.editingFinished.connect(self.cropping_plot_region_change)
+        self.methods.cropping.input_map_left.editingFinished.connect(self.cropping_map_region_change)
+        self.methods.cropping.input_map_top.editingFinished.connect(self.cropping_map_region_change)
+        self.methods.cropping.input_map_right.editingFinished.connect(self.cropping_map_region_change)
+        self.methods.cropping.input_map_bottom.editingFinished.connect(self.cropping_map_region_change)
+        self.methods.cropping.apply_clicked.connect(self.cropping_apply)
+
+    def init_crr(self) -> None:
+        """
+        A function to connect signals to inputs in CRR method parameter selection.
+        """
+
+        # connect inputs signals to function slots
+        self.methods.cosmic_ray_removal.input_manual_start.editingFinished.connect(self.crr_region_change)
+        self.methods.cosmic_ray_removal.input_manual_end.editingFinished.connect(self.crr_region_change)
+        self.methods.cosmic_ray_removal.manual_removal_toggled.connect(self.crr_show_plot_region)
+        self.methods.cosmic_ray_removal.show_maxima_toggled.connect(self.crr_show_maxima)
+        self.methods.cosmic_ray_removal.apply_clicked.connect(self.crr_apply)
+
+    def init_bgr(self) -> None:
+        """
+        A function to connect signals to inputs in background removal method parameter selection.
+        """
+
+        # connect inputs signals to function slots
+        self.methods.background_removal.poly_deg_changed.connect(self.bgr_change_poly_on_plot)
+        self.methods.background_removal.ignore_water_band_toggled.connect(self.bgr_update_plot)
+        self.methods.background_removal.math_morpho_toggled.connect(self.bgr_update_plot)
+        self.methods.background_removal.apply_clicked.connect(self.bgr_apply)
+
+    def init_linearization(self) -> None:
+        """
+        A function to connect signals to inputs in linearization method parameter selection.
+        """
+
+        # connect inputs signals to function slots
+        self.methods.linearization.apply_clicked.connect(self.linearization_apply)
 
     def cropping_apply(self) -> None:
         """
@@ -348,51 +393,6 @@ class ManualPreprocessing(QFrame):
         self.spectral_map.update_image(self.curr_data.averages)
 
         self.update_method(self.methods.background_removal)
-
-    def init_cropping(self) -> None:
-        """
-        A function to connect signals to inputs in cropping method parameter selection.
-        """
-
-        # connect inputs signals to function slots
-        self.methods.cropping.input_plot_start.editingFinished.connect(self.cropping_plot_region_change)
-        self.methods.cropping.input_plot_end.editingFinished.connect(self.cropping_plot_region_change)
-        self.methods.cropping.input_map_left.editingFinished.connect(self.cropping_map_region_change)
-        self.methods.cropping.input_map_top.editingFinished.connect(self.cropping_map_region_change)
-        self.methods.cropping.input_map_right.editingFinished.connect(self.cropping_map_region_change)
-        self.methods.cropping.input_map_bottom.editingFinished.connect(self.cropping_map_region_change)
-        self.methods.cropping.apply_clicked.connect(self.cropping_apply)
-
-    def init_crr(self) -> None:
-        """
-        A function to connect signals to inputs in CRR method parameter selection.
-        """
-
-        # connect inputs signals to function slots
-        self.methods.cosmic_ray_removal.input_manual_start.editingFinished.connect(self.crr_region_change)
-        self.methods.cosmic_ray_removal.input_manual_end.editingFinished.connect(self.crr_region_change)
-        self.methods.cosmic_ray_removal.manual_removal_toggled.connect(self.crr_show_plot_region)
-        self.methods.cosmic_ray_removal.show_maxima_toggled.connect(self.crr_show_maxima)
-        self.methods.cosmic_ray_removal.apply_clicked.connect(self.crr_apply)
-
-    def init_bgr(self) -> None:
-        """
-        A function to connect signals to inputs in background removal method parameter selection.
-        """
-
-        # connect inputs signals to function slots
-        self.methods.background_removal.poly_deg_changed.connect(self.bgr_change_poly_on_plot)
-        self.methods.background_removal.ignore_water_band_toggled.connect(self.bgr_update_plot)
-        self.methods.background_removal.math_morpho_toggled.connect(self.bgr_update_plot)
-        self.methods.background_removal.apply_clicked.connect(self.bgr_apply)
-
-    def init_linearization(self) -> None:
-        """
-        A function to connect signals to inputs in linearization method parameter selection.
-        """
-
-        # connect inputs signals to function slots
-        self.methods.linearization.apply_clicked.connect(self.linearization_apply)
 
     def bgr_change_poly_on_plot(self, degree: int) -> None:
         """

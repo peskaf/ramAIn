@@ -67,15 +67,20 @@ class SpectraDecomposition(QFrame):
         self.init_file_error_widget()
         self.file_error.hide()
 
-        self.export_button = QPushButton("Export Components")
-        self.export_button.clicked.connect(self.export_components)
+        self.export_button_graphics = QPushButton("Export Components [graphics]")
+        self.export_button_graphics.clicked.connect(self.export_components_graphics)
+
+        self.export_button_txt = QPushButton("Export Components [txt]")
+        self.export_button_txt.clicked.connect(self.export_components_txt)
 
         self.methods.setEnabled(False)
-        self.export_button.setEnabled(False)
+        self.export_button_graphics.setEnabled(False)
+        self.export_button_txt.setEnabled(False)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
-        buttons_layout.addWidget(self.export_button)
+        buttons_layout.addWidget(self.export_button_txt)
+        buttons_layout.addWidget(self.export_button_graphics)
         buttons_layout.setAlignment(Qt.AlignLeft)
 
         layout = QVBoxLayout()
@@ -153,10 +158,12 @@ class SpectraDecomposition(QFrame):
 
         n_comps = self.methods.PCA.get_params()[0]
         self.methods.setEnabled(False)
-        self.export_button.setEnabled(False)
+        self.export_button_graphics.setEnabled(False)
+        self.export_button_txt.setEnabled(False)
         self.curr_data.PCA(n_comps)
         self.methods.setEnabled(True)
-        self.export_button.setEnabled(True)
+        self.export_button_graphics.setEnabled(True)
+        self.export_button_txt.setEnabled(True)
         self.show_components()
 
     def NMF_apply(self) -> None:
@@ -185,7 +192,8 @@ class SpectraDecomposition(QFrame):
         for component in self.curr_data.components:
             self.components.addWidget(Component(self.curr_data.x_axis, component["plot"], component["map"], parent=self.components_frame))
         
-        self.export_button.setEnabled(True)
+        self.export_button_graphics.setEnabled(True)
+        self.export_button_txt.setEnabled(True)
 
     def remove_components(self) -> None:
         """
@@ -195,10 +203,33 @@ class SpectraDecomposition(QFrame):
         # NOTE: reversed needed here as the items would shift to lower index and would be never deleted
         for i in reversed(range(self.components.count())): 
             self.components.takeAt(i).widget().deleteLater()
-
-    def export_components(self) -> None:
+    
+    def export_components_txt(self) -> None:
         """
-        A function to open file dialog for export file selection and export method call.
+        A function to open file dialog for txt export file selection and method call.
+        """
+
+        # do nothing if no components are generated yet
+        if len(self.curr_data.components) == 0:
+            return
+
+        filter = "*.txt"
+
+        data_folder = self.settings.value("export_dir", self.files_view.data_folder)
+        if not os.path.exists(data_folder):
+            data_folder = os.getcwd()
+
+        file_name, extension = QFileDialog.getSaveFileName(self, "Components Export [txt]", data_folder, filter=filter)
+
+        # user exited file selection dialog without any file selected
+        if file_name is None or len(file_name) == 0:
+            return
+
+        self.curr_data.export_components_txt(file_name)
+
+    def export_components_graphics(self) -> None:
+        """
+        A function to open file dialog for graphics export file selection and method call.
         """
 
         # do nothing if no components are generated yet
@@ -216,7 +247,7 @@ class SpectraDecomposition(QFrame):
         if not os.path.exists(data_folder):
             data_folder = os.getcwd()
 
-        file_name, extension = QFileDialog.getSaveFileName(self, "Components Export", data_folder, filter=filter)
+        file_name, extension = QFileDialog.getSaveFileName(self, "Components Export [graphics]", data_folder, filter=filter)
 
         # user exited file selection dialog without any file selected
         if file_name is None or len(file_name) == 0:
@@ -225,7 +256,7 @@ class SpectraDecomposition(QFrame):
         # get only format string
         format = str.split(extension, '.')[1]
 
-        self.curr_data.export_components(file_name, format)
+        self.curr_data.export_components_graphics(file_name, format)
 
     def update_file_list(self) -> None:
         """
@@ -254,7 +285,8 @@ class SpectraDecomposition(QFrame):
 
         self.files_view.setEnabled(enable)
         self.methods.setEnabled(enable)
-        self.export_button.setEnabled(enable)
+        self.export_button_graphics.setEnabled(enable)
+        self.export_button_txt.setEnabled(enable)
         self.components_area.setEnabled(enable)
 
 

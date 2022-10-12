@@ -7,7 +7,7 @@ from data import Data
 import os
 
 
-class AutoExportComponents(QFrame):
+class AutoExportComponentsTxt(QFrame):
     """
     A widget for parameters selection for automatic spectra exporting.
     """
@@ -37,11 +37,6 @@ class AutoExportComponents(QFrame):
 
         self.curr_dir = QLabel(f"Directory: {self.data_folder}")
 
-        # format of the exported file (components)
-        supported_formats = ["png", "pdf", "ps", "eps", "svg"]
-        self.format = QComboBox(self)
-        self.format.addItems(supported_formats)
-
         # tag to be appended to data file name
         self.file_tag = QLineEdit("")
 
@@ -50,13 +45,10 @@ class AutoExportComponents(QFrame):
 
 
         grid_layout = QGridLayout()
-        grid_layout.addWidget(QLabel("Export Components"), 0, 0)
+        grid_layout.addWidget(QLabel("Export Components [txt]"), 0, 0)
 
-        grid_layout.addWidget(QLabel("Output Format"), 1, 0)
-        grid_layout.addWidget(self.format, 1, 1)
-
-        grid_layout.addWidget(QLabel("Files Tag"), 2, 0)
-        grid_layout.addWidget(self.file_tag, 2, 1)
+        grid_layout.addWidget(QLabel("Files Tag"), 1, 0)
+        grid_layout.addWidget(self.file_tag, 1, 1)
 
         grid_layout.setColumnStretch(grid_layout.columnCount(), 1)
         grid_layout.setAlignment(Qt.AlignVCenter)
@@ -82,7 +74,7 @@ class AutoExportComponents(QFrame):
             parameters (tuple): Tuple of method's parameters.
         """
 
-        parameters = (self.data_folder, self.file_tag.text(), self.format.currentText(), )
+        parameters = (self.data_folder, self.file_tag.text(), )
         return parameters
 
     def params_to_text(self) -> str:
@@ -93,7 +85,7 @@ class AutoExportComponents(QFrame):
             str_parameters (str): String of parameters and their meaning.
         """
 
-        str_parameters = f"folder: {self.data_folder}, tag: {self.file_tag.text()}, format: {self.format.currentText()}"
+        str_parameters = f"folder: {self.data_folder}, tag: {self.file_tag.text()}"
         return str_parameters
 
     def change_folder(self):
@@ -124,7 +116,7 @@ class AutoExportComponents(QFrame):
             function_name (str): Name of the function that the parameters from this widget are for.
         """
 
-        return Data.auto_export.__name__
+        return Data.auto_export_txt.__name__
 
     def get_string_name(self) -> str:
         """
@@ -134,4 +126,4 @@ class AutoExportComponents(QFrame):
             widget_name (str): Name of the widget so that it can be recognized by the user.
         """
 
-        return "Export Components"
+        return "Export Components [txt]"

@@ -13,7 +13,8 @@ from widgets.auto_linearization import AutoLinearization
 from widgets.auto_decomposition_NMF import AutoNMF
 from widgets.auto_decomposition_PCA import AutoPCA
 from widgets.auto_save import AutoSave
-from widgets.auto_export_components import AutoExportComponents
+from widgets.auto_export_components_graphics import AutoExportComponentsGraphics
+from widgets.auto_export_components_txt import AutoExportComponentsTxt
 
 from data import Data
 
@@ -96,7 +97,8 @@ class AutoProcessing(QFrame):
         self.auto_NMF = AutoNMF(self)
         self.auto_PCA = AutoPCA(self)
         self.auto_save = AutoSave(self)
-        self.auto_export_components = AutoExportComponents(self)
+        self.auto_export_components_graphics = AutoExportComponentsGraphics(self)
+        self.auto_export_components_txt = AutoExportComponentsTxt(self)
 
         self.auto_methods = [
             self.auto_cropping_absolute,
@@ -110,7 +112,8 @@ class AutoProcessing(QFrame):
             self.auto_NMF,
             self.auto_PCA,
             self.auto_save,
-            self.auto_export_components,
+            self.auto_export_components_graphics,
+            self.auto_export_components_txt
         ]
 
         self.methods_list.setObjectName("methods_list")

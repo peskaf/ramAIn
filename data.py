@@ -711,8 +711,24 @@ class Data:
         """
 
         self.NMF(n_components)
+    
+    def export_components_txt(self, file_name: str) -> None:
+        """
+        A function for components exporting into txt files.
+        """
+        SEP = '\t'
+        components_rows = np.array([component["plot"] for component in self.components])
+        components_columns = components_rows.T
+        data_columns = np.concatenate((self.x_axis[:, np.newaxis], components_columns), axis=1)
 
-    def export_components(self, file_name: str, file_format: str) -> None:
+        with open(file_name, 'w+') as f:
+            for row in data_columns:
+                for column in row:
+                    f.write(f"{column:.7e}")
+                    f.write(SEP)
+                f.write('\n')
+
+    def export_components_graphics(self, file_name: str, file_format: str) -> None:
         """
         A function for components exporting for publications.
 
@@ -807,9 +823,9 @@ class Data:
         # close the figure as this may not run in the main thread
         plt.close()
 
-    def auto_export(self, out_folder: str, file_tag: str, file_format: str) -> None:
+    def auto_export_graphics(self, out_folder: str, file_tag: str, file_format: str) -> None:
         """
-        A function for exporting in automatic pipeline.
+        A function for exporting graphics in automatic pipeline.
 
         Parameters:
             out_folder (str): Folder where the exported file will be stored.
@@ -832,7 +848,35 @@ class Data:
                 i += 1
                 out_file = os.path.join(out_folder, file_name + file_tag + f"({i})" + '.' + file_format)
 
-        self.export_components(out_file, file_format)
+        self.export_components_graphics(out_file, file_format)
+    
+    def auto_export_txt(self, out_folder: str, file_tag: str) -> None:
+        """
+        A function for exporting txt components in automatic pipeline.
+
+        Parameters:
+            out_folder (str): Folder where the exported file will be stored.
+            file_tag (str): String to append to the `self.in_file` name.
+            file_format (str): Format of the output, possible formats: png, pdf, ps, eps, svg.
+        """
+
+        if len(self.components) == 0:
+            raise Exception("components have not been made yet.")
+
+        # construct the file name
+        file_format = "txt"
+        file_name, _ = os.path.basename(self.in_file).split('.')
+        out_file = os.path.join(out_folder, file_name + file_tag + '.' + file_format)
+
+        # do not overwrite on auto export -> apend ('number') to the file name instead
+        if os.path.exists(out_file):
+            i = 2
+            out_file = os.path.join(out_folder, file_name + file_tag + f"({i})" + '.' + file_format)
+            while os.path.exists(out_file):
+                i += 1
+                out_file = os.path.join(out_folder, file_name + file_tag + f"({i})" + '.' + file_format)
+
+        self.export_components_txt(out_file)
 
     def auto_remove_spikes(self) -> None:
         """
