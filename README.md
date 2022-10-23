@@ -13,7 +13,7 @@ This can be later used for example for [making distributable app installer](http
 
 ## Ubuntu
   1. Run `sudo apt-get install python3.10-tk`,
-  2. run pip `install -r requirements.txt`,
+  2. run `pip install -r requirements.txt`,
   3. run `python main.py`
 
 # TODO
