@@ -2,20 +2,14 @@ from PySide6.QtWidgets import QFrame, QFileDialog, QPushButton, QListWidget, QSt
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QSettings, QThread, Signal
 
-from widgets.auto_cropping_absolute import AutoCroppingAbsolute
-from widgets.auto_cropping_relative import AutoCroppingRelative
-from widgets.auto_crr import AutoCRR
-from widgets.auto_bgr_imodpoly import AutoBGRIModPoly
-from widgets.auto_bgr_airpls import AutoBGRairPLS
-from widgets.auto_bgr_poly import AutoBGRPoly
-from widgets.auto_bgr_math_morpho import AutoBGRMathMorpho
-from widgets.auto_linearization import AutoLinearization
-from widgets.auto_decomposition_NMF import AutoNMF
-from widgets.auto_decomposition_PCA import AutoPCA
-from widgets.auto_save import AutoSave
-from widgets.auto_export_components_graphics import AutoExportComponentsGraphics
-from widgets.auto_export_components_txt import AutoExportComponentsTxt
+from typing import List, Callable
 
+from widgets.auto_method import AutoMethod
+
+# TODO: not a widget
+from widgets.input_widget_specifier import InputWidgetSpecifier, WidgetType
+
+from utils import validators
 from data import Data
 
 import os
@@ -28,19 +22,19 @@ class FunctionItem(QListWidgetItem):
     and its parameters.
     """
 
-    def __init__(self, label: str, func: str = None, params: tuple = None, parent: QWidget = None) -> None:
+    def __init__(self, label: str, function: Callable = None, params: List = None, parent: QWidget = None) -> None:
         """
         The constructor for FunctionItem widget usable in QListWidget.
   
         Parameters:
             label (str): Text to be displayed in the list.
-            func (str): Function on the `Data` obejct that this item represents. Default: None.
-            params (tuple): Parameters for the `func` function. Default: None.
+            function (Callable): Function that this objects represents. Default: None.
+            params (List): Parameters for the `func` function. Default: None.
             parent (QWidget): Parent widget of this widget. Default: None.
         """
 
         super().__init__(label, parent)
-        self.func = func
+        self.function = function
         self.params = params
 
 
@@ -86,38 +80,11 @@ class AutoProcessing(QFrame):
         self.methods_list.setObjectName("methods_list")
         self.methods_list.currentItemChanged.connect(self.change_method)
 
-        self.auto_cropping_absolute = AutoCroppingAbsolute(self)
-        self.auto_cropping_relative = AutoCroppingRelative(self)
-        self.auto_crr = AutoCRR(self)
-        self.auto_bgr_imodpoly = AutoBGRIModPoly(self)
-        self.auto_bgr_airpls = AutoBGRairPLS(self)
-        self.auto_bgr_poly = AutoBGRPoly(self)
-        self.auto_bgr_math_morpho = AutoBGRMathMorpho(self)
-        self.auto_linearization = AutoLinearization(self)
-        self.auto_NMF = AutoNMF(self)
-        self.auto_PCA = AutoPCA(self)
-        self.auto_save = AutoSave(self)
-        self.auto_export_components_graphics = AutoExportComponentsGraphics(self)
-        self.auto_export_components_txt = AutoExportComponentsTxt(self)
-
-        self.auto_methods = [
-            self.auto_cropping_absolute,
-            self.auto_cropping_relative,
-            self.auto_crr,
-            self.auto_bgr_imodpoly,
-            self.auto_bgr_airpls,
-            self.auto_bgr_poly,
-            self.auto_bgr_math_morpho,
-            self.auto_linearization,
-            self.auto_NMF,
-            self.auto_PCA,
-            self.auto_save,
-            self.auto_export_components_graphics,
-            self.auto_export_components_txt
-        ]
+        self.auto_methods = self._make_auto_methods_widgets()
 
         self.methods_list.setObjectName("methods_list")
-        self.methods_list.addItems([auto_method.get_string_name() for auto_method in self.auto_methods])
+        #self.methods_list.addItems([auto_method.get_string_name() for auto_method in self.auto_methods])
+        self.methods_list.addItems([f"{auto_method.name}" for i, auto_method in enumerate(self.auto_methods)])
 
         self.methods_layout = QStackedLayout()
 
@@ -198,6 +165,253 @@ class AutoProcessing(QFrame):
         layout.addWidget(self.apply_button)
 
         self.setLayout(layout)
+
+    def _make_auto_methods_widgets(self) -> List:
+        auto_methods = []
+
+        auto_cropping_absolute = AutoMethod(
+            name="Spectral Plot Cropping - Absolute",
+            icon=QIcon("icons/cut.svg"),
+            input_widget_specifiers={
+                "Start Position": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=0,
+                    output_type=float,
+                    text_validator=validators.REAL_VALIDATOR,
+                ),
+                "End Position": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=0,
+                    output_type=float,
+                    text_validator=validators.REAL_VALIDATOR,
+                ),
+            },
+            callback=Data.auto_crop_absolute,
+            parent=self
+        )
+        auto_methods.append(auto_cropping_absolute)
+        
+        auto_cropping_relative = AutoMethod(
+            name="Spectral Plot Cropping - Relative",
+            icon=QIcon("icons/cut.svg"),
+            input_widget_specifiers={
+                "Start Position": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=0,
+                    output_type=int,
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                ),
+                "End Position": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=0,
+                    output_type=int,
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                ),
+            },
+            callback=Data.auto_crop_relative,
+            parent=self
+        )
+        auto_methods.append(auto_cropping_relative)
+
+        auto_crr = AutoMethod(
+            name="Cosmic Ray Removal",
+            icon=QIcon("icons/signal.svg"),
+            callback=Data.auto_remove_spikes,
+            parent=self
+        )
+        auto_methods.append(auto_crr)
+
+        auto_bgr_imodpoly = AutoMethod(
+            name="Background Removal - I-ModPoly",
+            icon=QIcon("icons/background.svg"),
+            input_widget_specifiers={
+                "Ignore Water Band": InputWidgetSpecifier(
+                    widget_type=WidgetType.CHECKBOX,
+                    init_value=True,
+                    output_type=bool,
+                ),
+                "Polynom Degree": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=5,
+                    range=(1, 15),
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    output_type=int,
+                ),
+            },
+            callback=Data.auto_imodpoly,
+            parent=self
+        )
+        auto_methods.append(auto_bgr_imodpoly)
+
+        auto_bgr_airpls = AutoMethod(
+            name="Background Removal - airPLS",
+            icon=QIcon("icons/background.svg"),
+            input_widget_specifiers={
+                "Lambda": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=10000,
+                    output_type=int,
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                ),
+            },
+            callback=Data.auto_airPLS,
+            parent=self
+        )
+        auto_methods.append(auto_bgr_airpls)
+
+        auto_bgr_poly = AutoMethod(
+            name="Background Removal - Polynom Interpolation",
+            icon=QIcon("icons/background.svg"),
+            input_widget_specifiers={
+                "Ignore Water Band": InputWidgetSpecifier(
+                    widget_type=WidgetType.CHECKBOX,
+                    init_value=True,
+                    output_type=bool,
+                ),
+                "Polynom Degree": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=5,
+                    range=(1, 15),
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    output_type=int,
+                ),
+            },
+            callback=Data.auto_poly,
+            parent=self
+        )
+        auto_methods.append(auto_bgr_poly)
+
+        auto_bgr_math_morpho = AutoMethod(
+            name="Background Removal - Mathematical Morphology",
+            icon=QIcon("icons/background.svg"),
+            input_widget_specifiers={
+                "Ignore Water Band": InputWidgetSpecifier(
+                    widget_type=WidgetType.CHECKBOX,
+                    init_value=True,
+                    output_type=bool,
+                ),
+            },
+            callback=Data.auto_math_morpho,
+            parent=self
+        )
+        auto_methods.append(auto_bgr_math_morpho)
+
+        auto_linearization = AutoMethod(
+            name="Linearization",
+            icon=QIcon("icons/equal.svg"),
+            input_widget_specifiers={
+                "Step": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=1,
+                    range=(0.1, 5),
+                    output_type=float,
+                    text_validator=validators.POSITIVE_REAL_VALIDATOR
+                ),
+            },
+            callback=Data.auto_linearize,
+            parent=self
+        )
+        auto_methods.append(auto_linearization)
+
+        auto_NMF = AutoMethod(
+            name="Decomposition - NMF",
+            icon=QIcon("icons/pie.svg"),
+            input_widget_specifiers={
+                "Number of Components": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=5,
+                    range=(2, 10),
+                    output_type=int,
+                    text_validator=validators.POSITIVE_INT_VALIDATOR
+                ),
+            },
+            callback=Data.auto_NMF,
+            parent=self
+        )
+        auto_methods.append(auto_NMF)
+
+        auto_PCA = AutoMethod(
+            name="Decomposition - PCA",
+            icon=QIcon("icons/pie.svg"),
+            input_widget_specifiers={
+                "Number of Components": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=5,
+                    range=(2, 10),
+                    output_type=int,
+                    text_validator=validators.POSITIVE_INT_VALIDATOR
+                ),
+            },
+            callback=Data.auto_PCA,
+            parent=self
+        )
+        auto_methods.append(auto_PCA)
+        
+        auto_save = AutoMethod(
+            name="Save Data",
+            icon=QIcon("icons/save.svg"),
+            input_widget_specifiers={
+                "Files Tag": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    output_type=str,
+                ),
+                "Directory": InputWidgetSpecifier(
+                    widget_type=WidgetType.DIRECTORY_SELECTION,
+                    output_type=str,
+                    dir_registry_value="save_dir",
+                ),
+            },
+            callback=Data.auto_save_data,
+            parent=self
+        )
+        auto_methods.append(auto_save)
+
+        auto_export_components_graphics = AutoMethod(
+            name="Export Components - Graphics",
+            icon=QIcon("icons/export.svg"),
+            input_widget_specifiers={
+                "Output Format": InputWidgetSpecifier(
+                    widget_type=WidgetType.COMBO_BOX,
+                    output_type=str,
+                    choices=["png", "pdf", "ps", "eps", "svg"],
+                    init_value="png",
+                ),
+                "Files Tag": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    output_type=str,
+                ),
+                "Directory": InputWidgetSpecifier(
+                    widget_type=WidgetType.DIRECTORY_SELECTION,
+                    output_type=str,
+                    dir_registry_value="export_dir",
+                ),
+            },
+            callback=Data.auto_export_graphics,
+            parent=self
+        )
+        auto_methods.append(auto_export_components_graphics)
+
+        auto_export_components_txt = AutoMethod(
+            name="Export Components - Text",
+            icon=QIcon("icons/export.svg"),
+            input_widget_specifiers={
+                "Files Tag": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    output_type=str,
+                ),
+                "Directory": InputWidgetSpecifier(
+                    widget_type=WidgetType.DIRECTORY_SELECTION,
+                    output_type=str,
+                    dir_registry_value="export_dir",
+                ),
+            },
+            callback=Data.auto_export_txt,
+            parent=self
+        )
+        auto_methods.append(auto_export_components_txt)
+
+        return auto_methods
+
 
     def logs_dir_dialog(self) -> None:
         """
@@ -284,7 +498,7 @@ class AutoProcessing(QFrame):
         A function to add currently selected method to the pipeline.
         """
 
-        # Enable apply button only if some file is in the list
+        # Enable apply button only if a file is in the list
         if self.file_list_widget.count() != 0:
             self.apply_button.setEnabled(True)
 
@@ -295,11 +509,11 @@ class AutoProcessing(QFrame):
         curr_item = self.methods_list.currentItem()
         curr_item_index = self.methods_list.row(curr_item)
         params_text = self.auto_methods[curr_item_index].params_to_text()
-        function_name = self.auto_methods[curr_item_index].function_name()
+        function = self.auto_methods[curr_item_index].callback
         params = self.auto_methods[curr_item_index].get_params()
 
         # make item with function and params, display text version of params
-        self.pipeline_list.addItem(FunctionItem(curr_item.text() + (" - " if len(params_text) else "") + params_text, function_name, params))
+        self.pipeline_list.addItem(FunctionItem(curr_item.text() + (" - " if len(params_text) else "") + params_text, function, params))
         
     def remove_from_pipeline(self) -> None:
         """
@@ -461,11 +675,12 @@ class PipelineWorker(QThread):
                 try:
                     curr_data = Data(file_name)
                     for item_index in range(steps_count):
-                        curr_function_name = self.auto_proceesing_widget.pipeline_list.item(item_index).func
+                        curr_function = self.auto_proceesing_widget.pipeline_list.item(item_index).function
                         curr_step_text = self.auto_proceesing_widget.pipeline_list.item(item_index).text()
-                        print(f"[STEP {item_index + 1}/{steps_count}]: {curr_step_text}; function: {curr_function_name}", file=logs)
+                        print(f"[STEP {item_index + 1}/{steps_count}]: {curr_step_text}; function: {curr_function.__name__}", file=logs)
 
                         # function call
+                        # TODO: ensure callback has params in correct order
                         getattr(curr_data, self.auto_proceesing_widget.pipeline_list.item(item_index).func)(*self.auto_proceesing_widget.pipeline_list.item(item_index).params)
 
                         print("[SUCCESS]", file=logs)
