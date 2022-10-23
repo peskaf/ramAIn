@@ -5,7 +5,7 @@ Raman microspectroscopy data processing app
 # Installation
 
 ## Windows
-  1. Run pip `install -r requirements.txt`,
+  1. Run `pip install -r requirements.txt`,
   2. run `python main.py`
 
 If you want to make executable file, run `pyinstaller main.spec`.
