@@ -18,7 +18,7 @@ import datetime
 
 class FunctionItem(QListWidgetItem):
     """
-    Subclass of `QListWidgetItem`, instance of this class holds name of the function it represents
+    Subclass of `QListWidgetItem`, instance of this class holds the function it represents
     and its parameters.
     """
 
@@ -29,7 +29,7 @@ class FunctionItem(QListWidgetItem):
         Parameters:
             label (str): Text to be displayed in the list.
             function (Callable): Function that this objects represents. Default: None.
-            params (List): Parameters for the `func` function. Default: None.
+            params (List): Parameters for the `function` function. Default: None.
             parent (QWidget): Parent widget of this widget. Default: None.
         """
 
@@ -83,7 +83,6 @@ class AutoProcessing(QFrame):
         self.auto_methods = self._make_auto_methods_widgets()
 
         self.methods_list.setObjectName("methods_list")
-        #self.methods_list.addItems([auto_method.get_string_name() for auto_method in self.auto_methods])
         self.methods_list.addItems([f"{auto_method.name}" for i, auto_method in enumerate(self.auto_methods)])
 
         self.methods_layout = QStackedLayout()
@@ -178,12 +177,14 @@ class AutoProcessing(QFrame):
                     init_value=0,
                     output_type=float,
                     text_validator=validators.REAL_VALIDATOR,
+                    parameter_order=0,
                 ),
                 "End Position": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     init_value=0,
                     output_type=float,
                     text_validator=validators.REAL_VALIDATOR,
+                    parameter_order=1,
                 ),
             },
             callback=Data.auto_crop_absolute,
@@ -200,12 +201,14 @@ class AutoProcessing(QFrame):
                     init_value=0,
                     output_type=int,
                     text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    parameter_order=0,
                 ),
                 "End Position": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     init_value=0,
                     output_type=int,
                     text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    parameter_order=1,
                 ),
             },
             callback=Data.auto_crop_relative,
@@ -229,6 +232,7 @@ class AutoProcessing(QFrame):
                     widget_type=WidgetType.CHECKBOX,
                     init_value=True,
                     output_type=bool,
+                    parameter_order=1,
                 ),
                 "Polynom Degree": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -236,6 +240,7 @@ class AutoProcessing(QFrame):
                     range=(1, 15),
                     text_validator=validators.POSITIVE_INT_VALIDATOR,
                     output_type=int,
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_imodpoly,
@@ -252,6 +257,7 @@ class AutoProcessing(QFrame):
                     init_value=10000,
                     output_type=int,
                     text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_airPLS,
@@ -267,6 +273,7 @@ class AutoProcessing(QFrame):
                     widget_type=WidgetType.CHECKBOX,
                     init_value=True,
                     output_type=bool,
+                    parameter_order=1,
                 ),
                 "Polynom Degree": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -274,6 +281,7 @@ class AutoProcessing(QFrame):
                     range=(1, 15),
                     text_validator=validators.POSITIVE_INT_VALIDATOR,
                     output_type=int,
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_poly,
@@ -289,6 +297,7 @@ class AutoProcessing(QFrame):
                     widget_type=WidgetType.CHECKBOX,
                     init_value=True,
                     output_type=bool,
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_math_morpho,
@@ -305,7 +314,8 @@ class AutoProcessing(QFrame):
                     init_value=1,
                     range=(0.1, 5),
                     output_type=float,
-                    text_validator=validators.POSITIVE_REAL_VALIDATOR
+                    text_validator=validators.POSITIVE_REAL_VALIDATOR,
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_linearize,
@@ -322,7 +332,8 @@ class AutoProcessing(QFrame):
                     init_value=5,
                     range=(2, 10),
                     output_type=int,
-                    text_validator=validators.POSITIVE_INT_VALIDATOR
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_NMF,
@@ -339,7 +350,8 @@ class AutoProcessing(QFrame):
                     init_value=5,
                     range=(2, 10),
                     output_type=int,
-                    text_validator=validators.POSITIVE_INT_VALIDATOR
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_PCA,
@@ -354,11 +366,13 @@ class AutoProcessing(QFrame):
                 "Files Tag": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     output_type=str,
+                    parameter_order=1,
                 ),
                 "Directory": InputWidgetSpecifier(
                     widget_type=WidgetType.DIRECTORY_SELECTION,
                     output_type=str,
                     dir_registry_value="save_dir",
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_save_data,
@@ -375,15 +389,18 @@ class AutoProcessing(QFrame):
                     output_type=str,
                     choices=["png", "pdf", "ps", "eps", "svg"],
                     init_value="png",
+                    parameter_order=2,
                 ),
                 "Files Tag": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     output_type=str,
+                    parameter_order=1,
                 ),
                 "Directory": InputWidgetSpecifier(
                     widget_type=WidgetType.DIRECTORY_SELECTION,
                     output_type=str,
                     dir_registry_value="export_dir",
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_export_graphics,
@@ -398,11 +415,13 @@ class AutoProcessing(QFrame):
                 "Files Tag": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     output_type=str,
+                    parameter_order=1,
                 ),
                 "Directory": InputWidgetSpecifier(
                     widget_type=WidgetType.DIRECTORY_SELECTION,
                     output_type=str,
                     dir_registry_value="export_dir",
+                    parameter_order=0,
                 ),
             },
             callback=Data.auto_export_txt,
@@ -598,14 +617,12 @@ class AutoProcessing(QFrame):
         Parameters:
             val (int): Value to which to set the progress in the progress bar.
         """
-
         self.progress.setValue(val)
     
     def destroy_progress_bar(self) -> None:
         """
         A function to destroy the progress bar object.
         """
-        
         self.enable_widgets(True)
         self.progress.deleteLater()
         self.progress = None
@@ -677,11 +694,11 @@ class PipelineWorker(QThread):
                     for item_index in range(steps_count):
                         curr_function = self.auto_proceesing_widget.pipeline_list.item(item_index).function
                         curr_step_text = self.auto_proceesing_widget.pipeline_list.item(item_index).text()
+                        curr_params = self.auto_proceesing_widget.pipeline_list.item(item_index).params
                         print(f"[STEP {item_index + 1}/{steps_count}]: {curr_step_text}; function: {curr_function.__name__}", file=logs)
 
                         # function call
-                        # TODO: ensure callback has params in correct order
-                        getattr(curr_data, self.auto_proceesing_widget.pipeline_list.item(item_index).func)(*self.auto_proceesing_widget.pipeline_list.item(item_index).params)
+                        curr_function(curr_data, *curr_params)
 
                         print("[SUCCESS]", file=logs)
                         self.progress_update.emit((i - 1)*self.auto_proceesing_widget.pipeline_list.count() + item_index + 1)
@@ -689,7 +706,5 @@ class PipelineWorker(QThread):
                 except Exception as e:
                     print(f"[ERROR]: {e}", file=logs)
                 print(file=logs)
-
-                self.progress_update.emit(i*self.auto_proceesing_widget.pipeline_list.count())
 
         self.destroy()

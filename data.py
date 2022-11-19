@@ -1,4 +1,3 @@
-from turtle import back
 import numpy as np
 import os
 from sklearn import decomposition, cluster
@@ -16,6 +15,9 @@ from PySide6.QtCore import Signal, QSettings
 import utils.sklearn_NMF
 import utils.indices
 import utils.math_morphology
+
+import warnings
+warnings.filterwarnings("ignore")
 
 class Data:
     """

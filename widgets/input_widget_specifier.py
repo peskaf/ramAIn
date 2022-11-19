@@ -12,11 +12,12 @@ class WidgetType(Enum):
 
 class InputWidgetSpecifier():
 
-    NUMERICAL_TYPES: Tuple = (float, int)
+    NUMERIC_TYPES: Tuple = (float, int)
 
     def __init__(self,
         widget_type: WidgetType,
         output_type: type,
+        parameter_order: int,
         init_value = None,
         range: Union[Tuple, None] = None,
         text_validator: Union[QRegularExpressionValidator, None] = None,
@@ -25,7 +26,7 @@ class InputWidgetSpecifier():
         ) -> None:
 
         # TODO: make better errors types
-        if output_type not in self.NUMERICAL_TYPES and range is not None:
+        if output_type not in self.NUMERIC_TYPES and range is not None:
             raise RuntimeError(f"Invalid InputWidgetSpecifier - range is set but output type is of type {output_type}.")
         
         # TODO: check both range values for output type
@@ -57,6 +58,7 @@ class InputWidgetSpecifier():
 
         self.widget_type = widget_type
         self.init_value = init_value
+        self.parameter_order = parameter_order
         self.output_type = output_type
         self.choices = choices
         self.range = range

@@ -105,7 +105,7 @@ class AutoMethod(QFrame):
         """
 
         parameters = []
-        for widget_name, widget in self.input_widgets.items():
+        for widget_name, widget in sorted(self.input_widgets.items(), key=lambda item: self.input_widget_specifiers[item[0]].parameter_order):
             output_type = self.input_widget_specifiers[widget_name].output_type
             widget_type = self.input_widget_specifiers[widget_name].widget_type
 
@@ -131,7 +131,7 @@ class AutoMethod(QFrame):
         """
 
         parameters = self.get_params()
-        parameter_names = [name for name in self.input_widgets.keys()]
+        parameter_names = [name for name, _ in sorted(self.input_widgets.items(), key=lambda item: self.input_widget_specifiers[item[0]].parameter_order)]
         
         str_parameters = ", ".join(f"{name.lower().replace(' ', '_')}: {value}" for name, value in zip(parameter_names, parameters))
         return str_parameters
