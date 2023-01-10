@@ -95,10 +95,9 @@ class AutoMethod(QFrame):
         elif input > range[1]:
             widget.setText(str(range[1]))
 
-    # TODO: params should match order in callback! (dict?)
     def get_params(self) -> List:
         """
-        A function to return parameters for the callback with the correct types.
+        A function to return parameters for the callback with the correct types and in the correct order.
 
         Returns:
             parameters (List): List of callback's parameters.

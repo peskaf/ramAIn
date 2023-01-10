@@ -717,7 +717,11 @@ class Data:
     def export_components_txt(self, file_name: str) -> None:
         """
         A function for components exporting into txt files.
+
+        Parameters:
+            file_name (str): Name of the file where the output should be stored.
         """
+
         SEP = '\t'
         components_rows = np.array([component["plot"] for component in self.components])
         components_columns = components_rows.T
@@ -859,7 +863,6 @@ class Data:
         Parameters:
             out_folder (str): Folder where the exported file will be stored.
             file_tag (str): String to append to the `self.in_file` name.
-            file_format (str): Format of the output, possible formats: png, pdf, ps, eps, svg.
         """
 
         if len(self.components) == 0:

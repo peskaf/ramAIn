@@ -429,8 +429,9 @@ class AutoProcessing(QFrame):
         )
         auto_methods.append(auto_export_components_txt)
 
-        return auto_methods
+        # NOTE: new methods belong here (or between the similar ones in the code above in this function)
 
+        return auto_methods
 
     def logs_dir_dialog(self) -> None:
         """
