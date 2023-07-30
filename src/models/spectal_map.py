@@ -8,6 +8,7 @@ sys.path.append('.')
 sys.path.append('..')
 
 from src.utils import paths
+from src.spectra_processing.cropping import cropping
 from sys import getsizeof
 
 
@@ -45,27 +46,20 @@ class SpectralMap():
             # load .mat data with expected structure
             matlab_data = scipy.io.loadmat(self.in_file, mdict=self._mdict)
 
-            # extract relevant information
 
-            # last one is the name of the data structure
             name = list(self._mdict)[-1]
             matlab_data = matlab_data[name][0,0]
 
-            # flattened data (individual spectra)
             data = matlab_data[7]
 
-            # num of rows, num of cols
             map_shape = tuple(matlab_data[5][0])
 
             self.units = matlab_data[9][1][1]
-
             self.x_axis = matlab_data[9][1][0][0]
-
             self.data = np.reshape(data,(map_shape[1], map_shape[0], -1))
 
             #print(self.data.nbytes / 1024 / 1024)
-            
-            # ??
+
             self.maxima = np.max(self.data, axis=2)
             self.averages = np.mean(self.data, axis=2)
     
@@ -82,24 +76,35 @@ class SpectralMap():
         out_file = paths.create_new_file_name(out_folder_path, file_name if file_name else self.in_file, file_tag)
         
         try:
-            # keep the structure of input file (as in load_data)
-
-            # name of the data structure
             name = list(self._mdict)[-1] 
-
-            # set x axis values
             self._mdict[name][0,0][9][1][0] = [self.x_axis]
-
-            # reshape the data back and set it to its position
             self._mdict[name][0,0][7] = np.reshape(self.data,(self.data.shape[0] * self.data.shape[1], -1), order='C')
-
-            # set spectral map size (may change after cropping)
             self._mdict[name][0,0][5][0] = self.data.shape[:2][::-1]
 
             scipy.io.savemat(out_file, appendmat=True, mdict=self._mdict)
 
         except Exception as e:
             raise Exception(f"{self.in_file}: {e}")
+        
+    def crop_spectra_absolute(self, crop_start: float, crop_end: float) -> None:
+        data, x_axis = cropping.crop_spectra_absolute(self.data, self.x_axis, crop_start, crop_end)
+        self.data = data
+        self.x_axis = x_axis
+
+    def crop_spectra_relative(self, crop_first: int, crop_last: int) -> None:
+        data, x_axis = cropping.crop_spectra_relative(self.data, self.x_axis, crop_first, crop_last)
+        self.data = data
+        self.x_axis = x_axis
+
+    def crop_spectral_map(self, left: int, top: int, right: int, bottom: int) -> None:
+        data = cropping.crop_map(self.data, left, top, right, bottom)
+        self.data = data
+    
 
 if __name__=='__main__':
-    sm = SpectralMap('/home/filip/ramAIn/data/Glenodinium.mat')
+    sm = SpectralMap('/home/filip/ramAIn/data/Gefionella.mat')
+    import matplotlib.pyplot as plt
+    print(sm.data[0].shape)
+    print(sm.x_axis)
+    plt.imshow(sm.averages)
+    plt.show()

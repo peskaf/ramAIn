@@ -145,6 +145,7 @@ class Data:
         self.maxima = np.max(self.data, axis=2) # good for looking at cosmic rays potential positions
         self.averages = np.mean(self.data, axis=2)
 
+    # DONE
     def crop(self, spectra_start: float, spectra_end: float, left: int, top: int, right: int, bottom: int) -> None:
         """
         The function to crop the data according to given parameters.
@@ -171,6 +172,7 @@ class Data:
         # recompute what depends on self.data because it changed
         self._recompute_dependent_data()
 
+    # DONE
     def auto_crop_absolute(self, spectra_start: float, spectra_end: float) -> None:
         """
         A function for absolute automatic data cropping.
@@ -195,7 +197,7 @@ class Data:
         except Exception as e:
             raise Exception(f"{self.in_file}: {e}")
 
-
+    # DONE
     def auto_crop_relative(self, spectra_start_crop: int, spectra_end_crop: int) -> None:
         """
         A function for relative automatic data cropping.

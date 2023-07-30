@@ -1,10 +1,10 @@
 import pytest
 from src.models.spectal_map import SpectralMap
-from src.spectra_processing.cropping import cropping
 import pathlib
 import uuid
 import numpy as np
 import os
+import copy
 
 TEST_FILE_DIR = pathlib.Path(__file__).parent.resolve()
 TEST_FILE_PATH = TEST_FILE_DIR.joinpath('test_data.mat')
@@ -30,7 +30,33 @@ def test_save_matlab():
     
 def test_map_cropping():
     sm = SpectralMap(TEST_FILE_PATH)
-    og_shape = sm.shape
-    left, top, right, bottom = 5, 3, 20, 30 
-    sm = cropping.crop_map(sm, left, top, right, bottom)
-    assert sm.shape == (og_shape[0] - ())
+
+    left, top, right, bottom = 5, 3, 20, 30
+
+    sm2 = copy.deepcopy(sm)
+    sm2.crop_spectral_map(left, top, right, bottom)
+
+    assert sm2.shape == (bottom - top, right - left, sm.shape[2])
+    assert np.array_equal(sm.data[top:bottom, left:right], sm2.data)
+
+def test_spectra_cropping_relative():
+    sm = SpectralMap(TEST_FILE_PATH)
+
+    left, right = 15, 20
+
+    sm2 = copy.deepcopy(sm)
+    sm2.crop_spectra_relative(left, right)
+
+    assert sm2.shape == (*sm.shape[:2], sm.shape[2] - (left + right))
+
+def test_spectra_cropping_absolute():
+    sm = SpectralMap(TEST_FILE_PATH)
+
+    left_val, right_val = 417.6, 2987.0
+    points_num = ((sm.x_axis >= left_val) & (sm.x_axis <= right_val)).sum()
+
+    sm2 = copy.deepcopy(sm)
+    sm2.crop_spectra_absolute(left_val, right_val)
+
+    assert sm2.x_axis.shape == (points_num,)
+    assert sm2.shape == (*sm.shape[:2], points_num)
