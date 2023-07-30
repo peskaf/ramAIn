@@ -9,6 +9,7 @@ sys.path.append('..')
 
 from src.utils import paths
 from src.spectra_processing.cropping import cropping
+from src.spectra_processing.artifacts_removal import manual_removal
 from sys import getsizeof
 
 
@@ -99,6 +100,10 @@ class SpectralMap():
     def crop_spectral_map(self, left: int, top: int, right: int, bottom: int) -> None:
         data = cropping.crop_map(self.data, left, top, right, bottom)
         self.data = data
+    
+    def interpolate_withing_range(self, x_index: int, y_index: int, start: float, end: float) -> None:
+        self.data[x_index, y_index] = manual_removal.interpolate_within_range(self.data[x_index, y_index], self.x_axis, start, end)
+        
     
 
 if __name__=='__main__':

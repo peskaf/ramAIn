@@ -223,6 +223,7 @@ class Data:
         except Exception as e:
             raise Exception(f"{self.in_file}: {e}")
 
+    # DONE
     def remove_manual(self, spectrum_index_x: int, spectrum_index_y: int, start: float, end: float) -> None:
         """
         The function to remove spike using linear interpolation of the end-points in the given spectrum.

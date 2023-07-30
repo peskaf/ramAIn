@@ -60,3 +60,18 @@ def test_spectra_cropping_absolute():
 
     assert sm2.x_axis.shape == (points_num,)
     assert sm2.shape == (*sm.shape[:2], points_num)
+
+def test_manual_removal():
+    sm = SpectralMap(TEST_FILE_PATH)
+    sm2 = copy.deepcopy(sm)
+    
+    start, end = 518.6, 627.1
+    spectrum_x_index, spectrum_y_index = 2, 14
+
+    sm2.interpolate_withing_range(spectrum_x_index, spectrum_y_index, start, end)
+
+    sm_spectrum = sm.data[spectrum_x_index, spectrum_y_index]
+    sm2_spectrum = sm2.data[spectrum_x_index, spectrum_y_index]
+
+    assert sm2_spectrum.shape == sm_spectrum.shape
+    assert sm2_spectrum[np.argmax((sm.x_axis >= start))] == sm_spectrum[np.argmax((sm.x_axis >= start))]
