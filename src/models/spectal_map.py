@@ -2,18 +2,24 @@ import scipy.io
 import numpy as np
 from typing import Union, Optional
 from pathlib import Path
+
+import sys
+sys.path.append('.')
+sys.path.append('..')
+
 from src.utils import paths
+from sys import getsizeof
+
 
 class SpectralMap():
 
-    def __init__(self, in_file: Union[str, Path]) -> None:
+    def __init__(self, in_file_path: Union[str, Path]) -> None:
 
-        self.in_file = in_file
+        self.in_file = in_file_path
 
         self._mdict = {} # dict to save matlab dict into
         self.x_axis = None
         self.data = None
-        self._shape = None
 
         # keep?
         self.maxima = None
@@ -27,12 +33,10 @@ class SpectralMap():
 
     @property
     def shape(self):
-        return self._shape
+        return self.data.shape
 
     def load_matlab(self) -> None:
         """
-        The function to load the data from matlab file `in_file`.
-
         Compatible with spectroscopes: TODO
         - ...
         """
@@ -58,7 +62,8 @@ class SpectralMap():
             self.x_axis = matlab_data[9][1][0][0]
 
             self.data = np.reshape(data,(map_shape[1], map_shape[0], -1))
-            self._shape = self.data.shape
+
+            #print(self.data.nbytes / 1024 / 1024)
             
             # ??
             self.maxima = np.max(self.data, axis=2)
@@ -73,12 +78,6 @@ class SpectralMap():
             # -> some window stating this message if not auto processing, else skip and log this message
     
     def save_matlab(self, out_folder_path: Union[str, Path], file_name: Optional[Union[str, Path]]=None, file_tag: Optional[str]=None) -> None:
-        """
-        The function to save the data to file with given name.
-
-        Parameters:
-            out_folder_path (str): Folder where to save new matlab file.
-        """
 
         out_file = paths.create_new_file_name(out_folder_path, file_name if file_name else self.in_file, file_tag)
         
@@ -101,3 +100,6 @@ class SpectralMap():
 
         except Exception as e:
             raise Exception(f"{self.in_file}: {e}")
+
+if __name__=='__main__':
+    sm = SpectralMap('/home/filip/ramAIn/data/Glenodinium.mat')

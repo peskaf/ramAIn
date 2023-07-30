@@ -1,5 +1,6 @@
 import pytest
 from src.models.spectal_map import SpectralMap
+from src.spectra_processing.cropping import cropping
 import pathlib
 import uuid
 import numpy as np
@@ -26,3 +27,10 @@ def test_save_matlab():
         assert np.array_equal(sm.data, sm2.data)
     finally:
         os.remove(test_file2_path)
+    
+def test_map_cropping():
+    sm = SpectralMap(TEST_FILE_PATH)
+    og_shape = sm.shape
+    left, top, right, bottom = 5, 3, 20, 30 
+    sm = cropping.crop_map(sm, left, top, right, bottom)
+    assert sm.shape == (og_shape[0] - ())
