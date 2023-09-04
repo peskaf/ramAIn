@@ -9,8 +9,7 @@ sys.path.append('..')
 
 from src.utils import paths
 from src.spectra_processing.cropping import cropping
-from src.spectra_processing.artifacts_removal import manual_removal
-from sys import getsizeof
+from src.spectra_processing.artifacts_removal import manual_removal, custom_auto_removal
 
 
 class SpectralMap():
@@ -21,7 +20,8 @@ class SpectralMap():
 
         self._mdict = {} # dict to save matlab dict into
         self.x_axis = None
-        self.data = None
+        self._data = None
+        self._spike_info = {}
 
         # keep?
         self.maxima = None
@@ -36,6 +36,18 @@ class SpectralMap():
     @property
     def shape(self):
         return self.data.shape
+
+    @property
+    def data(self):
+        return self._data
+    
+    @data.setter
+    def data(self, value):
+        self._data = value
+        print("Recomputing vis data")
+        self.maxima = np.max(self.data, axis=2)
+        self.averages = np.mean(self.data, axis=2)
+        self._spike_info = {}
 
     def load_matlab(self) -> None:
         """
@@ -88,23 +100,27 @@ class SpectralMap():
             raise Exception(f"{self.in_file}: {e}")
         
     def crop_spectra_absolute(self, crop_start: float, crop_end: float) -> None:
-        data, x_axis = cropping.crop_spectra_absolute(self.data, self.x_axis, crop_start, crop_end)
-        self.data = data
-        self.x_axis = x_axis
+        self.data, self.x_axis = cropping.crop_spectra_absolute(self.data, self.x_axis, crop_start, crop_end)
 
     def crop_spectra_relative(self, crop_first: int, crop_last: int) -> None:
-        data, x_axis = cropping.crop_spectra_relative(self.data, self.x_axis, crop_first, crop_last)
-        self.data = data
-        self.x_axis = x_axis
+        self.data, self.x_axis = cropping.crop_spectra_relative(self.data, self.x_axis, crop_first, crop_last)
 
     def crop_spectral_map(self, left: int, top: int, right: int, bottom: int) -> None:
-        data = cropping.crop_map(self.data, left, top, right, bottom)
-        self.data = data
+        self.data = cropping.crop_map(self.data, left, top, right, bottom)
     
     def interpolate_withing_range(self, x_index: int, y_index: int, start: float, end: float) -> None:
         self.data[x_index, y_index] = manual_removal.interpolate_within_range(self.data[x_index, y_index], self.x_axis, start, end)
-        
     
+    def calculate_spikes_indices(self) -> None:
+        map_indices, peak_positions = custom_auto_removal.calculate_spikes_indices(self.data, self.x_axis)
+
+        self._spike_info['map_indices'] = map_indices
+        self._spike_info['peak_positions'] = peak_positions
+
+    def auto_spike_removal(self) -> None:
+        if not self._spike_info:
+            self.calculate_spikes_indices()
+        self.data = custom_auto_removal.remove_spikes(self.data, self._spike_info['map_indices'], self._spike_info['peak_positions'])
 
 if __name__=='__main__':
     sm = SpectralMap('/home/filip/ramAIn/data/Gefionella.mat')

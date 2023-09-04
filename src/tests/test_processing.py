@@ -75,3 +75,23 @@ def test_manual_removal():
 
     assert sm2_spectrum.shape == sm_spectrum.shape
     assert sm2_spectrum[np.argmax((sm.x_axis >= start))] == sm_spectrum[np.argmax((sm.x_axis >= start))]
+
+def test_auto_removal():
+    sm = SpectralMap(TEST_FILE_PATH)
+    sm2 = copy.deepcopy(sm)
+
+    sm.auto_spike_removal()
+
+    # test data has no artificial spike
+    assert np.array_equal(sm.data, sm2.data)
+
+    # create our own spike
+    sm.data[0, 0, 50] = 1000
+
+    sm.auto_spike_removal()
+    
+    # that one should be removed
+    assert not np.array_equal(sm.data[0, 0], sm2.data[0, 0])
+
+    # other parts of the maps should not be affected
+    assert np.array_equal(sm.data[1:, 1:], sm2.data[1:, 1:])

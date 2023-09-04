@@ -252,6 +252,7 @@ class Data:
 
         self._recompute_dependent_data()
 
+    # DONE
     def _calculate_Z_scores(self, data: np.ndarray) -> np.ndarray:
         """
         A function to calculate modified modified Z scores of the spectra.
@@ -272,6 +273,7 @@ class Data:
         Z = 0.6745 * (abs_differences - percentile_90) / deviation
         return Z
 
+    # DONE
     def calculate_spikes_indices(self) -> None:
         """
         A function to calculate spikes positions in spectral map and in spectral plot using newly developed algorithm.
@@ -359,6 +361,7 @@ class Data:
         self.spikes["map_indices"] = map_indices
         self.spikes["peak_positions"] = peak_positions
 
+    # DONE
     def remove_spikes(self) -> None:
         """
         A function to remove estimated spikes from the data using newly developed algorithm.
@@ -391,6 +394,7 @@ class Data:
             self.data[spectrum_indices[0], spectrum_indices[1], left:right+1:1] = new_values
 
         self._recompute_dependent_data()
+
 
     def get_optimal_structuring_element_width(self, values: np.ndarray) -> int:
         """
