@@ -95,3 +95,38 @@ def test_auto_removal():
 
     # other parts of the maps should not be affected
     assert np.array_equal(sm.data[1:, 1:], sm2.data[1:, 1:])
+
+def test_math_morpho():
+    sm = SpectralMap(TEST_FILE_PATH)
+    sm2 = copy.deepcopy(sm)
+
+    sm.background_removal_math_morpho(True)
+
+    assert not np.array_equal(sm.data, sm2.data)
+
+def test_imodpoly():
+    sm = SpectralMap(TEST_FILE_PATH)
+    sm2 = copy.deepcopy(sm)
+
+    sm.background_removal_imodpoly(2, True)
+
+    assert not np.array_equal(sm.data, sm2.data)
+
+def test_poly():
+    sm = SpectralMap(TEST_FILE_PATH)
+    sm2 = copy.deepcopy(sm)
+
+    sm.background_removal_poly(2, True)
+
+    assert not np.array_equal(sm.data, sm2.data)
+
+def test_linearize():
+    sm = SpectralMap(TEST_FILE_PATH)
+
+    steps = [0.2, 0.5, 1.0, 1.6]
+    for step in steps:
+        sm.linearization(step)
+        x_axis = sm.x_axis
+        diffs = np.diff(x_axis, 1)
+        step_array = np.full_like(diffs, step)
+        assert np.allclose(diffs, step_array, rtol=1e-9, atol=1e-9)

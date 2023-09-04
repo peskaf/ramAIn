@@ -395,7 +395,7 @@ class Data:
 
         self._recompute_dependent_data()
 
-
+    # DONE
     def get_optimal_structuring_element_width(self, values: np.ndarray) -> int:
         """
         A function to compute optimal structuring element for the math morphology bg removal approach.
@@ -426,7 +426,7 @@ class Data:
                 if similarity_counter == max_sim_counter:
                     return window_width - max_sim_counter + 1 # restore window width of the first similar result
 
-
+    # DONE
     def _math_morpho_step(self, y: np.ndarray, window_width: int) -> np.ndarray:
         """
         One step of the math morpho bg subtraction algorithm.
@@ -444,7 +444,7 @@ class Data:
         approximation = np.mean(utils.math_morphology.erosion(spectrum_opening, window_width) + utils.math_morphology.dilation(spectrum_opening, window_width), axis=0)
         return np.minimum(spectrum_opening, approximation)
 
-
+    # DONE
     def _math_morpho_on_spectrum(self, y: np.ndarray, ignore_water: bool, signal_to_emit: Signal = None) -> np.ndarray:
         """
         A function to perform math morpho algorithm on one spectrum, icluding water ignorance and signal emiting.
@@ -484,7 +484,7 @@ class Data:
         approximation = np.mean(utils.math_morphology.erosion(spectrum_opening, window_width) + utils.math_morphology.dilation(spectrum_opening, window_width), axis=0)
         background = np.minimum(spectrum_opening, approximation)
         return background
-
+    # DONE
     def math_morpho(self, ignore_water: bool, signal_to_emit: Signal = None) -> None:
         """
         No speed-up version of the math morpho bg subtraction algorithm Perez-Pueyo et al (doi: 10.1366/000370210791414281)
@@ -501,6 +501,7 @@ class Data:
         self.data -= backgrounds
         self._recompute_dependent_data()
 
+    # DONE
     def auto_math_morpho(self, ignore_water: bool) -> None:
         """
         A function to perform automatic math morpho bg subtraction on the spectral map.
@@ -511,6 +512,7 @@ class Data:
 
         self.math_morpho(ignore_water)
 
+    # DONE
     def imodpoly_poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> np.ndarray:
         """
         Implementation of I-ModPoly algorithm for bg subtraction (Zhao et al, doi: 10.1366/000370207782597003), added vaersion
@@ -563,6 +565,7 @@ class Data:
         # NOTE: ploynomial has to be evaluated at every point of `self.x_axis` here as it is background for the whole spectrum
         return poly_obj(self.x_axis)
 
+    # DONE
     def imodpoly(self, degree: int, ignore_water: bool = True, signal_to_emit: Signal = None) -> None:
         """
         A function that applies the I-ModPoly algorithm on the whole spectral map. Zhao et al (doi: 10.1366/000370207782597003)
@@ -577,6 +580,7 @@ class Data:
         self.data -= backgrounds
         self._recompute_dependent_data()
 
+    # DONE
     def auto_imodpoly(self, degree: int, ignore_water: bool) -> None:
         """
         A function to perform I-ModPoly algorithm in auto processing.
@@ -588,6 +592,7 @@ class Data:
 
         self.imodpoly(degree, ignore_water)
 
+    # DONE
     def poly_bg(self, y: np.ndarray, degree: int, ignore_water: bool = True) -> np.ndarray:
         """
         A function to perform simple polynomial interpolation on the spectrum to estimate the backgrounds.
@@ -612,6 +617,7 @@ class Data:
         # NOTE: ploynomial has to be evaluated at every point of `self.x_axis` here as it is background for the whole spectrum
         return poly_obj(self.x_axis)
 
+    # DONE
     def auto_poly(self, degree: int, ignore_water: bool) -> None:
         """
         A function to perform polynomial background estimation and subtraction on the whole
@@ -626,6 +632,7 @@ class Data:
         self.data -= backgrounds
         self._recompute_dependent_data()
 
+    # DONE
     def linearize(self, step: float) -> None:
         """
         A function to perform data linearization on the whole spectral map.
@@ -642,6 +649,7 @@ class Data:
 
         self._recompute_dependent_data()
 
+    # DONE
     def auto_linearize(self, step: float) -> None:
         """
         A function to perform linearization on auto processing.

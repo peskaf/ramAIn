@@ -10,7 +10,8 @@ sys.path.append('..')
 from src.utils import paths
 from src.spectra_processing.cropping import cropping
 from src.spectra_processing.artifacts_removal import manual_removal, custom_auto_removal
-
+from src.spectra_processing.background_removal import math_morpho, imodpoly, poly
+from src.spectra_processing.linearization import linearization
 
 class SpectralMap():
 
@@ -44,7 +45,7 @@ class SpectralMap():
     @data.setter
     def data(self, value):
         self._data = value
-        print("Recomputing vis data")
+
         self.maxima = np.max(self.data, axis=2)
         self.averages = np.mean(self.data, axis=2)
         self._spike_info = {}
@@ -72,9 +73,6 @@ class SpectralMap():
             self.data = np.reshape(data,(map_shape[1], map_shape[0], -1))
 
             #print(self.data.nbytes / 1024 / 1024)
-
-            self.maxima = np.max(self.data, axis=2)
-            self.averages = np.mean(self.data, axis=2)
     
             # TODO: assert or if with possible raise?
             assert self.x_axis.shape[0] == self.data.shape[-1], "x-axis shape does not match with the data"
@@ -111,7 +109,7 @@ class SpectralMap():
     def interpolate_withing_range(self, x_index: int, y_index: int, start: float, end: float) -> None:
         self.data[x_index, y_index] = manual_removal.interpolate_within_range(self.data[x_index, y_index], self.x_axis, start, end)
     
-    def calculate_spikes_indices(self) -> None:
+    def _calculate_spikes_indices(self) -> None:
         map_indices, peak_positions = custom_auto_removal.calculate_spikes_indices(self.data, self.x_axis)
 
         self._spike_info['map_indices'] = map_indices
@@ -119,11 +117,28 @@ class SpectralMap():
 
     def auto_spike_removal(self) -> None:
         if not self._spike_info:
-            self.calculate_spikes_indices()
+            self._calculate_spikes_indices()
         self.data = custom_auto_removal.remove_spikes(self.data, self._spike_info['map_indices'], self._spike_info['peak_positions'])
 
+    # TODO: signals?
+    def background_removal_math_morpho(self, ignore_water: bool) -> None:
+        self.data = math_morpho.math_morpho(self.data, self.x_axis, ignore_water)
+
+    def background_removal_imodpoly(self, degree: int, ignore_water: bool) -> None:
+        self.data = imodpoly.imodpoly(self.data, self.x_axis, degree, ignore_water)
+
+    def background_removal_poly(self, degree: int, ignore_water: bool) -> None:
+        self.data = poly.poly(self.data, self.x_axis, degree, ignore_water)
+
+    def linearization(self, step: float) -> None:
+        self.data, self.x_axis = linearization.linearize(self.data, self.x_axis, step)
+
+    
+
 if __name__=='__main__':
-    sm = SpectralMap('/home/filip/ramAIn/data/Gefionella.mat')
+    data_path = '/home/filip/ramAIn/data/Gefionella.mat'
+    data_path_test = '/home/filip/ramAIn/src/tests/test_data.mat'
+    sm = SpectralMap(data_path)
     import matplotlib.pyplot as plt
     print(sm.data[0].shape)
     print(sm.x_axis)
