@@ -16,6 +16,6 @@ This can be later used for example for [making distributable app installer](http
   2. run `pip install -r requirements.txt`,
   3. run `python main.py`
 
-# TODO
-
+## Conda
+  1. `conda env create -f environment.yml`
 
