@@ -168,10 +168,10 @@ def _beta_divergence(X, W, H, beta, square_root=False):
                 sum_WH_beta += np.sum(np.dot(W, H[:, i]) ** beta)
 
         else:
-            sum_WH_beta = np.sum(WH ** beta)
+            sum_WH_beta = np.sum(WH**beta)
 
         sum_X_WH = np.dot(X_data, WH_data ** (beta - 1))
-        res = (X_data ** beta).sum() - beta * sum_X_WH
+        res = (X_data**beta).sum() - beta * sum_X_WH
         res += sum_WH_beta * (beta - 1)
         res /= beta * (beta - 1)
 
@@ -441,7 +441,7 @@ def _fit_coordinate_descent(
     verbose=0,
     shuffle=False,
     random_state=None,
-    signal_to_emit=None
+    signal_to_emit=None,
 ):
     """Compute Non-negative Matrix Factorization (NMF) with Coordinate Descent
 
@@ -519,7 +519,6 @@ def _fit_coordinate_descent(
     rng = check_random_state(random_state)
 
     for n_iter in range(1, max_iter + 1):
-
         if signal_to_emit is not None:
             signal_to_emit.emit()
 
@@ -753,7 +752,7 @@ def _fit_multiplicative_update(
     l2_reg_H=0,
     update_H=True,
     verbose=0,
-    signal_to_emit=None
+    signal_to_emit=None,
 ):
     """Compute Non-negative Matrix Factorization with Multiplicative Update.
 
@@ -840,7 +839,6 @@ def _fit_multiplicative_update(
 
     H_sum, HHt, XHt = None, None, None
     for n_iter in range(1, max_iter + 1):
-
         if signal_to_emit is not None:
             signal_to_emit.emit()
 
@@ -1367,7 +1365,7 @@ class NMF(TransformerMixin, BaseEstimator):
         verbose=0,
         shuffle=False,
         regularization="deprecated",
-        signal_to_emit=None
+        signal_to_emit=None,
     ):
         self.n_components = n_components
         self.init = init
@@ -1639,7 +1637,7 @@ class NMF(TransformerMixin, BaseEstimator):
                 verbose=self.verbose,
                 shuffle=self.shuffle,
                 random_state=self.random_state,
-                signal_to_emit=self.signal_to_emit
+                signal_to_emit=self.signal_to_emit,
             )
         elif self.solver == "mu":
             W, H, n_iter = _fit_multiplicative_update(
@@ -1655,7 +1653,7 @@ class NMF(TransformerMixin, BaseEstimator):
                 l2_reg_H,
                 update_H=update_H,
                 verbose=self.verbose,
-                signal_to_emit=self.signal_to_emit
+                signal_to_emit=self.signal_to_emit,
             )
         else:
             raise ValueError("Invalid solver parameter '%s'." % self.solver)
@@ -1663,8 +1661,7 @@ class NMF(TransformerMixin, BaseEstimator):
         if n_iter == self.max_iter and self.tol > 0:
             warnings.warn(
                 "Maximum number of iterations %d reached. Increase "
-                "it to improve convergence."
-                % self.max_iter,
+                "it to improve convergence." % self.max_iter,
                 ConvergenceWarning,
             )
 

@@ -3,7 +3,9 @@ import scipy.interpolate as si
 from typing import Tuple
 
 
-def linearize(spectral_map: np.ndarray, x_axis: np.ndarray, step: float) -> Tuple[np.ndarray, np.ndarray]:
+def linearize(
+    spectral_map: np.ndarray, x_axis: np.ndarray, step: float
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     A function to perform data linearization on the whole spectral map.
     That means that there will be equal steps between the data points.

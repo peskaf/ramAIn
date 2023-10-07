@@ -1,4 +1,4 @@
-import numpy as np   
+import numpy as np
 from ...utils import math_morphology
 
 
@@ -9,7 +9,7 @@ def get_optimal_structuring_element_width(values: np.ndarray) -> int:
 
     Parameters:
         values (np.ndarray): Values for which to compute the optimal structuring elementd width.
-    
+
     Returns:
         window_width (int): Optimal structuring element width.
     """
@@ -30,7 +30,9 @@ def get_optimal_structuring_element_width(values: np.ndarray) -> int:
         else:
             similarity_counter += 1
             if similarity_counter == max_sim_counter:
-                return window_width - max_sim_counter + 1 # restore window width of the first similar result
+                return (
+                    window_width - max_sim_counter + 1
+                )  # restore window width of the first similar result
 
 
 def _math_morpho_step(y: np.ndarray, window_width: int) -> np.ndarray:
@@ -47,11 +49,17 @@ def _math_morpho_step(y: np.ndarray, window_width: int) -> np.ndarray:
     """
 
     spectrum_opening = math_morphology.opening(y, window_width)
-    approximation = np.mean(math_morphology.erosion(spectrum_opening, window_width) + math_morphology.dilation(spectrum_opening, window_width), axis=0)
+    approximation = np.mean(
+        math_morphology.erosion(spectrum_opening, window_width)
+        + math_morphology.dilation(spectrum_opening, window_width),
+        axis=0,
+    )
     return np.minimum(spectrum_opening, approximation)
 
 
-def _math_morpho_on_spectrum(spectrum: np.ndarray, x_axis: np.ndarray, ignore_water: bool) -> np.ndarray:
+def _math_morpho_on_spectrum(
+    spectrum: np.ndarray, x_axis: np.ndarray, ignore_water: bool
+) -> np.ndarray:
     """
     A function to perform math morpho algorithm on one spectrum, icluding water ignorance and signal emiting.
     Implementation of changed algorithm by Perez-Pueyo et al (doi: 10.1366/000370210791414281).
@@ -72,7 +80,7 @@ def _math_morpho_on_spectrum(spectrum: np.ndarray, x_axis: np.ndarray, ignore_wa
         water_part_y = spectrum[water_start_index:]
         not_water_part_y = spectrum[:water_start_index]
 
-        window_width_water = int(np.round(len(water_part_y) / 3)) # TODO: best??
+        window_width_water = int(np.round(len(water_part_y) / 3))  # TODO: best??
         window_width_no_water = get_optimal_structuring_element_width(not_water_part_y)
 
         bg_water = _math_morpho_step(water_part_y, window_width_water)
@@ -84,11 +92,18 @@ def _math_morpho_on_spectrum(spectrum: np.ndarray, x_axis: np.ndarray, ignore_wa
     window_width = get_optimal_structuring_element_width(spectrum)
 
     spectrum_opening = math_morphology.opening(spectrum, window_width)
-    approximation = np.mean(math_morphology.erosion(spectrum_opening, window_width) + math_morphology.dilation(spectrum_opening, window_width), axis=0)
+    approximation = np.mean(
+        math_morphology.erosion(spectrum_opening, window_width)
+        + math_morphology.dilation(spectrum_opening, window_width),
+        axis=0,
+    )
     background = np.minimum(spectrum_opening, approximation)
     return background
 
-def math_morpho(spectral_map: np.ndarray, x_axis: np.ndarray, ignore_water: bool) -> np.ndarray:
+
+def math_morpho(
+    spectral_map: np.ndarray, x_axis: np.ndarray, ignore_water: bool
+) -> np.ndarray:
     """
     No speed-up version of the math morpho bg subtraction algorithm Perez-Pueyo et al (doi: 10.1366/000370210791414281)
     with version for water ignorance. Algorithm is performed on all spectra in the spectral map.
@@ -100,7 +115,9 @@ def math_morpho(spectral_map: np.ndarray, x_axis: np.ndarray, ignore_water: bool
         ignore_water (bool): Info whether variation of the algo with water ignorace should be performed.
     """
 
-    backgrounds = np.apply_along_axis(_math_morpho_on_spectrum, 2, spectral_map, x_axis, ignore_water)
+    backgrounds = np.apply_along_axis(
+        _math_morpho_on_spectrum, 2, spectral_map, x_axis, ignore_water
+    )
     spectral_map -= backgrounds
 
     return spectral_map
