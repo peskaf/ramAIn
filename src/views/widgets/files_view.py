@@ -1,4 +1,13 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QListWidget, QFileDialog, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QPushButton,
+    QHBoxLayout,
+    QVBoxLayout,
+    QLabel,
+    QListWidget,
+    QFileDialog,
+    QWidget,
+)
 from PySide6.QtCore import Signal, Qt, QSettings
 from PySide6.QtGui import QCursor
 
@@ -10,18 +19,18 @@ class FilesView(QFrame):
     A widget for visualization of files from selected folder.
     """
 
-    folder_changed = Signal(str) # custom signal that folder has changed
+    folder_changed = Signal(str)  # custom signal that folder has changed
 
     def __init__(self, format: str, parent: QWidget = None) -> None:
         """
         The constructor for file list widget that allows selection of the file folder.
-  
+
         Parameters:
             format (str): Format (extension) of the files to be displayed.
             parent (QWidget): Parent widget of this widget. Default: None.
         """
 
-        super().__init__() # NOTE: parent is missing here due to the bug in the library
+        super().__init__()  # NOTE: parent is missing here due to the bug in the library
 
         # name for qss styling
         self.setObjectName("files_view")
@@ -39,11 +48,13 @@ class FilesView(QFrame):
         # .mat files in curr data folder
         self.file_list = QListWidget(self)
 
-        # widget to display 
+        # widget to display
         self.curr_directory = QLabel(f"Current directory: {self.data_folder}")
 
         # .mat files in given folder
-        files = [file for file in os.listdir(self.data_folder) if file.endswith(self.format)]
+        files = [
+            file for file in os.listdir(self.data_folder) if file.endswith(self.format)
+        ]
         self.file_list.addItems(files)
 
         button = QPushButton("Change directory")
@@ -54,7 +65,7 @@ class FilesView(QFrame):
 
         # layout with curr folder and button to change it
         folder_layout = QHBoxLayout()
-        
+
         folder_layout.addWidget(self.curr_directory)
 
         # fill the area between the widgets
@@ -74,7 +85,9 @@ class FilesView(QFrame):
         A function to provide OS file dialog that will manage that valid directory will be chosen.
         """
 
-        temp_data_folder = QFileDialog.getExistingDirectory(self, "Select directory", self.data_folder)
+        temp_data_folder = QFileDialog.getExistingDirectory(
+            self, "Select directory", self.data_folder
+        )
 
         # some folder selected
         if temp_data_folder is not None and len(temp_data_folder) != 0:
@@ -89,7 +102,9 @@ class FilesView(QFrame):
         """
 
         # get .mat files in curr data folder
-        files = [file for file in os.listdir(self.data_folder) if file.endswith(self.format)]
+        files = [
+            file for file in os.listdir(self.data_folder) if file.endswith(self.format)
+        ]
         # remove everything that was present before
         self.file_list.clear()
         self.file_list.addItems(files)

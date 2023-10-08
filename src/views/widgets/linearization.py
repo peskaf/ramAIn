@@ -1,4 +1,11 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QPushButton, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QWidget,
+)
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
 
@@ -16,7 +23,7 @@ class Linearization(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for manual linearization parameters selection widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -24,14 +31,16 @@ class Linearization(QFrame):
         super().__init__(parent)
 
         self.setObjectName("method_instance")
-        self.icon = QIcon("icons/equal.svg")
+        self.icon = QIcon("src/resources/icons/equal.svg")
 
         self.init_data_step = 1
 
         # range is inclusive on both sides
         self.data_step_range = (0.1, 5)
-        self.data_step = QLineEdit(str(self.init_data_step), validator=validators.REAL_VALIDATOR)
-    
+        self.data_step = QLineEdit(
+            str(self.init_data_step), validator=validators.REAL_VALIDATOR
+        )
+
         self.data_step.editingFinished.connect(self.validate_data_step_range)
 
         self.apply_button = QPushButton("Apply")
@@ -46,9 +55,9 @@ class Linearization(QFrame):
         layout.addWidget(self.apply_button, 1, 3)
 
         layout.setColumnStretch(2, 1)
-        
+
         self.setLayout(layout)
-    
+
     def validate_data_step_range(self) -> None:
         """
         A function to validate inputs for `self.data_step`, setting it to one of the bounds
@@ -69,7 +78,7 @@ class Linearization(QFrame):
             parameters (tuple): Tuple of linarizatoin method parameters converted to correct types.
         """
 
-        parameters = (float(self.data_step.text()), )
+        parameters = (float(self.data_step.text()),)
 
         return parameters
 

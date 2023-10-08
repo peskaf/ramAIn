@@ -1,33 +1,42 @@
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QListWidgetItem, QMessageBox, QScrollArea, QSizePolicy, QPushButton, QFileDialog, QHBoxLayout, QProgressDialog, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QVBoxLayout,
+    QListWidgetItem,
+    QMessageBox,
+    QScrollArea,
+    QSizePolicy,
+    QPushButton,
+    QFileDialog,
+    QHBoxLayout,
+    QProgressDialog,
+    QWidget,
+)
 from PySide6.QtCore import Qt, Signal, QSettings, QEventLoop, QCoreApplication
 from PySide6.QtGui import QIcon, QPixmap
 
-from widgets.files_view import FilesView
-from widgets.collapse_button import CollapseButton
-from widgets.decomposition_methods import DecompositionMethods
-from widgets.component import Component
-
-from data import Data
+from ..widgets.files_view import FilesView
+from ..widgets.collapse_button import CollapseButton
+from ..widgets.decomposition_methods import DecompositionMethods
+from ..widgets.component import Component
 
 import os
 
 
 class SpectraDecomposition(QFrame):
-
     update_progress = Signal()
 
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for main widget for spectra decomposition and visualization of its components.
         Allows file seleciton, method selection and components exporting.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
 
         super().__init__(parent)
 
-        self.icon = QIcon("icons/pie.svg")
+        self.icon = QIcon("src/resources/icons/pie.svg")
 
         self.settings = QSettings()
 
@@ -103,7 +112,7 @@ class SpectraDecomposition(QFrame):
         """
 
         if file is None:
-            return # do nothing if no file is provided
+            return  # do nothing if no file is provided
         else:
             temp_curr_file = file.text()
 
@@ -130,11 +139,13 @@ class SpectraDecomposition(QFrame):
         """
 
         self.file_error = QMessageBox()
-        self.file_error.setIconPixmap(QPixmap("icons/x-circle.svg"))
+        self.file_error.setIconPixmap(QPixmap("src/resources/icons/x-circle.svg"))
         self.file_error.setText("File has invalide structure and cannot be loaded.")
-        self.file_error.setInformativeText("RamAIn currently supports only .mat files originally produced by WITec spectroscopes. Sorry :(")
+        self.file_error.setInformativeText(
+            "RamAIn currently supports only .mat files originally produced by WITec spectroscopes. Sorry :("
+        )
         self.file_error.setWindowTitle("Invalid file structure")
-        self.file_error.setWindowIcon(QIcon("icons/message.svg"))
+        self.file_error.setWindowIcon(QIcon("src/resources/icons/message.svg"))
         self.file_error.setStandardButtons(QMessageBox.Ok)
 
     def init_pca(self) -> None:
@@ -174,9 +185,9 @@ class SpectraDecomposition(QFrame):
         n_comps = self.methods.NMF.get_params()[0]
         NMF_max_iter = 200
         # multiply max_iter by 2 as colver is being used while both transform and fit, both with max_iter = 200
-        self.make_progress_bar(2*NMF_max_iter)
+        self.make_progress_bar(2 * NMF_max_iter)
         self.curr_data.NMF(n_comps, self.update_progress)
-        self.progress.setValue(2*NMF_max_iter)
+        self.progress.setValue(2 * NMF_max_iter)
         self.destroy_progress_bar()
         self.show_components()
 
@@ -190,8 +201,15 @@ class SpectraDecomposition(QFrame):
 
         # show new components
         for component in self.curr_data.components:
-            self.components.addWidget(Component(self.curr_data.x_axis, component["plot"], component["map"], parent=self.components_frame))
-        
+            self.components.addWidget(
+                Component(
+                    self.curr_data.x_axis,
+                    component["plot"],
+                    component["map"],
+                    parent=self.components_frame,
+                )
+            )
+
         self.export_button_graphics.setEnabled(True)
         self.export_button_txt.setEnabled(True)
 
@@ -201,9 +219,9 @@ class SpectraDecomposition(QFrame):
         """
 
         # NOTE: reversed needed here as the items would shift to lower index and would be never deleted
-        for i in reversed(range(self.components.count())): 
+        for i in reversed(range(self.components.count())):
             self.components.takeAt(i).widget().deleteLater()
-    
+
     def export_components_txt(self) -> None:
         """
         A function to open file dialog for txt export file selection and method call.
@@ -219,7 +237,9 @@ class SpectraDecomposition(QFrame):
         if not os.path.exists(data_folder):
             data_folder = os.getcwd()
 
-        file_name, extension = QFileDialog.getSaveFileName(self, "Components Export [txt]", data_folder, filter=filter)
+        file_name, extension = QFileDialog.getSaveFileName(
+            self, "Components Export [txt]", data_folder, filter=filter
+        )
 
         # user exited file selection dialog without any file selected
         if file_name is None or len(file_name) == 0:
@@ -241,20 +261,22 @@ class SpectraDecomposition(QFrame):
 
         # filter fot QFileDialog
         regex_formats = ["*." + ext for ext in supported_formats]
-        filter = ';;'.join(regex_formats)
+        filter = ";;".join(regex_formats)
 
         data_folder = self.settings.value("export_dir", self.files_view.data_folder)
         if not os.path.exists(data_folder):
             data_folder = os.getcwd()
 
-        file_name, extension = QFileDialog.getSaveFileName(self, "Components Export [graphics]", data_folder, filter=filter)
+        file_name, extension = QFileDialog.getSaveFileName(
+            self, "Components Export [graphics]", data_folder, filter=filter
+        )
 
         # user exited file selection dialog without any file selected
         if file_name is None or len(file_name) == 0:
             return
 
         # get only format string
-        format = str.split(extension, '.')[1]
+        format = str.split(extension, ".")[1]
 
         self.curr_data.export_components_graphics(file_name, format)
 
@@ -289,7 +311,6 @@ class SpectraDecomposition(QFrame):
         self.export_button_txt.setEnabled(enable)
         self.components_area.setEnabled(enable)
 
-
     def make_progress_bar(self, maximum: int) -> None:
         """
         A function to make a progress bar dialog with `maximum` steps.
@@ -323,7 +344,9 @@ class SpectraDecomposition(QFrame):
         )
 
         # hide borders, title and "X" in the top right corner
-        self.progress.setWindowFlags(Qt.WindowTitleHint) # Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowTitleHint
+        self.progress.setWindowFlags(
+            Qt.WindowTitleHint
+        )  # Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowTitleHint
         self.progress.setWindowIcon(QIcon("icons/message.svg"))
 
         self.progress.setWindowTitle("Work in progress")
@@ -340,7 +363,7 @@ class SpectraDecomposition(QFrame):
         # increment
         val = self.progress.value()
         self.progress.setValue(val + 1)
-    
+
     def destroy_progress_bar(self) -> None:
         """
         A function to destroy the progress bar dialog and to disconnect all its signals.

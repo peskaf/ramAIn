@@ -4,6 +4,7 @@ from PySide6.QtCore import Signal
 
 # NOTE: widget currently not used, will be used in the future
 
+
 class Normalization(QFrame):
     """
     A widget for parameters selection for the normalization method.
@@ -14,7 +15,7 @@ class Normalization(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for manual normalization parameters selection widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -22,7 +23,7 @@ class Normalization(QFrame):
         super().__init__(parent)
 
         self.setObjectName("method_instance")
-        self.icon = QIcon("icons/normalize.svg")
+        self.icon = QIcon("src/resources/icons/normalize.svg")
         ...
 
     def reset(self) -> None:

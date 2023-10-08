@@ -1,4 +1,11 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLineEdit, QLabel, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QPushButton,
+    QGridLayout,
+    QLineEdit,
+    QLabel,
+    QWidget,
+)
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
 
@@ -16,7 +23,7 @@ class PCA(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for manual PCA decomposition parameters selection widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -24,12 +31,15 @@ class PCA(QFrame):
         super().__init__(parent)
 
         self.setObjectName("method_instance")
-        self.icon = QIcon("icons/pie.svg")
+        self.icon = QIcon("src/resources/icons/pie.svg")
 
         self.init_num_of_components = 5
         self.components_range = (2, 10)
 
-        self.num_of_components = QLineEdit(str(self.init_num_of_components), validator=validators.POSITIVE_INT_VALIDATOR)
+        self.num_of_components = QLineEdit(
+            str(self.init_num_of_components),
+            validator=validators.POSITIVE_INT_VALIDATOR,
+        )
         self.num_of_components.editingFinished.connect(self.validate_components_range)
 
         self.apply_button = QPushButton("Apply")

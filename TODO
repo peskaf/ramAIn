@@ -1,0 +1,2 @@
+- Finish updating of right methods calls in manual and auto processing so that is calls methods from new model
+- check the removed signals from the rewritten methods (compare to original)

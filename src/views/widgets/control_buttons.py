@@ -14,7 +14,7 @@ class ControlButtons(QFrame):
     def __init__(self, parent: QWidget = None):
         """
         The constructor for control buttons widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -25,9 +25,9 @@ class ControlButtons(QFrame):
         self.setObjectName("control_buttons")
 
         buttons = [
-            QPushButton(icon=QIcon("icons/collapse.svg")),
-            QPushButton(icon=QIcon("icons/maximize.svg")),
-            QPushButton(icon=QIcon("icons/exit.svg"))
+            QPushButton(icon=QIcon("src/resources/icons/collapse.svg")),
+            QPushButton(icon=QIcon("src/resources/icons/maximize.svg")),
+            QPushButton(icon=QIcon("src/resources/icons/exit.svg")),
         ]
 
         layout = QHBoxLayout()
@@ -35,7 +35,7 @@ class ControlButtons(QFrame):
         for button in buttons:
             layout.addWidget(button)
 
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setAlignment(Qt.AlignTop)
 
         self.setLayout(layout)

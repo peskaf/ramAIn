@@ -1,4 +1,11 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QPushButton,
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QWidget,
+)
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
 
@@ -6,6 +13,7 @@ import pyqtgraph as pg
 import numpy as np
 
 from utils import validators
+
 
 class Cropping(QFrame):
     """
@@ -18,7 +26,7 @@ class Cropping(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for Cropping widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -26,22 +34,34 @@ class Cropping(QFrame):
         super().__init__(parent)
 
         self.setObjectName("method_instance")
-        self.icon = QIcon("icons/cut.svg")
+        self.icon = QIcon("src/resources/icons/cut.svg")
 
         self.init_inputs_value = 0
 
         # inputs
-        self.input_plot_start = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
-        self.input_plot_end = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
+        self.input_plot_start = QLineEdit(
+            str(self.init_inputs_value), validator=validators.REAL_VALIDATOR
+        )
+        self.input_plot_end = QLineEdit(
+            str(self.init_inputs_value), validator=validators.REAL_VALIDATOR
+        )
 
-        self.input_map_left = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
-        self.input_map_top = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
-        self.input_map_right = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
-        self.input_map_bottom = QLineEdit(str(self.init_inputs_value), validator=validators.REAL_VALIDATOR)
+        self.input_map_left = QLineEdit(
+            str(self.init_inputs_value), validator=validators.REAL_VALIDATOR
+        )
+        self.input_map_top = QLineEdit(
+            str(self.init_inputs_value), validator=validators.REAL_VALIDATOR
+        )
+        self.input_map_right = QLineEdit(
+            str(self.init_inputs_value), validator=validators.REAL_VALIDATOR
+        )
+        self.input_map_bottom = QLineEdit(
+            str(self.init_inputs_value), validator=validators.REAL_VALIDATOR
+        )
 
         # emit signal on button click (mainly for encapsulation purposes)
         self.apply_button = QPushButton("Apply")
-        self.apply_button.clicked.connect(self.apply_clicked.emit) 
+        self.apply_button.clicked.connect(self.apply_clicked.emit)
 
         # put widgets into layout
         layout = QGridLayout()
@@ -72,7 +92,7 @@ class Cropping(QFrame):
         layout.addWidget(self.apply_button, 6, 4)
 
         layout.setColumnStretch(3, 1)
-        
+
         self.setLayout(layout)
 
     def update_crop_plot_inputs(self, new_region: pg.LinearRegionItem) -> None:
@@ -80,22 +100,22 @@ class Cropping(QFrame):
         The function to update inputs on spectral plots crop parameters based on passed region.
 
         Parameters:
-            new_region (pg.LinearRegionItem): Linear region to get its bounds from.  
+            new_region (pg.LinearRegionItem): Linear region to get its bounds from.
         """
 
         region_start, region_end = new_region.getRegion()
         self.input_plot_start.setText(f"{region_start:.2f}")
         self.input_plot_end.setText(f"{region_end:.2f}")
-    
+
     def update_crop_pic_inputs(self, new_region: pg.RectROI) -> None:
         """
         The function to update inputs on spectral map crop parameters based on passed region.
 
         Parameters:
-            new_region (pg.RectROI): Linear region to get its bounds from.  
+            new_region (pg.RectROI): Linear region to get its bounds from.
         """
 
-        # floor upper left corner -> both coordinates decrease in the top-left direction; prevents cutting more than intended 
+        # floor upper left corner -> both coordinates decrease in the top-left direction; prevents cutting more than intended
         left, top = np.floor(new_region.pos())
 
         # ceil lower right corner -> both coordinates increase in the bottom-right direction
@@ -116,9 +136,14 @@ class Cropping(QFrame):
                                 Order: plot start, plot end, map left, map top, map right, map bottom
         """
 
-        parameters = (float(self.input_plot_start.text()), float(self.input_plot_end.text()), \
-            int(np.floor(float(self.input_map_left.text()))), int(np.floor(float(self.input_map_top.text()))), \
-            int(np.ceil(float(self.input_map_right.text()))), int(np.ceil(float(self.input_map_bottom.text()))))
+        parameters = (
+            float(self.input_plot_start.text()),
+            float(self.input_plot_end.text()),
+            int(np.floor(float(self.input_map_left.text()))),
+            int(np.floor(float(self.input_map_top.text()))),
+            int(np.ceil(float(self.input_map_right.text()))),
+            int(np.ceil(float(self.input_map_bottom.text()))),
+        )
 
         return parameters
 
@@ -133,8 +158,8 @@ class Cropping(QFrame):
             self.input_map_left,
             self.input_map_top,
             self.input_map_right,
-            self.input_map_bottom
-            ]
+            self.input_map_bottom,
+        ]
 
         for input in inputs:
             input.setText(str(self.init_inputs_value))

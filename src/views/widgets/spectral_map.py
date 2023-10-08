@@ -2,15 +2,16 @@ from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget
 from PySide6.QtCore import QRectF, QPoint, QSettings
 
-from widgets.plot_mode import PlotMode
-from widgets.adjustable_handles_roi import AdjustableHandlesROI
+from ..widgets.plot_mode import PlotMode
+from ..widgets.adjustable_handles_roi import AdjustableHandlesROI
 
 from utils import colors
 
 import pyqtgraph as pg
 import numpy as np
 
-class SpectralMap(QFrame):
+
+class SpectralMapGraph(QFrame):
     """
     A widget for spectral map visualization.
     """
@@ -18,7 +19,7 @@ class SpectralMap(QFrame):
     def __init__(self, data: np.ndarray, parent: QWidget = None) -> None:
         """
         The constructor for SpectralMap widget.
-  
+
         Parameters:
             data (np.ndarray): Data that is to be displayed.
             parent (QWidget): Parent widget of this widget. Default: None.
@@ -37,15 +38,15 @@ class SpectralMap(QFrame):
         self.image_view.ui.menuBtn.hide()
 
         color_map = colors.COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
-        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map)
         self.image_view.setColorMap(cmap)
         self.image_view.setImage(self.data, autoRange=False)
         self.image_view.getView().setDefaultPadding(0)
-        self.image_view.getView().setBackgroundColor(QColor(240,240,240))
+        self.image_view.getView().setBackgroundColor(QColor(240, 240, 240))
 
         # set limits for image manipulation (scrolling, moving)
         self._set_limits()
-        
+
         # make crosshair on the spectral map
         self._make_crosshair()
 
@@ -57,7 +58,6 @@ class SpectralMap(QFrame):
 
         layout = QHBoxLayout(self)
         layout.addWidget(self.image_view)
-
 
     def _make_crosshair(self) -> None:
         """
@@ -74,7 +74,11 @@ class SpectralMap(QFrame):
         self._crosshair_visible = True
 
         # update crosshair on mouse move
-        self.mouse_movement_proxy = pg.SignalProxy(self.image_view.getView().scene().sigMouseMoved, rateLimit=60, slot=self.update_crosshair)
+        self.mouse_movement_proxy = pg.SignalProxy(
+            self.image_view.getView().scene().sigMouseMoved,
+            rateLimit=60,
+            slot=self.update_crosshair,
+        )
 
     def update_crosshair(self, event: tuple[QPoint, None]) -> None:
         """
@@ -99,7 +103,9 @@ class SpectralMap(QFrame):
         """
 
         color_map = colors.COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
-        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map) # TODO: colomap from settings
+        cmap = pg.ColorMap(
+            pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map
+        )  # TODO: colomap from settings
         self.image_view.setColorMap(cmap)
 
         self.data = new_data
@@ -114,13 +120,17 @@ class SpectralMap(QFrame):
         """
 
         img = self.image_view.getImageItem()
-        offset = np.absolute(img.height()-img.width())/2
+        offset = np.absolute(img.height() - img.width()) / 2
 
         if img.height() > img.width():
-            self.image_view.getView().setLimits(xMin=-offset, xMax=img.height()-offset, yMin=0, yMax=img.height())
+            self.image_view.getView().setLimits(
+                xMin=-offset, xMax=img.height() - offset, yMin=0, yMax=img.height()
+            )
         else:
-            self.image_view.getView().setLimits(xMin=0, xMax=img.width(), yMin=-offset, yMax=img.width()-offset)
-    
+            self.image_view.getView().setLimits(
+                xMin=0, xMax=img.width(), yMin=-offset, yMax=img.width() - offset
+            )
+
     def hide_crosshair(self) -> None:
         """
         A function to make crosshair invisible.
@@ -154,9 +164,9 @@ class SpectralMap(QFrame):
             self._set_cropping_mode()
         elif new_mode == PlotMode.COSMIC_RAY_REMOVAL:
             self._set_crr_mode()
-        else: # default
+        else:  # default
             self._set_view_mode()
-            return 
+            return
 
         self.mode = new_mode
 
@@ -185,7 +195,7 @@ class SpectralMap(QFrame):
             self.image_view.removeItem(self.ROI)
         self.add_selection_region()
 
-        self._remove_scatter()   
+        self._remove_scatter()
 
     def _set_crr_mode(self) -> None:
         """
@@ -209,26 +219,36 @@ class SpectralMap(QFrame):
         hoverPen = pg.mkPen(color="#F8BC24", width=2)
 
         self.ROI = AdjustableHandlesROI(
-            pos=(0,0),
-            size=(self.image_view.getImageItem().width(), self.image_view.getImageItem().height()),
-            maxBounds=QRectF(0, 0, self.image_view.getImageItem().width(), self.image_view.getImageItem().height()),
+            pos=(0, 0),
+            size=(
+                self.image_view.getImageItem().width(),
+                self.image_view.getImageItem().height(),
+            ),
+            maxBounds=QRectF(
+                0,
+                0,
+                self.image_view.getImageItem().width(),
+                self.image_view.getImageItem().height(),
+            ),
             sideScalers=True,
             rotatable=False,
             pen=pen,
             hoverPen=hoverPen,
-            )
+        )
 
         # rest of handles around the ROI
-        self.ROI.addScaleHandle((1,1), (0,0))
-        self.ROI.addScaleHandle((0,0), (1,1))
-        self.ROI.addScaleHandle((0,1), (1,0))
-        self.ROI.addScaleHandle((1,0), (0,1))
-        self.ROI.addScaleHandle((0,0.5), (1,0.5))
-        self.ROI.addScaleHandle((0.5,0), (0.5,1))
-        
+        self.ROI.addScaleHandle((1, 1), (0, 0))
+        self.ROI.addScaleHandle((0, 0), (1, 1))
+        self.ROI.addScaleHandle((0, 1), (1, 0))
+        self.ROI.addScaleHandle((1, 0), (0, 1))
+        self.ROI.addScaleHandle((0, 0.5), (1, 0.5))
+        self.ROI.addScaleHandle((0.5, 0), (0.5, 1))
+
         self.image_view.addItem(self.ROI)
-    
-    def update_ROI(self, new_pos: tuple[float, float], new_size: tuple[float, float]) -> None:
+
+    def update_ROI(
+        self, new_pos: tuple[float, float], new_size: tuple[float, float]
+    ) -> None:
         """
         A function to update region's position and size according to passed parameters.
 
@@ -247,7 +267,7 @@ class SpectralMap(QFrame):
             new_pos = (new_pos[0], 0)
         elif new_pos[1] > self.image_view.getImageItem().height():
             new_pos = (new_pos[0], self.image_view.getImageItem().height())
-        
+
         # new_size validation
         if new_size[0] < 0:
             new_size = (0, new_size[1])
@@ -267,25 +287,27 @@ class SpectralMap(QFrame):
         A function to scatter passed positions onto the spectral map.
 
         Parameters:
-            positions (np.ndarray): Indices of the spikes in the array.        
+            positions (np.ndarray): Indices of the spikes in the array.
         """
 
         if self.scatter is not None:
             self.scatter.setData([])
         else:
-            scatter_color = colors.SCATTER_COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
+            scatter_color = colors.SCATTER_COLORMAPS[
+                str(self.settings.value("spectral_map/cmap"))
+            ]
             scatter_brush = pg.mkBrush(*(scatter_color[0]), 255)
             self.scatter = pg.ScatterPlotItem(size=3, brush=scatter_brush)
 
         # data for x-axis; 0.5 for centering
         x_data = [float(i[0] + 0.5) for i in positions]
- 
+
         # data for y-axis; 0.5 for centering
         y_data = [float(i[1] + 0.5) for i in positions]
- 
+
         self.scatter.addPoints(x_data, y_data)
         self.image_view.addItem(self.scatter)
-    
+
     def _remove_scatter(self) -> None:
         """
         A function to remove the scatter object from the view.

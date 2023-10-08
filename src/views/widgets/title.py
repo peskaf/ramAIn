@@ -2,6 +2,7 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QWidget
 from PySide6.QtCore import Qt
 
+
 class Title(QFrame):
     """
     A widget for application title (name).
@@ -10,7 +11,7 @@ class Title(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for main title widget displaying apps logo.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -24,13 +25,13 @@ class Title(QFrame):
 
         # icon has to be set as a lable with no text but with pixmap
         icon = QLabel()
-        icon.setPixmap(QPixmap("icons/RamAIn_logo_f8bc24.svg"))
-    
+        icon.setPixmap(QPixmap("src/resources/icons/RamAIn_logo_f8bc24.svg"))
+
         # enables resizing the icon to fit
         icon.setScaledContents(True)
         layout.addWidget(icon)
 
         layout.setAlignment(Qt.AlignCenter)
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         self.setLayout(layout)

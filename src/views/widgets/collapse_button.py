@@ -5,13 +5,13 @@ from PySide6.QtCore import Qt
 
 class CollapseButton(QPushButton):
     """
-    Subclass of `QPushButton` that collapses given `QFrame` when clicked. 
+    Subclass of `QPushButton` that collapses given `QFrame` when clicked.
     """
 
     def __init__(self, frame: QFrame, label: str = "", parent: QWidget = None):
         """
         The constructor for button that collapses/expands given `frame` on click.
-  
+
         Parameters:
             frame (QFrame): QFrame to be collapsed.
             parent (QWidget): Parent widget of this widget. Default: None.
@@ -26,8 +26,8 @@ class CollapseButton(QPushButton):
         self.frame = frame
 
         # icons
-        self.checked_icon = QIcon("icons/chevron_down.svg")
-        self.unchecked_icon = QIcon("icons/chevron_right.svg")
+        self.checked_icon = QIcon("src/resources/icons/chevron_down.svg")
+        self.unchecked_icon = QIcon("src/resources/icons/chevron_right.svg")
 
         self.setIcon(self.checked_icon)
 

@@ -1,4 +1,13 @@
-from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QRadioButton, QCheckBox, QPushButton, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QRadioButton,
+    QCheckBox,
+    QPushButton,
+    QWidget,
+)
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
 from utils import validators
@@ -18,7 +27,7 @@ class BackgroundRemoval(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for manual bg subtraction parameters selection widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -26,7 +35,7 @@ class BackgroundRemoval(QFrame):
         super().__init__(parent)
 
         self.setObjectName("method_instance")
-        self.icon = QIcon("icons/background.svg")
+        self.icon = QIcon("src/resources/icons/background.svg")
 
         self.poly_fit_btn = QRadioButton("Poly-fit (I-ModPoly)")
         self.poly_fit_btn.setChecked(True)
@@ -37,7 +46,9 @@ class BackgroundRemoval(QFrame):
         self.init_poly_deg = 5
         # NOTE: range is inclusive on both sides
         self.poly_deg_range = (1, 15)
-        self.poly_deg = QLineEdit(str(self.init_poly_deg), validator=validators.INT_VALIDATOR)
+        self.poly_deg = QLineEdit(
+            str(self.init_poly_deg), validator=validators.INT_VALIDATOR
+        )
         self.poly_deg.editingFinished.connect(self.validate_poly_deg_range)
         self.poly_deg.editingFinished.connect(self.emit_poly_deg_changed)
 
@@ -64,7 +75,7 @@ class BackgroundRemoval(QFrame):
         layout.addWidget(self.apply_button, 4, 3)
 
         layout.setColumnStretch(2, 1)
-        
+
         self.setLayout(layout)
 
     def emit_math_morpho_toggled(self) -> None:
@@ -118,7 +129,10 @@ class BackgroundRemoval(QFrame):
             parameters (tuple): Tuple of background removal method parameters converted to correct types.
         """
 
-        parameters = (int(self.poly_deg.text()), self.ignore_water_band.isChecked(), )
+        parameters = (
+            int(self.poly_deg.text()),
+            self.ignore_water_band.isChecked(),
+        )
         return parameters
 
     def reset(self) -> None:

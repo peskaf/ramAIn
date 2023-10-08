@@ -1,10 +1,10 @@
 from PySide6.QtWidgets import QFrame, QListWidget, QStackedLayout, QHBoxLayout, QWidget
 from PySide6.QtCore import Signal
 
-from widgets.auto_processing import AutoProcessing
-from widgets.manual_preprocessing import ManualPreprocessing
-from widgets.spectra_decomposition import SpectraDecomposition
-from widgets.settings import Settings
+from ..widgets.auto_processing import AutoProcessing
+from ..widgets.manual_preprocessing import ManualPreprocessing
+from ..widgets.spectra_decomposition import SpectraDecomposition
+from ..widgets.settings import Settings
 
 
 class Menu(QFrame):
@@ -17,7 +17,7 @@ class Menu(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for main menu widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -29,14 +29,12 @@ class Menu(QFrame):
         self.spectra_decomposition = SpectraDecomposition(self)
         self.auto_processing = AutoProcessing(self)
         self.settings_widget = Settings(self)
-        
 
         self.menu_items = [
             self.manual_preprocessing,
             self.spectra_decomposition,
             self.auto_processing,
             self.settings_widget,
-            
         ]
 
         self.list = QListWidget(self)
@@ -44,11 +42,13 @@ class Menu(QFrame):
         # name for qss styling
         self.list.setObjectName("menu")
 
-        self.list.addItems([menu_item.get_string_name() for menu_item in self.menu_items])
-        
+        self.list.addItems(
+            [menu_item.get_string_name() for menu_item in self.menu_items]
+        )
+
         self.list.setCurrentItem(self.list.item(0))
         # do not sort list items (methods) as they are in specific ored
-        self.list.setSortingEnabled(False) 
+        self.list.setSortingEnabled(False)
         self.list.setMinimumWidth(210)
 
         self.main_layout = QStackedLayout()
@@ -67,7 +67,7 @@ class Menu(QFrame):
         layout.addLayout(self.main_layout)
         layout.setSpacing(0)
         self.setLayout(layout)
-    
+
     def reset(self) -> None:
         """
         A function to reset the widgets to init state.

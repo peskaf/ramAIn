@@ -1,16 +1,26 @@
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QListWidgetItem, QMessageBox, QProgressDialog, QPushButton, QFileDialog, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QHBoxLayout,
+    QVBoxLayout,
+    QListWidgetItem,
+    QMessageBox,
+    QProgressDialog,
+    QPushButton,
+    QFileDialog,
+    QWidget,
+)
 from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop, QSettings
 from PySide6.QtGui import QIcon, QPixmap
 
-from widgets.color import Color
-from widgets.files_view import FilesView
-from widgets.collapse_button import CollapseButton
-from widgets.preprocessing_methods import PreprocessingMethods
-from widgets.spectral_map import SpectralMap
-from widgets.spectral_plot import SpectralPlot
-from widgets.plot_mode import PlotMode
+from ..widgets.color import Color
+from ..widgets.files_view import FilesView
+from ..widgets.collapse_button import CollapseButton
+from ..widgets.preprocessing_methods import PreprocessingMethods
+from ..widgets.spectral_map import SpectralMapGraph
+from ..widgets.spectral_plot import SpectralPlot
+from ..widgets.plot_mode import PlotMode
 
-from data import Data
+from model.spectal_map import SpectralMap
 
 from typing import Callable
 import numpy as np
@@ -21,7 +31,7 @@ class ManualPreprocessing(QFrame):
     """
     A widget for selection of methods, parameters and methods application for manual preprocessing.
     """
-    
+
     # signal that progress in progress bar should be updatet
     update_progress = Signal()
 
@@ -29,7 +39,7 @@ class ManualPreprocessing(QFrame):
         """
         The constructor for manual preprocessing menu page that allows selection and application of the methods
         on selected files, and its visualization.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -37,7 +47,7 @@ class ManualPreprocessing(QFrame):
         super().__init__(parent)
         self.parent = parent
 
-        self.icon = QIcon("icons/monitor.svg")
+        self.icon = QIcon("src/resources/icons/monitor.svg")
 
         self.settings = QSettings()
 
@@ -53,17 +63,19 @@ class ManualPreprocessing(QFrame):
         self.curr_plot_indices = None
 
         # set placeholders for spectral map and plot
-        self.spectral_map = Color("#F0F0F0", self)
-        self.spectral_map.setFixedSize(QSize(700,300))
+        self.spectral_map_graph = Color("#F0F0F0", self)
+        self.spectral_map_graph.setFixedSize(QSize(700, 300))
 
         self.plot = Color("#F0F0F0", self)
-        self.plot.setFixedSize(QSize(300,300))
+        self.plot.setFixedSize(QSize(300, 300))
 
-        self.files_view.file_list.currentItemChanged.connect(self.update_file) # change of file -> update picture
+        self.files_view.file_list.currentItemChanged.connect(
+            self.update_file
+        )  # change of file -> update picture
         self.files_view.folder_changed.connect(self.update_folder)
-        
+
         self.map_plot_layout = QHBoxLayout()
-        self.map_plot_layout.addWidget(self.spectral_map)
+        self.map_plot_layout.addWidget(self.spectral_map_graph)
         self.map_plot_layout.addWidget(self.plot)
         self.map_plot_layout.setAlignment(Qt.AlignHCenter)
 
@@ -107,32 +119,36 @@ class ManualPreprocessing(QFrame):
 
         self.setLayout(layout)
 
-    def update_spectral_map(self) -> None: # gets updated on file change
+    def update_spectral_map(self) -> None:  # gets updated on file change
         """
         A function to update spectral map according to `self.curr_data`.
         """
 
-        if self._is_placeholder(self.spectral_map): # init state
-            self.spectral_map = SpectralMap(self.curr_data.averages, self)
-            self.spectral_map.setFixedSize(QSize(300,300))
+        if self._is_placeholder(self.spectral_map_graph):  # init state
+            self.spectral_map_graph = SpectralMapGraph(self.curr_data.averages, self)
+            self.spectral_map_graph.setFixedSize(QSize(300, 300))
 
             # initially show [0,0] data
-            self.plot = SpectralPlot(self.curr_data.x_axis, self.curr_data.data[0,0], self)
+            self.plot = SpectralPlot(
+                self.curr_data.x_axis, self.curr_data.data[0, 0], self
+            )
             self.curr_plot_indices = (0, 0)
-            self.plot.setFixedSize(QSize(700,300))
+            self.plot.setFixedSize(QSize(700, 300))
 
             # update plot on picture click
-            self.spectral_map.image_view.getView().scene().sigMouseClicked.connect(self._update_plot_from_mouse_point)
+            self.spectral_map_graph.image_view.getView().scene().sigMouseClicked.connect(
+                self._update_plot_from_mouse_point
+            )
 
             # remove placeholder -> needs to be backwards -> widgets would shift to lower position
-            for i in reversed(range(self.map_plot_layout.count())): 
+            for i in reversed(range(self.map_plot_layout.count())):
                 self.map_plot_layout.itemAt(i).widget().setParent(None)
 
             # insert plot and spectral map
             self.map_plot_layout.addWidget(self.plot)
-            self.map_plot_layout.addWidget(self.spectral_map)
+            self.map_plot_layout.addWidget(self.spectral_map_graph)
         else:
-            self.spectral_map.update_image(self.curr_data.averages)
+            self.spectral_map_graph.update_image(self.curr_data.averages)
             self.update_plot(0, 0)
 
     def update_plot(self, x: int, y: int) -> None:
@@ -144,8 +160,13 @@ class ManualPreprocessing(QFrame):
             y (int): y coordinate (column) in the spectral map.
         """
         # update plot on valid indices only
-        if x < self.curr_data.averages.shape[0] and x >= 0 and y < self.curr_data.averages.shape[1] and y >= 0:
-            self.plot.update_data(self.curr_data.x_axis, self.curr_data.data[x,y])
+        if (
+            x < self.curr_data.averages.shape[0]
+            and x >= 0
+            and y < self.curr_data.averages.shape[1]
+            and y >= 0
+        ):
+            self.plot.update_data(self.curr_data.x_axis, self.curr_data.data[x, y])
             self.curr_plot_indices = (x, y)
 
             # update also bg line on plot change
@@ -158,7 +179,10 @@ class ManualPreprocessing(QFrame):
         `update_plot` with converted points afterwadrs.
         """
 
-        self.update_plot(int(np.floor(self.spectral_map.mouse_point.x())), int(np.floor(self.spectral_map.mouse_point.y())))
+        self.update_plot(
+            int(np.floor(self.spectral_map_graph.mouse_point.x())),
+            int(np.floor(self.spectral_map_graph.mouse_point.y())),
+        )
 
     def update_file(self, file: QListWidgetItem) -> None:
         """
@@ -166,12 +190,12 @@ class ManualPreprocessing(QFrame):
         """
 
         if file is None:
-            return # do nothing if no file is provided
+            return  # do nothing if no file is provided
         else:
             temp_curr_file = file.text()
 
         try:
-            self.curr_data = Data(os.path.join(self.curr_folder, temp_curr_file))
+            self.curr_data = SpectralMap(os.path.join(self.curr_folder, temp_curr_file))
         except:
             self.file_error.show()
             return
@@ -203,45 +227,54 @@ class ManualPreprocessing(QFrame):
 
         if self.curr_method == self.methods.cropping:
             self.plot.set_mode(PlotMode.CROPPING)
-            self.spectral_map.set_mode(PlotMode.CROPPING)
+            self.spectral_map_graph.set_mode(PlotMode.CROPPING)
 
             # plot connection to inputs
-            self.plot.linear_region.sigRegionChanged.connect(self.methods.cropping.update_crop_plot_inputs)
+            self.plot.linear_region.sigRegionChanged.connect(
+                self.methods.cropping.update_crop_plot_inputs
+            )
 
             # send init linear region start and end to input lines
             self.plot.linear_region.sigRegionChanged.emit(self.plot.linear_region)
 
             # map connection to inputs
-            self.spectral_map.ROI.sigRegionChanged.connect(self.methods.cropping.update_crop_pic_inputs)
+            self.spectral_map_graph.ROI.sigRegionChanged.connect(
+                self.methods.cropping.update_crop_pic_inputs
+            )
 
             # send init ROI position and size to input lines
-            self.spectral_map.ROI.sigRegionChanged.emit(self.spectral_map.ROI)
-    
+            self.spectral_map_graph.ROI.sigRegionChanged.emit(
+                self.spectral_map_graph.ROI
+            )
+
         elif self.curr_method == self.methods.cosmic_ray_removal:
             self.plot.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
-            self.spectral_map.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
+            self.spectral_map_graph.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
 
             # show spikes positions to the user
             self.curr_data.calculate_spikes_indices()
-            self.spectral_map.scatter_spikes(self.curr_data.spikes["map_indices"])
+            self.spectral_map_graph.scatter_spikes(self.curr_data.spikes["map_indices"])
 
         elif self.curr_method == self.methods.background_removal:
             self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)
-            self.spectral_map.set_mode(PlotMode.BACKGROUND_REMOVAL)
+            self.spectral_map_graph.set_mode(PlotMode.BACKGROUND_REMOVAL)
             # will set poly on plot according to init config of params
             self.bgr_update_plot()
 
         else:
             # default (view) on some other method
             self.plot.set_mode(PlotMode.DEFAULT)
-            self.spectral_map.set_mode(PlotMode.DEFAULT)
+            self.spectral_map_graph.set_mode(PlotMode.DEFAULT)
 
     def cropping_plot_region_change(self) -> None:
         """
         A function to change selection region on the spectral plot based on the inputs in the cropping widget.
         """
 
-        new_region = (float(self.methods.cropping.input_plot_start.text()), float(self.methods.cropping.input_plot_end.text()))
+        new_region = (
+            float(self.methods.cropping.input_plot_start.text()),
+            float(self.methods.cropping.input_plot_end.text()),
+        )
         self.plot.update_region(new_region)
 
     def cropping_map_region_change(self) -> None:
@@ -249,19 +282,28 @@ class ManualPreprocessing(QFrame):
         A function to change ROI on the spectral map based on the inputs in the cropping widget.
         """
 
-        new_pos = (float(self.methods.cropping.input_map_left.text()), float(self.methods.cropping.input_map_top.text()))
-        new_size = (float(self.methods.cropping.input_map_right.text()) - new_pos[0], float(self.methods.cropping.input_map_bottom.text()) - new_pos[1])
-        self.spectral_map.update_ROI(new_pos, new_size)
+        new_pos = (
+            float(self.methods.cropping.input_map_left.text()),
+            float(self.methods.cropping.input_map_top.text()),
+        )
+        new_size = (
+            float(self.methods.cropping.input_map_right.text()) - new_pos[0],
+            float(self.methods.cropping.input_map_bottom.text()) - new_pos[1],
+        )
+        self.spectral_map_graph.update_ROI(new_pos, new_size)
 
         # ROI does not have to change on invalid input -> send curr ROI info to QLineEdits
-        self.spectral_map.ROI.sigRegionChanged.emit(self.spectral_map.ROI)
+        self.spectral_map_graph.ROI.sigRegionChanged.emit(self.spectral_map_graph.ROI)
 
     def crr_region_change(self) -> None:
         """
         A function to change selection region on the spectral plot based on the inputs in the CRR widget.
         """
 
-        new_region = (float(self.methods.cosmic_ray_removal.input_manual_start.text()), float(self.methods.cosmic_ray_removal.input_manual_end.text()))
+        new_region = (
+            float(self.methods.cosmic_ray_removal.input_manual_start.text()),
+            float(self.methods.cosmic_ray_removal.input_manual_end.text()),
+        )
         self.plot.update_region(new_region)
 
     def crr_show_plot_region(self, show: bool) -> None:
@@ -272,18 +314,22 @@ class ManualPreprocessing(QFrame):
         if show:
             self.plot.show_selection_region()
             self.plot.hide_crosshair()
-            self.plot.linear_region.sigRegionChanged.connect(self.methods.cosmic_ray_removal.update_manual_input_region)
+            self.plot.linear_region.sigRegionChanged.connect(
+                self.methods.cosmic_ray_removal.update_manual_input_region
+            )
             self.plot.linear_region.sigRegionChanged.emit(self.plot.linear_region)
         else:
             self.plot.hide_selection_region()
             self.plot.show_crosshair()
-    
+
     def crr_show_maxima(self, show: bool) -> None:
         """
         A function to display maxima instead of averages on the spectral map.
         """
 
-        self.spectral_map.update_image(self.curr_data.maxima if show else self.curr_data.averages)
+        self.spectral_map_graph.update_image(
+            self.curr_data.maxima if show else self.curr_data.averages
+        )
 
     def init_cropping(self) -> None:
         """
@@ -291,12 +337,24 @@ class ManualPreprocessing(QFrame):
         """
 
         # connect inputs signals to function slots
-        self.methods.cropping.input_plot_start.editingFinished.connect(self.cropping_plot_region_change)
-        self.methods.cropping.input_plot_end.editingFinished.connect(self.cropping_plot_region_change)
-        self.methods.cropping.input_map_left.editingFinished.connect(self.cropping_map_region_change)
-        self.methods.cropping.input_map_top.editingFinished.connect(self.cropping_map_region_change)
-        self.methods.cropping.input_map_right.editingFinished.connect(self.cropping_map_region_change)
-        self.methods.cropping.input_map_bottom.editingFinished.connect(self.cropping_map_region_change)
+        self.methods.cropping.input_plot_start.editingFinished.connect(
+            self.cropping_plot_region_change
+        )
+        self.methods.cropping.input_plot_end.editingFinished.connect(
+            self.cropping_plot_region_change
+        )
+        self.methods.cropping.input_map_left.editingFinished.connect(
+            self.cropping_map_region_change
+        )
+        self.methods.cropping.input_map_top.editingFinished.connect(
+            self.cropping_map_region_change
+        )
+        self.methods.cropping.input_map_right.editingFinished.connect(
+            self.cropping_map_region_change
+        )
+        self.methods.cropping.input_map_bottom.editingFinished.connect(
+            self.cropping_map_region_change
+        )
         self.methods.cropping.apply_clicked.connect(self.cropping_apply)
 
     def init_crr(self) -> None:
@@ -305,10 +363,18 @@ class ManualPreprocessing(QFrame):
         """
 
         # connect inputs signals to function slots
-        self.methods.cosmic_ray_removal.input_manual_start.editingFinished.connect(self.crr_region_change)
-        self.methods.cosmic_ray_removal.input_manual_end.editingFinished.connect(self.crr_region_change)
-        self.methods.cosmic_ray_removal.manual_removal_toggled.connect(self.crr_show_plot_region)
-        self.methods.cosmic_ray_removal.show_maxima_toggled.connect(self.crr_show_maxima)
+        self.methods.cosmic_ray_removal.input_manual_start.editingFinished.connect(
+            self.crr_region_change
+        )
+        self.methods.cosmic_ray_removal.input_manual_end.editingFinished.connect(
+            self.crr_region_change
+        )
+        self.methods.cosmic_ray_removal.manual_removal_toggled.connect(
+            self.crr_show_plot_region
+        )
+        self.methods.cosmic_ray_removal.show_maxima_toggled.connect(
+            self.crr_show_maxima
+        )
         self.methods.cosmic_ray_removal.apply_clicked.connect(self.crr_apply)
 
     def init_bgr(self) -> None:
@@ -317,9 +383,15 @@ class ManualPreprocessing(QFrame):
         """
 
         # connect inputs signals to function slots
-        self.methods.background_removal.poly_deg_changed.connect(self.bgr_change_poly_on_plot)
-        self.methods.background_removal.ignore_water_band_toggled.connect(self.bgr_update_plot)
-        self.methods.background_removal.math_morpho_toggled.connect(self.bgr_update_plot)
+        self.methods.background_removal.poly_deg_changed.connect(
+            self.bgr_change_poly_on_plot
+        )
+        self.methods.background_removal.ignore_water_band_toggled.connect(
+            self.bgr_update_plot
+        )
+        self.methods.background_removal.math_morpho_toggled.connect(
+            self.bgr_update_plot
+        )
         self.methods.background_removal.apply_clicked.connect(self.bgr_apply)
 
     def init_linearization(self) -> None:
@@ -337,7 +409,7 @@ class ManualPreprocessing(QFrame):
         """
 
         self.curr_data.crop(*self.methods.cropping.get_params())
-        self.spectral_map.update_image(self.curr_data.averages)
+        self.spectral_map_graph.update_image(self.curr_data.averages)
         # go back to (0,0) coordinates as prev coordinates may not exist anymore
         self.update_plot(0, 0)
         # reconnect plot and map for sizes adjusting
@@ -351,10 +423,10 @@ class ManualPreprocessing(QFrame):
 
         self.curr_data.linearize(self.methods.linearization.get_params()[0])
         self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
-        self.spectral_map.update_image(self.curr_data.averages)
+        self.spectral_map_graph.update_image(self.curr_data.averages)
 
         self.update_method(self.methods.linearization)
-    
+
     def crr_apply(self) -> None:
         """
         A function to apply CRR method on the data.
@@ -365,11 +437,15 @@ class ManualPreprocessing(QFrame):
 
         if auto_removal:
             self.curr_data.remove_spikes()
-        else: # manual
-            self.curr_data.remove_manual(self.curr_plot_indices[0], self.curr_plot_indices[1], *self.methods.cosmic_ray_removal.get_params()[:2])
-    
+        else:  # manual
+            self.curr_data.remove_manual(
+                self.curr_plot_indices[0],
+                self.curr_plot_indices[1],
+                *self.methods.cosmic_ray_removal.get_params()[:2]
+            )
+
         self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
-        self.spectral_map.update_image(self.curr_data.averages)
+        self.spectral_map_graph.update_image(self.curr_data.averages)
 
         self.update_method(self.methods.cosmic_ray_removal)
 
@@ -381,16 +457,24 @@ class ManualPreprocessing(QFrame):
 
         math_morpho = self.methods.background_removal.math_morpho_btn.isChecked()
         poly_deg, ignore_water = self.methods.background_removal.get_params()
-        #steps for progress bar
+        # steps for progress bar
         steps = np.multiply(*self.curr_data.data.shape[:2])
 
         if math_morpho:
-            self.progress_bar_function(steps, self.curr_data.math_morpho, ignore_water, self.update_progress)
+            self.progress_bar_function(
+                steps, self.curr_data.math_morpho, ignore_water, self.update_progress
+            )
         else:
-            self.progress_bar_function(steps, self.curr_data.imodpoly, poly_deg, ignore_water, self.update_progress)
+            self.progress_bar_function(
+                steps,
+                self.curr_data.imodpoly,
+                poly_deg,
+                ignore_water,
+                self.update_progress,
+            )
 
         self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
-        self.spectral_map.update_image(self.curr_data.averages)
+        self.spectral_map_graph.update_image(self.curr_data.averages)
 
         self.update_method(self.methods.background_removal)
 
@@ -401,7 +485,9 @@ class ManualPreprocessing(QFrame):
         """
 
         ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
-        curr_spectrum = self.curr_data.data[self.curr_plot_indices[0], self.curr_plot_indices[1], :]
+        curr_spectrum = self.curr_data.data[
+            self.curr_plot_indices[0], self.curr_plot_indices[1], :
+        ]
         poly_bg = self.curr_data.imodpoly_poly_bg(curr_spectrum, degree, ignore_water)
         self.plot.plot_background(poly_bg)
 
@@ -412,7 +498,9 @@ class ManualPreprocessing(QFrame):
 
         if self.methods.background_removal.math_morpho_btn.isChecked():
             ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
-            curr_spectrum = self.curr_data.data[self.curr_plot_indices[0], self.curr_plot_indices[1], :]
+            curr_spectrum = self.curr_data.data[
+                self.curr_plot_indices[0], self.curr_plot_indices[1], :
+            ]
             mm_bg = self.curr_data._math_morpho_on_spectrum(curr_spectrum, ignore_water)
             self.plot.plot_background(mm_bg)
         else:
@@ -440,9 +528,11 @@ class ManualPreprocessing(QFrame):
         self.file_error = QMessageBox()
         self.file_error.setIconPixmap(QPixmap("icons/x-circle.svg"))
         self.file_error.setText("File has invalide structure and cannot be loaded.")
-        self.file_error.setInformativeText("RamAIn currently supports only .mat files originally produced by WITec spectroscopes. Sorry :(")
+        self.file_error.setInformativeText(
+            "RamAIn currently supports only .mat files originally produced by WITec spectroscopes. Sorry :("
+        )
         self.file_error.setWindowTitle("Invalid file structure")
-        self.file_error.setWindowIcon(QIcon("icons/message.svg"))
+        self.file_error.setWindowIcon(QIcon("src/resources/icons/message.svg"))
         self.file_error.setStandardButtons(QMessageBox.Ok)
 
     def enable_widgets(self, enable: bool) -> None:
@@ -458,7 +548,6 @@ class ManualPreprocessing(QFrame):
         self.save_button.setEnabled(enable)
         self.reload_discard_button.setEnabled(enable)
         self.parent.setEnabled(enable)
-
 
     def make_progress_bar(self, maximum: int) -> None:
         """
@@ -491,8 +580,10 @@ class ManualPreprocessing(QFrame):
         )
 
         # hide borders, title and "X" in the top right corner
-        self.progress.setWindowFlags(Qt.WindowTitleHint) # Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowTitleHint
-        self.progress.setWindowIcon(QIcon("icons/message.svg"))
+        self.progress.setWindowFlags(
+            Qt.WindowTitleHint
+        )  # Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowTitleHint
+        self.progress.setWindowIcon(QIcon("src/resources/icons/message.svg"))
 
         self.progress.setWindowTitle("Work in progress")
         self.update_progress.connect(self.set_progress)
@@ -508,7 +599,7 @@ class ManualPreprocessing(QFrame):
         QCoreApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
         val = self.progress.value()
         self.progress.setValue(val + 1)
-    
+
     def destroy_progress_bar(self) -> None:
         """
         A function to destroy progress bar dialog and disconnect its signals.
@@ -518,7 +609,9 @@ class ManualPreprocessing(QFrame):
         self.update_progress.disconnect()
         self.progress.deleteLater()
 
-    def progress_bar_function(self, progress_steps: int, function: Callable, *args, **kwargs) -> None:
+    def progress_bar_function(
+        self, progress_steps: int, function: Callable, *args, **kwargs
+    ) -> None:
         """
         A wrapper for function that requires progress bar to be shown and is able to emit signal to update progress.
         """
@@ -551,7 +644,9 @@ class ManualPreprocessing(QFrame):
         if not os.path.exists(data_folder):
             data_folder = os.getcwd()
 
-        file_name, _ = QFileDialog.getSaveFileName(self, "Save Data", data_folder, filter="*.mat")
+        file_name, _ = QFileDialog.getSaveFileName(
+            self, "Save Data", data_folder, filter="*.mat"
+        )
 
         # user did not select any file and exited the dialog
         if file_name is None or len(file_name) == 0:
@@ -566,7 +661,7 @@ class ManualPreprocessing(QFrame):
         self.update_folder(folder)
 
         self.update_file_list()
-    
+
     def discard_changes(self) -> None:
         """
         A function to load current file once again.

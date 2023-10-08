@@ -1,4 +1,13 @@
-from PySide6.QtWidgets import QFrame, QPushButton, QGridLayout, QLabel, QLineEdit, QRadioButton, QWidget, QCheckBox
+from PySide6.QtWidgets import (
+    QFrame,
+    QPushButton,
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QRadioButton,
+    QWidget,
+    QCheckBox,
+)
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Signal
 
@@ -20,7 +29,7 @@ class CosmicRayRemoval(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for CosmicRayRemoval widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -28,7 +37,7 @@ class CosmicRayRemoval(QFrame):
         super().__init__(parent)
 
         self.setObjectName("method_instance")
-        self.icon = QIcon("icons/signal.svg")
+        self.icon = QIcon("src/resources/icons/signal.svg")
 
         self.auto_removal_btn = QRadioButton("Automatic Removal")
         self.auto_removal_btn.setChecked(True)
@@ -65,7 +74,7 @@ class CosmicRayRemoval(QFrame):
 
         layout.addWidget(QLabel("Show Maxima"), 5, 0)
         layout.addWidget(self.show_maxima, 5, 1)
-        
+
         layout.addWidget(self.apply_button, 6, 3)
 
         layout.setColumnStretch(2, 1)
@@ -92,13 +101,13 @@ class CosmicRayRemoval(QFrame):
         """
 
         self.show_maxima_toggled.emit(self.show_maxima.isChecked())
-     
+
     def update_manual_input_region(self, new_region: pg.LinearRegionItem) -> None:
         """
         The function to update inputs on manual removal based on passed region.
 
         Parameters:
-            new_region (pg.LinearRegionItem): Linear region to get its bounds from.  
+            new_region (pg.LinearRegionItem): Linear region to get its bounds from.
         """
 
         region_start, region_end = new_region.getRegion()
@@ -126,7 +135,10 @@ class CosmicRayRemoval(QFrame):
             parameters (tuple): Tuple of CRR method parameters converted to correct types.
         """
 
-        parameters = (float(self.input_manual_start.text()), float(self.input_manual_end.text()),)
+        parameters = (
+            float(self.input_manual_start.text()),
+            float(self.input_manual_end.text()),
+        )
         return parameters
 
     def get_string_name(self) -> str:

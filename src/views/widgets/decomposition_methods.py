@@ -1,8 +1,15 @@
-from PySide6.QtWidgets import QFrame, QStackedLayout, QHBoxLayout, QListWidget, QSizePolicy, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QStackedLayout,
+    QHBoxLayout,
+    QListWidget,
+    QSizePolicy,
+    QWidget,
+)
 from PySide6.QtCore import Signal
 
-from widgets.PCA import PCA
-from widgets.NMF import NMF
+from ..widgets.PCA import PCA
+from ..widgets.NMF import NMF
 
 
 class DecompositionMethods(QFrame):
@@ -15,7 +22,7 @@ class DecompositionMethods(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for decomposition methods selection widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -37,10 +44,10 @@ class DecompositionMethods(QFrame):
 
         self.list.setObjectName("methods_list")
         self.list.addItems([method.get_string_name() for method in self.methods])
-        
+
         self.list.setCurrentItem(self.list.item(0))
         # do not sort list items (methods) as they are in specific ored
-        self.list.setSortingEnabled(False) 
+        self.list.setSortingEnabled(False)
 
         self.methods_layout = QStackedLayout()
 
@@ -73,4 +80,3 @@ class DecompositionMethods(QFrame):
         curr_method_index = self.list.currentRow()
         self.methods_layout.setCurrentIndex(curr_method_index)
         self.method_changed.emit(self.methods[curr_method_index])
-

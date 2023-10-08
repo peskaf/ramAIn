@@ -1,12 +1,12 @@
 from PySide6.QtWidgets import QFrame, QStackedLayout, QHBoxLayout, QListWidget, QWidget
 from PySide6.QtCore import Signal
 
-from widgets.cropping import Cropping
-from widgets.cosmic_ray_removal import CosmicRayRemoval
-from widgets.background_removal import BackgroundRemoval
-from widgets.normalization import Normalization
-from widgets.linearization import Linearization
-from widgets.view import View
+from ..widgets.cropping import Cropping
+from ..widgets.cosmic_ray_removal import CosmicRayRemoval
+from ..widgets.background_removal import BackgroundRemoval
+from ..widgets.normalization import Normalization
+from ..widgets.linearization import Linearization
+from ..widgets.view import View
 
 
 class PreprocessingMethods(QFrame):
@@ -19,7 +19,7 @@ class PreprocessingMethods(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for manual preprocessing methods selection widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -50,10 +50,10 @@ class PreprocessingMethods(QFrame):
 
         self.list.setObjectName("methods_list")
         self.list.addItems([method.get_string_name() for method in self.methods])
-        
+
         self.list.setCurrentItem(self.list.item(0))
         # do not sort list items (methods) as they are in specific ored
-        self.list.setSortingEnabled(False) 
+        self.list.setSortingEnabled(False)
 
         self.methods_layout = QStackedLayout()
 
@@ -71,7 +71,7 @@ class PreprocessingMethods(QFrame):
         layout.addLayout(self.methods_layout)
         layout.setSpacing(0)
         self.setLayout(layout)
-    
+
     def reset(self) -> None:
         """
         A function to reset the widgets to init state.

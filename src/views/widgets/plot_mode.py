@@ -1,5 +1,4 @@
-
-class PlotMode():
+class PlotMode:
     """
     An enum class for plot modes requiring spectral plot/map change.
     """

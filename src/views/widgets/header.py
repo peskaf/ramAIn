@@ -1,9 +1,10 @@
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget
 from PySide6.QtCore import Qt
 
-from widgets.title import Title
+from ..widgets.title import Title
+
 # NOTE: import currently unsued, will be used in future versions
-from widgets.control_buttons import ControlButtons
+from ..widgets.control_buttons import ControlButtons
 
 
 class Header(QFrame):
@@ -14,7 +15,7 @@ class Header(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for main window header to combine title with controll buttons.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -36,6 +37,6 @@ class Header(QFrame):
         # layout.addWidget(ControlButtons())
 
         layout.setAlignment(Qt.AlignLeft)
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         self.setLayout(layout)

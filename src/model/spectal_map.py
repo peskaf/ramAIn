@@ -34,10 +34,6 @@ class SpectralMap:
         self.maxima = None
         self.averages = None
 
-        # keep?
-        self.Z_scores = None
-        self.spikes = {}
-
         # Now load from matlab, then identify format and load according to it
         self.load_matlab()
 
@@ -87,6 +83,7 @@ class SpectralMap:
             ), "x-axis shape does not match with the data"
 
         except Exception as e:
+            print(e)
             raise Exception(f"{self.in_file}: file could not be loaded; {e}")
             # TODO: what should be returned so that the app still works?
             # -> some window stating this message if not auto processing, else skip and log this message

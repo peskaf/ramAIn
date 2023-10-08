@@ -1,4 +1,11 @@
-from PySide6.QtWidgets import QFrame, QLabel, QGridLayout, QRadioButton, QButtonGroup, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QLabel,
+    QGridLayout,
+    QRadioButton,
+    QButtonGroup,
+    QWidget,
+)
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QSettings
 
@@ -16,20 +23,20 @@ class Settings(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for settings adjusting widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
 
         super().__init__(parent)
 
-        self.icon = QIcon("icons/settings.svg")
+        self.icon = QIcon("src/resources/icons/settings.svg")
         self.settings = QSettings()
 
         n_colors = colors.N_COLORS
 
         # data for cmap visualization
-        cmap_data = np.tile(np.linspace(0, 1, num=n_colors), (2,1)).T
+        cmap_data = np.tile(np.linspace(0, 1, num=n_colors), (2, 1)).T
 
         cmap_pics = []
 
@@ -67,7 +74,7 @@ class Settings(QFrame):
         self.jet = QRadioButton("Jet")
         self.jet.toggled.connect(self.change_cmap)
         self.group.addButton(self.jet)
-        
+
         self.cividis = QRadioButton("Cividis")
         self.cividis.toggled.connect(self.change_cmap)
         self.group.addButton(self.cividis)
@@ -79,7 +86,6 @@ class Settings(QFrame):
         except:
             # default
             self.viridis.setChecked(True)
-
 
         layout = QGridLayout(self)
         layout.addWidget(QLabel("Spectral Map - Colormap"), 0, 0)
@@ -103,7 +109,7 @@ class Settings(QFrame):
         layout.setColumnStretch(layout.columnCount(), 1)
 
         self.setLayout(layout)
-        
+
     def change_cmap(self) -> None:
         """
         A function to change currently selected cmap in the widget and in the settings.
@@ -112,7 +118,7 @@ class Settings(QFrame):
         sender = self.sender()
         if sender.isChecked():
             self.settings.setValue("spectral_map/cmap", sender.text().lower())
-     
+
     def get_string_name(self) -> str:
         """
         A function to return name of this widget as a string.

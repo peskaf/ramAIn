@@ -1,16 +1,30 @@
-from PySide6.QtWidgets import QFrame, QFileDialog, QPushButton, QListWidget, QStackedLayout, QVBoxLayout, QHBoxLayout, QAbstractItemView, QListWidgetItem, QProgressDialog, QLabel, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QFileDialog,
+    QPushButton,
+    QListWidget,
+    QStackedLayout,
+    QVBoxLayout,
+    QHBoxLayout,
+    QAbstractItemView,
+    QListWidgetItem,
+    QProgressDialog,
+    QLabel,
+    QWidget,
+)
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QSettings, QThread, Signal
 
 from typing import List, Callable
 
-from widgets.auto_method import AutoMethod
+from ..widgets.auto_method import AutoMethod
 
 # TODO: not a widget
-from widgets.input_widget_specifier import InputWidgetSpecifier, WidgetType
+from ..widgets.input_widget_specifier import InputWidgetSpecifier, WidgetType
+
+from model.spectal_map import SpectralMap
 
 from utils import validators
-from data import Data
 
 import os
 import datetime
@@ -22,10 +36,16 @@ class FunctionItem(QListWidgetItem):
     and its parameters.
     """
 
-    def __init__(self, label: str, function: Callable = None, params: List = None, parent: QWidget = None) -> None:
+    def __init__(
+        self,
+        label: str,
+        function: Callable = None,
+        params: List = None,
+        parent: QWidget = None,
+    ) -> None:
         """
         The constructor for FunctionItem widget usable in QListWidget.
-  
+
         Parameters:
             label (str): Text to be displayed in the list.
             function (Callable): Function that this objects represents. Default: None.
@@ -46,7 +66,7 @@ class AutoProcessing(QFrame):
     def __init__(self, parent: QWidget = None) -> None:
         """
         The constructor for automatic processing widget.
-  
+
         Parameters:
             parent (QWidget): Parent widget of this widget. Default: None.
         """
@@ -54,7 +74,7 @@ class AutoProcessing(QFrame):
         super().__init__(parent)
         self.parent = parent
 
-        self.icon = QIcon("icons/play-circle.svg")
+        self.icon = QIcon("src/resources/icons/play-circle.svg")
 
         self.settings = QSettings()
 
@@ -62,7 +82,7 @@ class AutoProcessing(QFrame):
         self.file_list_widget = QListWidget(self)
         self.file_list_widget.setObjectName("files_list")
         self.file_list = []
-        
+
         self.add_file_btn = QPushButton("Add File")
         self.add_file_btn.clicked.connect(self.add_files)
 
@@ -70,7 +90,7 @@ class AutoProcessing(QFrame):
         self.remove_file_btn.clicked.connect(self.remove_file)
 
         # logs folder
-        self.logs_dir = self.settings.value('logs_dir', os.getcwd())
+        self.logs_dir = self.settings.value("logs_dir", os.getcwd())
         self.logs_dir_label = QLabel(f"Logs Directory: {self.logs_dir}")
         self.select_logs_dir = QPushButton("Select Logs Directory")
         self.select_logs_dir.clicked.connect(self.logs_dir_dialog)
@@ -83,7 +103,9 @@ class AutoProcessing(QFrame):
         self.auto_methods = self._make_auto_methods_widgets()
 
         self.methods_list.setObjectName("methods_list")
-        self.methods_list.addItems([f"{auto_method.name}" for i, auto_method in enumerate(self.auto_methods)])
+        self.methods_list.addItems(
+            [f"{auto_method.name}" for i, auto_method in enumerate(self.auto_methods)]
+        )
 
         self.methods_layout = QStackedLayout()
 
@@ -92,7 +114,7 @@ class AutoProcessing(QFrame):
 
         for i in range(self.methods_list.count()):
             self.methods_list.item(i).setIcon(self.auto_methods[i].icon)
-        
+
         self.methods_list.setCurrentItem(self.methods_list.item(0))
         self.methods_layout.setCurrentIndex(0)
 
@@ -144,7 +166,7 @@ class AutoProcessing(QFrame):
         methods_list_layout.addLayout(self.methods_layout)
 
         layout.addLayout(methods_list_layout)
-        
+
         add_method_layout = QHBoxLayout()
         add_method_layout.addStretch()
         add_method_layout.addWidget(self.add_to_pipeline_btn)
@@ -170,7 +192,7 @@ class AutoProcessing(QFrame):
 
         auto_cropping_absolute = AutoMethod(
             name="Spectral Plot Cropping - Absolute",
-            icon=QIcon("icons/cut.svg"),
+            icon=QIcon("src/resources/icons/cut.svg"),
             input_widget_specifiers={
                 "Start Position": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -188,13 +210,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_crop_absolute,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_cropping_absolute)
-        
+
         auto_cropping_relative = AutoMethod(
             name="Spectral Plot Cropping - Relative",
-            icon=QIcon("icons/cut.svg"),
+            icon=QIcon("src/resources/icons/cut.svg"),
             input_widget_specifiers={
                 "Start Position": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -212,21 +234,21 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_crop_relative,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_cropping_relative)
 
         auto_crr = AutoMethod(
             name="Cosmic Ray Removal",
-            icon=QIcon("icons/signal.svg"),
+            icon=QIcon("src/resources/icons/signal.svg"),
             callback=Data.auto_remove_spikes,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_crr)
 
         auto_bgr_imodpoly = AutoMethod(
             name="Background Removal - I-ModPoly",
-            icon=QIcon("icons/background.svg"),
+            icon=QIcon("src/resources/icons/background.svg"),
             input_widget_specifiers={
                 "Ignore Water Band": InputWidgetSpecifier(
                     widget_type=WidgetType.CHECKBOX,
@@ -244,13 +266,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_imodpoly,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_bgr_imodpoly)
 
         auto_bgr_airpls = AutoMethod(
             name="Background Removal - airPLS",
-            icon=QIcon("icons/background.svg"),
+            icon=QIcon("src/resources/icons/background.svg"),
             input_widget_specifiers={
                 "Lambda": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -261,13 +283,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_airPLS,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_bgr_airpls)
 
         auto_bgr_poly = AutoMethod(
             name="Background Removal - Polynom Interpolation",
-            icon=QIcon("icons/background.svg"),
+            icon=QIcon("src/resources/icons/background.svg"),
             input_widget_specifiers={
                 "Ignore Water Band": InputWidgetSpecifier(
                     widget_type=WidgetType.CHECKBOX,
@@ -285,13 +307,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_poly,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_bgr_poly)
 
         auto_bgr_math_morpho = AutoMethod(
             name="Background Removal - Mathematical Morphology",
-            icon=QIcon("icons/background.svg"),
+            icon=QIcon("src/resources/icons/background.svg"),
             input_widget_specifiers={
                 "Ignore Water Band": InputWidgetSpecifier(
                     widget_type=WidgetType.CHECKBOX,
@@ -301,13 +323,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_math_morpho,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_bgr_math_morpho)
 
         auto_linearization = AutoMethod(
             name="Linearization",
-            icon=QIcon("icons/equal.svg"),
+            icon=QIcon("src/resources/icons/equal.svg"),
             input_widget_specifiers={
                 "Step": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -319,13 +341,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_linearize,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_linearization)
 
         auto_NMF = AutoMethod(
             name="Decomposition - NMF",
-            icon=QIcon("icons/pie.svg"),
+            icon=QIcon("src/resources/icons/pie.svg"),
             input_widget_specifiers={
                 "Number of Components": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -337,13 +359,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_NMF,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_NMF)
 
         auto_PCA = AutoMethod(
             name="Decomposition - PCA",
-            icon=QIcon("icons/pie.svg"),
+            icon=QIcon("src/resources/icons/pie.svg"),
             input_widget_specifiers={
                 "Number of Components": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -355,13 +377,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_PCA,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_PCA)
-        
+
         auto_save = AutoMethod(
             name="Save Data",
-            icon=QIcon("icons/save.svg"),
+            icon=QIcon("src/resources/icons/save.svg"),
             input_widget_specifiers={
                 "Files Tag": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -376,13 +398,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_save_data,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_save)
 
         auto_export_components_graphics = AutoMethod(
             name="Export Components - Graphics",
-            icon=QIcon("icons/export.svg"),
+            icon=QIcon("src/resources/icons/export.svg"),
             input_widget_specifiers={
                 "Output Format": InputWidgetSpecifier(
                     widget_type=WidgetType.COMBO_BOX,
@@ -404,13 +426,13 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_export_graphics,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_export_components_graphics)
 
         auto_export_components_txt = AutoMethod(
             name="Export Components - Text",
-            icon=QIcon("icons/export.svg"),
+            icon=QIcon("src/resources/icons/export.svg"),
             input_widget_specifiers={
                 "Files Tag": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
@@ -425,7 +447,7 @@ class AutoProcessing(QFrame):
                 ),
             },
             callback=Data.auto_export_txt,
-            parent=self
+            parent=self,
         )
         auto_methods.append(auto_export_components_txt)
 
@@ -441,12 +463,14 @@ class AutoProcessing(QFrame):
         if not os.path.exists(self.logs_dir_label.text()):
             self.logs_dir_label.setText(os.getcwd())
 
-        temp_dir = QFileDialog.getExistingDirectory(self, "Select Directory", self.logs_dir_label.text())
+        temp_dir = QFileDialog.getExistingDirectory(
+            self, "Select Directory", self.logs_dir_label.text()
+        )
 
         if temp_dir is None or len(temp_dir) == 0:
             return
 
-        self.settings.setValue("logs_dir", temp_dir)      
+        self.settings.setValue("logs_dir", temp_dir)
         self.logs_dir = temp_dir
         self.logs_dir_label.setText(f"Logs Directory: {temp_dir}")
 
@@ -470,7 +494,9 @@ class AutoProcessing(QFrame):
         if not os.path.exists(temp_folder):
             temp_folder = os.getcwd()
 
-        file_names, _ = QFileDialog.getOpenFileNames(self, "Select one or more files", temp_folder, "*.mat")
+        file_names, _ = QFileDialog.getOpenFileNames(
+            self, "Select one or more files", temp_folder, "*.mat"
+        )
 
         if file_names is None or len(file_names) == 0:
             return
@@ -533,8 +559,14 @@ class AutoProcessing(QFrame):
         params = self.auto_methods[curr_item_index].get_params()
 
         # make item with function and params, display text version of params
-        self.pipeline_list.addItem(FunctionItem(curr_item.text() + (" - " if len(params_text) else "") + params_text, function, params))
-        
+        self.pipeline_list.addItem(
+            FunctionItem(
+                curr_item.text() + (" - " if len(params_text) else "") + params_text,
+                function,
+                params,
+            )
+        )
+
     def remove_from_pipeline(self) -> None:
         """
         A function to remove currently selected method from the pipeline
@@ -557,7 +589,7 @@ class AutoProcessing(QFrame):
         A function to enable/disable all possible widgets on the page.
 
         Parameters:
-            enable (bool): Whether to enable or disable the widgets.  
+            enable (bool): Whether to enable or disable the widgets.
         """
 
         self.pipeline_list.setEnabled(enable)
@@ -604,10 +636,10 @@ class AutoProcessing(QFrame):
             }
             """
         )
-        
+
         # hide borders, title and "X" in the top right corner
         self.progress.setWindowFlags(Qt.WindowTitleHint)
-        self.progress.setWindowIcon(QIcon("icons/message.svg"))
+        self.progress.setWindowIcon(QIcon("src/resources/icons/message.svg"))
         self.progress.setWindowTitle("Work in progress")
         self.progress.forceShow()
 
@@ -619,7 +651,7 @@ class AutoProcessing(QFrame):
             val (int): Value to which to set the progress in the progress bar.
         """
         self.progress.setValue(val)
-    
+
     def destroy_progress_bar(self) -> None:
         """
         A function to destroy the progress bar object.
@@ -658,7 +690,7 @@ class PipelineWorker(QThread):
     def __init__(self, auto_processing_widget: AutoProcessing) -> None:
         """
         The constructor `AutoProcessing` PipelineWorker. Its job is to run the pipeline in another thread.
-  
+
         Parameters:
             auto_processing_widget (AutoProcessing): AutoProcessing widget on which this worker operates.
         """
@@ -681,10 +713,12 @@ class PipelineWorker(QThread):
         """
 
         # log file has name according to current time
-        logs_file = os.path.join(self.auto_proceesing_widget.logs_dir, "logs_" + datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S") + ".txt")
+        logs_file = os.path.join(
+            self.auto_proceesing_widget.logs_dir,
+            "logs_" + datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S") + ".txt",
+        )
 
         with open(logs_file, "w", encoding="utf-8") as logs:
-
             files_count = len(self.auto_proceesing_widget.file_list)
             steps_count = self.auto_proceesing_widget.pipeline_list.count()
 
@@ -693,17 +727,30 @@ class PipelineWorker(QThread):
                 try:
                     curr_data = Data(file_name)
                     for item_index in range(steps_count):
-                        curr_function = self.auto_proceesing_widget.pipeline_list.item(item_index).function
-                        curr_step_text = self.auto_proceesing_widget.pipeline_list.item(item_index).text()
-                        curr_params = self.auto_proceesing_widget.pipeline_list.item(item_index).params
-                        print(f"[STEP {item_index + 1}/{steps_count}]: {curr_step_text}; function: {curr_function.__name__}", file=logs)
+                        curr_function = self.auto_proceesing_widget.pipeline_list.item(
+                            item_index
+                        ).function
+                        curr_step_text = self.auto_proceesing_widget.pipeline_list.item(
+                            item_index
+                        ).text()
+                        curr_params = self.auto_proceesing_widget.pipeline_list.item(
+                            item_index
+                        ).params
+                        print(
+                            f"[STEP {item_index + 1}/{steps_count}]: {curr_step_text}; function: {curr_function.__name__}",
+                            file=logs,
+                        )
 
                         # function call
                         curr_function(curr_data, *curr_params)
 
                         print("[SUCCESS]", file=logs)
-                        self.progress_update.emit((i - 1)*self.auto_proceesing_widget.pipeline_list.count() + item_index + 1)
-            
+                        self.progress_update.emit(
+                            (i - 1) * self.auto_proceesing_widget.pipeline_list.count()
+                            + item_index
+                            + 1
+                        )
+
                 except Exception as e:
                     print(f"[ERROR]: {e}", file=logs)
                 print(file=logs)
