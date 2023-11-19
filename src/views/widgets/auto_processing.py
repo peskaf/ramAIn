@@ -209,7 +209,7 @@ class AutoProcessing(QFrame):
                     parameter_order=1,
                 ),
             },
-            callback=Data.auto_crop_absolute,
+            callback=SpectralMap.crop_spectra_absolute,
             parent=self,
         )
         auto_methods.append(auto_cropping_absolute)
@@ -233,7 +233,7 @@ class AutoProcessing(QFrame):
                     parameter_order=1,
                 ),
             },
-            callback=Data.auto_crop_relative,
+            callback=SpectralMap.crop_spectra_relative,
             parent=self,
         )
         auto_methods.append(auto_cropping_relative)
@@ -241,7 +241,7 @@ class AutoProcessing(QFrame):
         auto_crr = AutoMethod(
             name="Cosmic Ray Removal",
             icon=QIcon("src/resources/icons/signal.svg"),
-            callback=Data.auto_remove_spikes,
+            callback=SpectralMap.auto_spike_removal,
             parent=self,
         )
         auto_methods.append(auto_crr)
@@ -265,7 +265,7 @@ class AutoProcessing(QFrame):
                     parameter_order=0,
                 ),
             },
-            callback=Data.auto_imodpoly,
+            callback=SpectralMap.background_removal_imodpoly,
             parent=self,
         )
         auto_methods.append(auto_bgr_imodpoly)
@@ -282,7 +282,7 @@ class AutoProcessing(QFrame):
                     parameter_order=0,
                 ),
             },
-            callback=Data.auto_airPLS,
+            callback=SpectralMap.background_removal_airpls,
             parent=self,
         )
         auto_methods.append(auto_bgr_airpls)
@@ -306,7 +306,7 @@ class AutoProcessing(QFrame):
                     parameter_order=0,
                 ),
             },
-            callback=Data.auto_poly,
+            callback=SpectralMap.background_removal_poly,
             parent=self,
         )
         auto_methods.append(auto_bgr_poly)
@@ -322,7 +322,7 @@ class AutoProcessing(QFrame):
                     parameter_order=0,
                 ),
             },
-            callback=Data.auto_math_morpho,
+            callback=SpectralMap.background_removal_math_morpho,
             parent=self,
         )
         auto_methods.append(auto_bgr_math_morpho)
@@ -340,7 +340,7 @@ class AutoProcessing(QFrame):
                     parameter_order=0,
                 ),
             },
-            callback=Data.auto_linearize,
+            callback=SpectralMap.linearization,
             parent=self,
         )
         auto_methods.append(auto_linearization)
@@ -358,7 +358,7 @@ class AutoProcessing(QFrame):
                     parameter_order=0,
                 ),
             },
-            callback=Data.auto_NMF,
+            callback=SpectralMap.decomposition_NMF,
             parent=self,
         )
         auto_methods.append(auto_NMF)
@@ -376,7 +376,7 @@ class AutoProcessing(QFrame):
                     parameter_order=0,
                 ),
             },
-            callback=Data.auto_PCA,
+            callback=SpectralMap.decomposition_PCA,
             parent=self,
         )
         auto_methods.append(auto_PCA)
@@ -397,7 +397,7 @@ class AutoProcessing(QFrame):
                     parameter_order=0,
                 ),
             },
-            callback=Data.auto_save_data,
+            callback=SpectralMap.save_matlab,
             parent=self,
         )
         auto_methods.append(auto_save)
@@ -411,21 +411,21 @@ class AutoProcessing(QFrame):
                     output_type=str,
                     choices=["png", "pdf", "ps", "eps", "svg"],
                     init_value="png",
-                    parameter_order=2,
+                    parameter_order=0,
                 ),
                 "Files Tag": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     output_type=str,
-                    parameter_order=1,
+                    parameter_order=2,
                 ),
                 "Directory": InputWidgetSpecifier(
                     widget_type=WidgetType.DIRECTORY_SELECTION,
                     output_type=str,
                     dir_registry_value="export_dir",
-                    parameter_order=0,
+                    parameter_order=1,
                 ),
             },
-            callback=Data.auto_export_graphics,
+            callback=SpectralMap.export_to_graphics,
             parent=self,
         )
         auto_methods.append(auto_export_components_graphics)
@@ -446,7 +446,7 @@ class AutoProcessing(QFrame):
                     parameter_order=0,
                 ),
             },
-            callback=Data.auto_export_txt,
+            callback=SpectralMap.export_to_text,
             parent=self,
         )
         auto_methods.append(auto_export_components_txt)
@@ -725,7 +725,7 @@ class PipelineWorker(QThread):
             for i, file_name in enumerate(self.auto_proceesing_widget.file_list, 1):
                 print(f"[FILE {i}/{files_count}]: {file_name}", file=logs)
                 try:
-                    curr_data = Data(file_name)
+                    curr_data = SpectralMap(file_name)
                     for item_index in range(steps_count):
                         curr_function = self.auto_proceesing_widget.pipeline_list.item(
                             item_index

@@ -91,8 +91,8 @@ class SpectralMap:
     def save_matlab(
         self,
         out_folder_path: Union[str, Path],
-        file_name: Optional[Union[str, Path]] = None,
         file_tag: Optional[str] = None,
+        file_name: Optional[Union[str, Path]] = None,
     ) -> None:
         out_file = paths.create_new_file_name(
             out_folder_path, file_name if file_name else self.in_file, file_tag
@@ -175,8 +175,8 @@ class SpectralMap:
         self,
         file_format: str,
         out_dir: str = None,
-        file_name: str = None,
         file_tag: str = None,
+        file_name: str = None,
     ) -> None:
         # TODO
         cmap = "viridis"  # str(settings.value("spectral_map/cmap")),
@@ -193,10 +193,7 @@ class SpectralMap:
         )
 
     def export_to_text(
-        self,
-        out_dir: str = None,
-        file_name: str = None,
-        file_tag: str = None,
+        self, out_dir: str = None, file_tag: str = None, file_name: str = None
     ) -> None:
         to_text.export_components_txt(
             self._components, self.x_axis, self.in_file, out_dir, file_name, file_tag
