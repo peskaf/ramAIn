@@ -1,2 +1,5 @@
-- check the removed signals from the rewritten methods (compare to original)
 - cmaps from settings
+- test auto processing
+- water normalization
+- auto components number
+- batch decomposition of stitched files
