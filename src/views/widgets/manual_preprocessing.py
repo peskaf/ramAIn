@@ -411,6 +411,7 @@ class ManualPreprocessing(QFrame):
         """
         cropping_params = self.methods.cropping.get_params()
         self.curr_data.crop_spectra_absolute(*cropping_params[:2])
+        print(cropping_params)
         self.curr_data.crop_spectral_map(*cropping_params[2:])
 
         self.spectral_map_graph.update_image(self.curr_data.averages)

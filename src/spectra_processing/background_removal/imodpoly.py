@@ -1,9 +1,14 @@
 import numpy as np
 from ...utils import indices
+from PySide6.QtCore import Signal
 
 
 def imodpoly(
-    spectral_map: np.ndarray, x_axis: np.ndarray, degree: int, ignore_water: bool = True
+    spectral_map: np.ndarray,
+    x_axis: np.ndarray,
+    degree: int,
+    ignore_water: bool = True,
+    signal_to_emit: Signal = None,
 ) -> np.ndarray:
     """
     A function that applies the I-ModPoly algorithm on the whole spectral map. Zhao et al (doi: 10.1366/000370207782597003)
@@ -15,15 +20,19 @@ def imodpoly(
     """
 
     backgrounds = np.apply_along_axis(
-        imodpoly_poly_bg, 2, spectral_map, x_axis, degree, ignore_water
+        imodpoly_bg, 2, spectral_map, x_axis, degree, ignore_water, signal_to_emit
     )
     spectral_map -= backgrounds
 
     return spectral_map
 
 
-def imodpoly_poly_bg(
-    spectrum: np.ndarray, x_axis: np.ndarray, degree: int, ignore_water: bool = True
+def imodpoly_bg(
+    spectrum: np.ndarray,
+    x_axis: np.ndarray,
+    degree: int,
+    ignore_water: bool = True,
+    signal_to_emit: Signal = None,
 ) -> np.ndarray:
     """
     Implementation of I-ModPoly algorithm for bg subtraction (Zhao et al, doi: 10.1366/000370207782597003), added vaersion
@@ -38,6 +47,9 @@ def imodpoly_poly_bg(
     Returns:
         result (np.ndarray): Estimated background of the provided spectrum `y`.
     """
+
+    if signal_to_emit is not None:
+        signal_to_emit.emit()
 
     x = x_axis
 

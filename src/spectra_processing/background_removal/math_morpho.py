@@ -1,5 +1,6 @@
 import numpy as np
 from ...utils import math_morphology
+from PySide6.QtCore import Signal
 
 
 def get_optimal_structuring_element_width(values: np.ndarray) -> int:
@@ -58,7 +59,10 @@ def _math_morpho_step(y: np.ndarray, window_width: int) -> np.ndarray:
 
 
 def _math_morpho_on_spectrum(
-    spectrum: np.ndarray, x_axis: np.ndarray, ignore_water: bool
+    spectrum: np.ndarray,
+    x_axis: np.ndarray,
+    ignore_water: bool,
+    signal_to_emit: Signal = None,
 ) -> np.ndarray:
     """
     A function to perform math morpho algorithm on one spectrum, icluding water ignorance and signal emiting.
@@ -72,6 +76,9 @@ def _math_morpho_on_spectrum(
     Returns:
         result (np.ndarray): Estimated background of the provided spectrum `spectrum`.
     """
+
+    if signal_to_emit is not None:
+        signal_to_emit.emit()
 
     if ignore_water:
         water_start_point = 2800
@@ -102,7 +109,10 @@ def _math_morpho_on_spectrum(
 
 
 def math_morpho(
-    spectral_map: np.ndarray, x_axis: np.ndarray, ignore_water: bool
+    spectral_map: np.ndarray,
+    x_axis: np.ndarray,
+    ignore_water: bool,
+    signal_to_emit: Signal = None,
 ) -> np.ndarray:
     """
     No speed-up version of the math morpho bg subtraction algorithm Perez-Pueyo et al (doi: 10.1366/000370210791414281)
@@ -116,7 +126,7 @@ def math_morpho(
     """
 
     backgrounds = np.apply_along_axis(
-        _math_morpho_on_spectrum, 2, spectral_map, x_axis, ignore_water
+        _math_morpho_on_spectrum, 2, spectral_map, x_axis, ignore_water, signal_to_emit
     )
     spectral_map -= backgrounds
 

@@ -21,6 +21,8 @@ from src.spectra_processing.linearization import linearization
 from src.spectra_processing.decomposition import PCA, NMF
 from src.spectra_processing.export import to_graphics, to_text
 
+from PySide6.QtCore import Signal
+
 
 class SpectralMap:
     def __init__(self, in_file_path: Union[str, Path]) -> None:
@@ -122,6 +124,7 @@ class SpectralMap:
         )
 
     def crop_spectral_map(self, left: int, top: int, right: int, bottom: int) -> None:
+        print(left, top, right, bottom)
         self.data = cropping.crop_map(self.data, left, top, right, bottom)
 
     def interpolate_withing_range(
@@ -150,49 +153,70 @@ class SpectralMap:
 
     # TODO: signals?
     def background_removal_math_morpho(
-        self, ignore_water: bool, one_spectrum: Optional[np.ndarray] = None
+        self,
+        ignore_water: bool,
+        signal_to_emit: Signal = None,
+        one_spectrum: Optional[np.ndarray] = None,
     ) -> Optional[np.ndarray]:
-        if one_spectrum:
-            return math_morpho.math_morpho(one_spectrum, self.x_axis, ignore_water)
-        self.data = math_morpho.math_morpho(self.data, self.x_axis, ignore_water)
+        if one_spectrum is not None:
+            return math_morpho._math_morpho_on_spectrum(
+                one_spectrum, self.x_axis, ignore_water
+            )
+        self.data = math_morpho.math_morpho(
+            self.data, self.x_axis, ignore_water, signal_to_emit
+        )
 
     def background_removal_imodpoly(
-        self, degree: int, ignore_water: bool, one_spectrum: Optional[np.ndarray] = None
+        self,
+        degree: int,
+        ignore_water: bool,
+        signal_to_emit: Signal = None,
+        one_spectrum: Optional[np.ndarray] = None,
     ) -> Optional[np.ndarray]:
-        if one_spectrum:
-            return imodpoly.imodpoly(one_spectrum, self.x_axis, degree, ignore_water)
-        self.data = imodpoly.imodpoly(self.data, self.x_axis, degree, ignore_water)
+        if one_spectrum is not None:
+            return imodpoly.imodpoly_bg(one_spectrum, self.x_axis, degree, ignore_water)
+        self.data = imodpoly.imodpoly(
+            self.data, self.x_axis, degree, ignore_water, signal_to_emit
+        )
 
     def background_removal_poly(
         self, degree: int, ignore_water: bool, one_spectrum: Optional[np.ndarray] = None
     ) -> Optional[np.ndarray]:
-        if one_spectrum:
-            return poly.poly(one_spectrum, self.x_axis, degree, ignore_water)
+        if one_spectrum is not None:
+            return poly.poly_bg(one_spectrum, self.x_axis, degree, ignore_water)
         self.data = poly.poly(self.data, self.x_axis, degree, ignore_water)
 
     def background_removal_airpls(
-        self, lambda_: int, one_spectrum: Optional[np.ndarray] = None
+        self,
+        lambda_: int,
+        one_spectrum: Optional[np.ndarray] = None,
     ) -> Optional[np.ndarray]:
-        if one_spectrum:
-            return airpls.airPLS(one_spectrum, self.x_axis, lambda_)
+        if one_spectrum is not None:
+            return airpls.airPLS_spectrum(one_spectrum, self.x_axis, lambda_)
         self.data = airpls.airPLS(self.data, lambda_)
 
     def linearization(self, step: float) -> None:
         self.data, self.x_axis = linearization.linearize(self.data, self.x_axis, step)
 
-    def decomposition_PCA(self, n_components: int) -> None:
+    def decomposition_PCA(
+        self,
+        n_components: int,
+    ) -> None:
         self._components = PCA.PCA(self.data, n_components)
 
-    # TODO: signals?
-    def decomposition_NMF(self, n_components: int) -> None:
-        self._components = NMF.NMF(self.data, n_components)
+    def decomposition_NMF(
+        self,
+        n_components: int,
+        signal_to_emit: Signal = None,
+    ) -> None:
+        self._components = NMF.NMF(self.data, n_components, signal_to_emit)
 
     def export_to_graphics(
         self,
         file_format: str,
-        out_dir: str = None,
-        file_tag: str = None,
-        file_name: str = None,
+        out_dir: str = "",
+        file_tag: str = "",
+        file_name: str = "",
     ) -> None:
         # TODO
         cmap = "viridis"  # str(settings.value("spectral_map/cmap")),
@@ -209,7 +233,7 @@ class SpectralMap:
         )
 
     def export_to_text(
-        self, out_dir: str = None, file_tag: str = None, file_name: str = None
+        self, out_dir: str = "", file_tag: str = "", file_name: str = ""
     ) -> None:
         to_text.export_components_txt(
             self._components, self.x_axis, self.in_file, out_dir, file_name, file_tag

@@ -1,9 +1,10 @@
 import numpy as np
+from typing import Tuple
 
 
 def crop_spectra_absolute(
     spectral_map: np.ndarray, x_axis: np.ndarray, crop_start: float, crop_end: float
-) -> None:
+) -> Tuple[np.ndarray, np.ndarray]:
     mask = (x_axis >= crop_start) & (x_axis <= crop_end)
 
     x_axis = x_axis[mask]
@@ -14,7 +15,7 @@ def crop_spectra_absolute(
 
 def crop_spectra_relative(
     spectral_map: np.ndarray, x_axis: np.ndarray, crop_first: int, crop_last: int
-) -> None:
+) -> Tuple[np.ndarray, np.ndarray]:
     x_axis = x_axis[crop_first : -crop_last if crop_last > 0 else -1]
     spectral_map = spectral_map[..., crop_first : -crop_last if crop_last > 0 else -1]
 
@@ -23,8 +24,7 @@ def crop_spectra_relative(
 
 def crop_map(
     spectral_map: np.ndarray, left: int, top: int, right: int, bottom: int
-) -> None:
-    # TODO: check top, bottom, left, right..
-    spectral_map = spectral_map[top:bottom, left:right]
+) -> np.ndarray:
+    spectral_map = spectral_map[left:right, top:bottom]
 
     return spectral_map

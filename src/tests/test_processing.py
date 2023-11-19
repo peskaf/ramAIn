@@ -1,5 +1,5 @@
 import pytest
-from src.models.spectal_map import SpectralMap
+from src.model.spectal_map import SpectralMap
 import pathlib
 import uuid
 import numpy as np
@@ -26,7 +26,7 @@ def test_save_matlab():
     test_file2_name = f"test_data_{uuid.uuid4()}.mat"
     test_file2_path = TEST_FILE_DIR.joinpath(test_file2_name)
     sm = SpectralMap(TEST_FILE_PATH)
-    sm.save_matlab(TEST_FILE_DIR, test_file2_name)
+    sm.save_matlab(TEST_FILE_DIR, file_name=test_file2_name)
     sm2 = SpectralMap(test_file2_path)
     try:
         assert np.array_equal(sm.data, sm2.data)
@@ -42,8 +42,8 @@ def test_map_cropping():
     sm2 = copy.deepcopy(sm)
     sm2.crop_spectral_map(left, top, right, bottom)
 
-    assert sm2.shape == (bottom - top, right - left, sm.shape[2])
-    assert np.array_equal(sm.data[top:bottom, left:right], sm2.data)
+    assert sm2.shape == (right - left, bottom - top, sm.shape[2])
+    assert np.array_equal(sm.data[left:right, top:bottom], sm2.data)
 
 
 def test_spectra_cropping_relative():

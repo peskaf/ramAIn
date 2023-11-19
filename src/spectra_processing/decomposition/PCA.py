@@ -15,7 +15,7 @@ def PCA(spectral_map: np.ndarray, n_components: int) -> list:
     reshaped_data = np.reshape(spectral_map, (-1, spectral_map.shape[2]))
     pca = decomposition.PCA(n_components=n_components)
     pca_transformed_data = pca.fit_transform(reshaped_data)
-    print(pca.components_)
+
     for i, component in enumerate(pca.components_):
         components.append(
             {

@@ -1,2 +1,2 @@
-- Check cropping - map and also spectrum - seems to work the other way in terms of x, y
 - check the removed signals from the rewritten methods (compare to original)
+- cmaps from settings

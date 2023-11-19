@@ -21,6 +21,8 @@ from ..widgets.component import Component
 
 import os
 
+from model.spectal_map import SpectralMap
+
 
 class SpectraDecomposition(QFrame):
     update_progress = Signal()
@@ -117,7 +119,7 @@ class SpectraDecomposition(QFrame):
             temp_curr_file = file.text()
 
         try:
-            self.curr_data = Data(os.path.join(self.curr_folder, temp_curr_file))
+            self.curr_data = SpectralMap(os.path.join(self.curr_folder, temp_curr_file))
         except:
             self.file_error.show()
             return
@@ -171,7 +173,7 @@ class SpectraDecomposition(QFrame):
         self.methods.setEnabled(False)
         self.export_button_graphics.setEnabled(False)
         self.export_button_txt.setEnabled(False)
-        self.curr_data.PCA(n_comps)
+        self.curr_data.decomposition_PCA(n_comps)
         self.methods.setEnabled(True)
         self.export_button_graphics.setEnabled(True)
         self.export_button_txt.setEnabled(True)
@@ -186,7 +188,7 @@ class SpectraDecomposition(QFrame):
         NMF_max_iter = 200
         # multiply max_iter by 2 as colver is being used while both transform and fit, both with max_iter = 200
         self.make_progress_bar(2 * NMF_max_iter)
-        self.curr_data.NMF(n_comps, self.update_progress)
+        self.curr_data.decomposition_NMF(n_comps, self.update_progress)
         self.progress.setValue(2 * NMF_max_iter)
         self.destroy_progress_bar()
         self.show_components()
@@ -200,7 +202,7 @@ class SpectraDecomposition(QFrame):
         self.remove_components()
 
         # show new components
-        for component in self.curr_data.components:
+        for component in self.curr_data._components:
             self.components.addWidget(
                 Component(
                     self.curr_data.x_axis,
@@ -228,7 +230,7 @@ class SpectraDecomposition(QFrame):
         """
 
         # do nothing if no components are generated yet
-        if len(self.curr_data.components) == 0:
+        if len(self.curr_data._components) == 0:
             return
 
         filter = "*.txt"
@@ -237,15 +239,14 @@ class SpectraDecomposition(QFrame):
         if not os.path.exists(data_folder):
             data_folder = os.getcwd()
 
-        file_name, extension = QFileDialog.getSaveFileName(
+        file_path, extension = QFileDialog.getSaveFileName(
             self, "Components Export [txt]", data_folder, filter=filter
         )
-
         # user exited file selection dialog without any file selected
-        if file_name is None or len(file_name) == 0:
+        if file_path is None or len(file_path) == 0:
             return
-
-        self.curr_data.export_components_txt(file_name)
+        dir_name, file_name = os.path.split(file_path)
+        self.curr_data.export_to_text(out_dir=dir_name, file_name=file_name)
 
     def export_components_graphics(self) -> None:
         """
@@ -253,7 +254,7 @@ class SpectraDecomposition(QFrame):
         """
 
         # do nothing if no components are generated yet
-        if len(self.curr_data.components) == 0:
+        if len(self.curr_data._components) == 0:
             return
 
         # formats supported by matplotlib
@@ -275,10 +276,18 @@ class SpectraDecomposition(QFrame):
         if file_name is None or len(file_name) == 0:
             return
 
-        # get only format string
-        format = str.split(extension, ".")[1]
+        dir_name, file_name = os.path.split(file_name)
 
-        self.curr_data.export_components_graphics(file_name, format)
+        # user filled some extension
+        if len(str.split(file_name, ".")) > 1:
+            format = str.split(file_name, ".")[1]
+        else:
+            # get only format string
+            format = str.split(extension, ".")[1]
+
+        self.curr_data.export_to_graphics(
+            file_name=file_name, file_format=format, out_dir=dir_name
+        )
 
     def update_file_list(self) -> None:
         """
@@ -347,7 +356,7 @@ class SpectraDecomposition(QFrame):
         self.progress.setWindowFlags(
             Qt.WindowTitleHint
         )  # Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowTitleHint
-        self.progress.setWindowIcon(QIcon("icons/message.svg"))
+        self.progress.setWindowIcon(QIcon("src/resources/icons/message.svg"))
 
         self.progress.setWindowTitle("Work in progress")
         self.update_progress.connect(self.set_progress)

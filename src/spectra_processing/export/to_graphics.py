@@ -13,9 +13,9 @@ def export_components_graphics(
     file_format: str,
     in_file: str,
     cmap: str = "viridis",
-    out_dir: str = None,
-    file_name: str = None,
-    file_tag: str = None,
+    out_dir: str = "",
+    file_name: str = "",
+    file_tag: str = "",
 ) -> None:
     """
     A function for components exporting for publications.
@@ -30,7 +30,9 @@ def export_components_graphics(
 
     if not file_name and out_dir:
         # construct the file name
-        file_name, _ = os.path.basename(in_file).split(".")
+        file_name = os.path.basename(file_name)
+        if "." in file_name:
+            file_name, _ = os.path.basename(file_name).split(".")
         out_file = os.path.join(out_dir, file_name + file_tag + "." + file_format)
 
         # do not overwrite on auto export -> apend ('number') to the file name instead
@@ -45,6 +47,11 @@ def export_components_graphics(
                     out_dir, file_name + file_tag + f"({i})" + "." + file_format
                 )
         file_name = out_file
+    else:
+        file_name = os.path.basename(file_name)
+        if "." in file_name:
+            file_name, _ = os.path.basename(file_name).split(".")
+        file_name = os.path.join(out_dir, file_name + file_tag + "." + file_format)
 
     # matplotlib pic export
     n_components = len(components)
