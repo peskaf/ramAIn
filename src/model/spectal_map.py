@@ -149,16 +149,32 @@ class SpectralMap:
         )
 
     # TODO: signals?
-    def background_removal_math_morpho(self, ignore_water: bool) -> None:
+    def background_removal_math_morpho(
+        self, ignore_water: bool, one_spectrum: Optional[np.ndarray] = None
+    ) -> Optional[np.ndarray]:
+        if one_spectrum:
+            return math_morpho.math_morpho(one_spectrum, self.x_axis, ignore_water)
         self.data = math_morpho.math_morpho(self.data, self.x_axis, ignore_water)
 
-    def background_removal_imodpoly(self, degree: int, ignore_water: bool) -> None:
+    def background_removal_imodpoly(
+        self, degree: int, ignore_water: bool, one_spectrum: Optional[np.ndarray] = None
+    ) -> Optional[np.ndarray]:
+        if one_spectrum:
+            return imodpoly.imodpoly(one_spectrum, self.x_axis, degree, ignore_water)
         self.data = imodpoly.imodpoly(self.data, self.x_axis, degree, ignore_water)
 
-    def background_removal_poly(self, degree: int, ignore_water: bool) -> None:
+    def background_removal_poly(
+        self, degree: int, ignore_water: bool, one_spectrum: Optional[np.ndarray] = None
+    ) -> Optional[np.ndarray]:
+        if one_spectrum:
+            return poly.poly(one_spectrum, self.x_axis, degree, ignore_water)
         self.data = poly.poly(self.data, self.x_axis, degree, ignore_water)
 
-    def background_removal_airpls(self, lambda_: int) -> None:
+    def background_removal_airpls(
+        self, lambda_: int, one_spectrum: Optional[np.ndarray] = None
+    ) -> Optional[np.ndarray]:
+        if one_spectrum:
+            return airpls.airPLS(one_spectrum, self.x_axis, lambda_)
         self.data = airpls.airPLS(self.data, lambda_)
 
     def linearization(self, step: float) -> None:

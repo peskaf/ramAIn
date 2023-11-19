@@ -252,8 +252,10 @@ class ManualPreprocessing(QFrame):
             self.spectral_map_graph.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
 
             # show spikes positions to the user
-            self.curr_data.calculate_spikes_indices()
-            self.spectral_map_graph.scatter_spikes(self.curr_data.spikes["map_indices"])
+            self.curr_data._calculate_spikes_indices()
+            self.spectral_map_graph.scatter_spikes(
+                self.curr_data._spike_info["map_indices"]
+            )
 
         elif self.curr_method == self.methods.background_removal:
             self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)
@@ -407,8 +409,10 @@ class ManualPreprocessing(QFrame):
         A function to apply cropping method on the data.
         Triggered by clicking on the corresponding `apply` button.
         """
+        cropping_params = self.methods.cropping.get_params()
+        self.curr_data.crop_spectra_absolute(*cropping_params[:2])
+        self.curr_data.crop_spectral_map(*cropping_params[2:])
 
-        self.curr_data.crop(*self.methods.cropping.get_params())
         self.spectral_map_graph.update_image(self.curr_data.averages)
         # go back to (0,0) coordinates as prev coordinates may not exist anymore
         self.update_plot(0, 0)
@@ -421,7 +425,7 @@ class ManualPreprocessing(QFrame):
         Triggered by clicking on the corresponding `apply` button.
         """
 
-        self.curr_data.linearize(self.methods.linearization.get_params()[0])
+        self.curr_data.linearization(self.methods.linearization.get_params()[0])
         self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
         self.spectral_map_graph.update_image(self.curr_data.averages)
 
@@ -436,9 +440,9 @@ class ManualPreprocessing(QFrame):
         auto_removal = self.methods.cosmic_ray_removal.auto_removal_btn.isChecked()
 
         if auto_removal:
-            self.curr_data.remove_spikes()
+            self.curr_data.auto_spike_removal()
         else:  # manual
-            self.curr_data.remove_manual(
+            self.curr_data.interpolate_withing_range(
                 self.curr_plot_indices[0],
                 self.curr_plot_indices[1],
                 *self.methods.cosmic_ray_removal.get_params()[:2]
@@ -462,12 +466,15 @@ class ManualPreprocessing(QFrame):
 
         if math_morpho:
             self.progress_bar_function(
-                steps, self.curr_data.math_morpho, ignore_water, self.update_progress
+                steps,
+                self.curr_data.background_removal_math_morpho,
+                ignore_water,
+                self.update_progress,
             )
         else:
             self.progress_bar_function(
                 steps,
-                self.curr_data.imodpoly,
+                self.curr_data.background_removal_imodpoly,
                 poly_deg,
                 ignore_water,
                 self.update_progress,
@@ -488,7 +495,9 @@ class ManualPreprocessing(QFrame):
         curr_spectrum = self.curr_data.data[
             self.curr_plot_indices[0], self.curr_plot_indices[1], :
         ]
-        poly_bg = self.curr_data.imodpoly_poly_bg(curr_spectrum, degree, ignore_water)
+        poly_bg = self.curr_data.background_removal_imodpoly(
+            degree, ignore_water, one_spectrum=curr_spectrum
+        )
         self.plot.plot_background(poly_bg)
 
     def bgr_update_plot(self) -> None:
@@ -501,7 +510,9 @@ class ManualPreprocessing(QFrame):
             curr_spectrum = self.curr_data.data[
                 self.curr_plot_indices[0], self.curr_plot_indices[1], :
             ]
-            mm_bg = self.curr_data._math_morpho_on_spectrum(curr_spectrum, ignore_water)
+            mm_bg = self.curr_data.background_removal_math_morpho(
+                ignore_water, one_spectrum=curr_spectrum
+            )
             self.plot.plot_background(mm_bg)
         else:
             # emit degree of poly that is currently set in line edit -> it will trigger `bgr_change_poly_on_plot` with right params
@@ -640,25 +651,26 @@ class ManualPreprocessing(QFrame):
         A function to show file dialog for data file saving + save function calling.
         """
 
-        data_folder = self.settings.value("save_dir", self.files_view.data_folder)
-        if not os.path.exists(data_folder):
-            data_folder = os.getcwd()
+        data_dir = self.settings.value("save_dir", self.files_view.data_folder)
+        if not os.path.exists(data_dir):
+            data_dir = os.getcwd()
 
         file_name, _ = QFileDialog.getSaveFileName(
-            self, "Save Data", data_folder, filter="*.mat"
+            self, "Save Data", data_dir, filter="*.mat"
         )
 
         # user did not select any file and exited the dialog
         if file_name is None or len(file_name) == 0:
             return
 
-        self.curr_data.save_data(file_name)
-        folder, file_name = os.path.split(file_name)
+        dir_name, file_name = os.path.split(file_name)
 
-        self.settings.setValue("save_dir", folder)
+        self.curr_data.save_matlab(dir_name, file_name=file_name)
 
-        self.files_view.data_folder = folder
-        self.update_folder(folder)
+        self.settings.setValue("save_dir", dir_name)
+
+        self.files_view.data_folder = dir_name
+        self.update_folder(dir_name)
 
         self.update_file_list()
 
