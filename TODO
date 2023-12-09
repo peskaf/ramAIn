@@ -2,6 +2,6 @@
 - water normalization
 - change smoothing ICON
 - add smoothing to auto methods
-- add bubblefilling to baseline removal manual methods
+- add bubblefill to auto methods
 - auto components number
 - batch decomposition of stitched files
