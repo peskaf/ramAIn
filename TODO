@@ -1,4 +1,7 @@
 - test auto processing
 - water normalization
+- change smoothing ICON
+- add smoothing to auto methods
+- add bubblefilling to baseline removal manual methods
 - auto components number
 - batch decomposition of stitched files

@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QWidget,
 )
-from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop, QSettings
+from PySide6.QtCore import QSize, Qt, Signal, QCoreApplication, QEventLoop
 from PySide6.QtGui import QIcon, QPixmap
 
 from ..widgets.color import Color
@@ -100,6 +100,7 @@ class ManualPreprocessing(QFrame):
         self.init_crr()
         self.init_bgr()
         self.init_linearization()
+        self.init_smoothing()
 
         self.init_file_error_widget()
 
@@ -172,6 +173,8 @@ class ManualPreprocessing(QFrame):
             # update also bg line on plot change
             if self.curr_method == self.methods.background_removal:
                 self.bgr_update_plot()
+            elif self.curr_method == self.methods.smoothing:
+                self.smoothing_change_on_plot()
 
     def _update_plot_from_mouse_point(self) -> None:
         """
@@ -262,6 +265,13 @@ class ManualPreprocessing(QFrame):
             self.spectral_map_graph.set_mode(PlotMode.BACKGROUND_REMOVAL)
             # will set poly on plot according to init config of params
             self.bgr_update_plot()
+
+        # TODO: note that the plotting modes are not general enough
+        elif self.curr_method == self.methods.smoothing:
+            self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)
+            self.spectral_map_graph.set_mode(PlotMode.BACKGROUND_REMOVAL)
+            # will set poly on plot according to init config of params
+            self.smoothing_change_on_plot()
 
         else:
             # default (view) on some other method
@@ -404,6 +414,21 @@ class ManualPreprocessing(QFrame):
         # connect inputs signals to function slots
         self.methods.linearization.apply_clicked.connect(self.linearization_apply)
 
+    def init_smoothing(self) -> None:
+        """
+        A function to connect signals to inputs in smoothing method parameter selection.
+        """
+
+        # connect inputs signals to function slots
+        self.methods.smoothing.poly_order_changed.connect(self.smoothing_change_on_plot)
+        self.methods.smoothing.diff_changed.connect(self.smoothing_change_on_plot)
+        self.methods.smoothing.lambda_changed.connect(self.smoothing_change_on_plot)
+        self.methods.smoothing.window_length_changed.connect(
+            self.smoothing_change_on_plot
+        )
+        self.methods.smoothing.savgol_toggled.connect(self.smoothing_change_on_plot)
+        self.methods.smoothing.apply_clicked.connect(self.smoothing_apply)
+
     def cropping_apply(self) -> None:
         """
         A function to apply cropping method on the data.
@@ -411,7 +436,6 @@ class ManualPreprocessing(QFrame):
         """
         cropping_params = self.methods.cropping.get_params()
         self.curr_data.crop_spectra_absolute(*cropping_params[:2])
-        print(cropping_params)
         self.curr_data.crop_spectral_map(*cropping_params[2:])
 
         self.spectral_map_graph.update_image(self.curr_data.averages)
@@ -518,6 +542,46 @@ class ManualPreprocessing(QFrame):
         else:
             # emit degree of poly that is currently set in line edit -> it will trigger `bgr_change_poly_on_plot` with right params
             self.methods.background_removal.emit_poly_deg_changed()
+
+    def smoothing_apply(self) -> None:
+        """
+        A function to apply smoothing method on the data.
+        Triggered by clicking on the corresponding `apply` button.
+        """
+        savgol = self.methods.smoothing.savgol_btn.isChecked()
+        lam, diff, wl, po = self.methods.smoothing.get_params()
+
+        if savgol:
+            self.curr_data.smoothing_savgol(wl, po)
+        else:
+            self.curr_data.smoothing_whittaker(lam, diff)
+
+        self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
+        self.spectral_map_graph.update_image(self.curr_data.averages)
+
+        self.update_method(self.methods.smoothing)
+
+    def smoothing_change_on_plot(self) -> None:
+        """
+        A function to change (and display) smoothed spectrum on plot.
+        Is in sep. function as it is a slot for a signal.
+        """
+
+        savgol = self.methods.smoothing.savgol_btn.isChecked()
+        lam, diff, wl, po = self.methods.smoothing.get_params()
+        curr_spectrum = self.curr_data.data[
+            self.curr_plot_indices[0], self.curr_plot_indices[1], :
+        ]
+        if savgol:
+            smoothed = self.curr_data.smoothing_savgol(
+                wl, po, one_spectrum=curr_spectrum
+            )
+        else:
+            smoothed = self.curr_data.smoothing_whittaker(
+                lam, diff, one_spectrum=curr_spectrum
+            )
+        # TODO: change to some general function
+        self.plot.plot_background(smoothed)
 
     def _is_placeholder(self, object: object) -> bool:
         """

@@ -3,7 +3,7 @@ import numpy as np
 
 
 def whittaker(spectral_map: np.ndarray, lam: int = 1600, diff: int = 2) -> np.ndarray:
-    spectral_map_ = spectral_map.view((-1, spectral_map.shape[2]))
+    spectral_map_ = spectral_map.reshape((-1, spectral_map.shape[-1]))
     if spectral_map_.ndim != 2:
         raise ValueError("Input must be a 2D array")
 

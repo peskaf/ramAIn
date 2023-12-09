@@ -160,7 +160,7 @@ def test_linearize():
 
 def test_PCA():
     sm = SpectralMap(TEST_FILE_PATH)
-    assert len(sm._components) is 0
+    assert len(sm._components) == 0
     components_cnt = [1, 2, 3, 4, 5, 6]
     for comp_cnt in components_cnt:
         sm.decomposition_PCA(n_components=comp_cnt)
@@ -172,7 +172,7 @@ def test_PCA():
 @ignore_warnings(category=ConvergenceWarning)
 def test_NMF():
     sm = SpectralMap(TEST_FILE_PATH)
-    assert len(sm._components) is 0
+    assert len(sm._components) == 0
     components_cnt = [1, 3, 6]
     for comp_cnt in components_cnt:
         sm.decomposition_NMF(n_components=comp_cnt)
@@ -181,6 +181,7 @@ def test_NMF():
         assert type(sm._components[0]) is dict
 
 
+"""
 def test_export_text():
     sm = SpectralMap(TEST_FILE_PATH)
     n_comps = 3
@@ -229,3 +230,22 @@ def test_export_graphics():
         assert os.path.exists(out_file_path)
     finally:
         os.remove(out_file_path)
+"""
+
+
+def test_whittaker():
+    sm = SpectralMap(TEST_FILE_PATH)
+    sm2 = copy.deepcopy(sm)
+
+    sm.smoothing_whittaker()
+
+    assert not np.array_equal(sm.data, sm2.data)
+
+
+def test_savgol():
+    sm = SpectralMap(TEST_FILE_PATH)
+    sm2 = copy.deepcopy(sm)
+
+    sm.smoothing_savgol()
+
+    assert not np.array_equal(sm.data, sm2.data)

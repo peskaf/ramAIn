@@ -297,6 +297,7 @@ class SpectralPlot(QFrame):
 
         self.linear_region.setRegion(new_region)
 
+    # TODO: change to some more general function
     def plot_background(self, background: np.ndarray) -> None:
         """
         A function to plot the background line.

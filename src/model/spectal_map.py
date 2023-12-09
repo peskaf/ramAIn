@@ -20,8 +20,9 @@ from src.spectra_processing.background_removal import (
 from src.spectra_processing.linearization import linearization
 from src.spectra_processing.decomposition import PCA, NMF
 from src.spectra_processing.export import to_graphics, to_text
+from src.spectra_processing.smoothing import whittaker, savgol
 
-from utils.settings import SETTINGS
+from src.utils.settings import SETTINGS
 
 from PySide6.QtCore import Signal
 
@@ -219,7 +220,6 @@ class SpectralMap:
         file_tag: str = "",
         file_name: str = "",
     ) -> None:
-        # TODO
         cmap = (str(SETTINGS.value("spectral_map/cmap")),)
         to_graphics.export_components_graphics(
             self.data,
@@ -239,6 +239,23 @@ class SpectralMap:
         to_text.export_components_txt(
             self._components, self.x_axis, self.in_file, out_dir, file_name, file_tag
         )
+
+    def smoothing_whittaker(
+        self, lam: int = 1600, diff: int = 2, one_spectrum: Optional[np.ndarray] = None
+    ):
+        if one_spectrum is not None:
+            return whittaker.whittaker(one_spectrum, lam, diff)
+        self.data = whittaker.whittaker(self.data, lam, diff)
+
+    def smoothing_savgol(
+        self,
+        window_length: int = 5,
+        polyorder: int = 2,
+        one_spectrum: Optional[np.ndarray] = None,
+    ):
+        if one_spectrum is not None:
+            return savgol.savgol(one_spectrum, window_length, polyorder)
+        self.data = savgol.savgol(self.data, window_length, polyorder)
 
 
 if __name__ == "__main__":

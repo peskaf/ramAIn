@@ -6,6 +6,7 @@ from ..widgets.cosmic_ray_removal import CosmicRayRemoval
 from ..widgets.background_removal import BackgroundRemoval
 from ..widgets.normalization import Normalization
 from ..widgets.linearization import Linearization
+from ..widgets.smoothing import Smoothing
 from ..widgets.view import View
 
 
@@ -36,6 +37,7 @@ class PreprocessingMethods(QFrame):
         self.background_removal = BackgroundRemoval(self)
         # self.normalization = Normalization(self) # TODO: Add in version 1.2
         self.linearization = Linearization(self)
+        self.smoothing = Smoothing(self)
 
         self.methods = [
             self.view,
@@ -44,6 +46,7 @@ class PreprocessingMethods(QFrame):
             self.linearization,
             # self.normalization, # TODO: Add in version 1.2
             self.background_removal,
+            self.smoothing,
         ]
 
         self.list = QListWidget(self)

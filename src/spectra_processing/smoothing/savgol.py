@@ -5,7 +5,7 @@ from scipy.signal import savgol_filter
 def savgol(
     spectral_map: np.ndarray, window_length: int = 5, polyorder: int = 2
 ) -> np.ndarray:
-    spectral_map_ = spectral_map.view((-1, spectral_map.shape[2]))
+    spectral_map_ = spectral_map.reshape((-1, spectral_map.shape[-1]))
     if spectral_map_.ndim != 2:
         raise ValueError("Input must be a 2D array")
 
