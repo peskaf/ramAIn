@@ -153,7 +153,6 @@ class SpectralMap:
             self._spike_info["peak_positions"],
         )
 
-    # TODO: signals?
     def background_removal_math_morpho(
         self,
         ignore_water: bool,
