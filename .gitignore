@@ -1,3 +1,13 @@
+# Custom
+data/
+
+# All ipynb files -> experiments
+*.ipynb
+
+#Generated pictures
+*.eps
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -127,11 +137,3 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Data - possibly big, example data are provided
-data/
-
-# All ipynb files -> experiments
-*.ipynb
-
-#Generated pictures
-*.eps
