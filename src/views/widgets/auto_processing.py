@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt, QSettings, QThread, Signal
+from PySide6.QtCore import Qt, QThread, Signal
 
 from typing import List, Callable
 
@@ -25,6 +25,7 @@ from ..widgets.input_widget_specifier import InputWidgetSpecifier, WidgetType
 from model.spectal_map import SpectralMap
 
 from utils import validators
+from utils.settings import SETTINGS
 
 import os
 import datetime
@@ -76,8 +77,6 @@ class AutoProcessing(QFrame):
 
         self.icon = QIcon("src/resources/icons/play-circle.svg")
 
-        self.settings = QSettings()
-
         # file selection widget
         self.file_list_widget = QListWidget(self)
         self.file_list_widget.setObjectName("files_list")
@@ -90,7 +89,7 @@ class AutoProcessing(QFrame):
         self.remove_file_btn.clicked.connect(self.remove_file)
 
         # logs folder
-        self.logs_dir = self.settings.value("logs_dir", os.getcwd())
+        self.logs_dir = SETTINGS.value("logs_dir", os.getcwd())
         self.logs_dir_label = QLabel(f"Logs Directory: {self.logs_dir}")
         self.select_logs_dir = QPushButton("Select Logs Directory")
         self.select_logs_dir.clicked.connect(self.logs_dir_dialog)
@@ -470,7 +469,7 @@ class AutoProcessing(QFrame):
         if temp_dir is None or len(temp_dir) == 0:
             return
 
-        self.settings.setValue("logs_dir", temp_dir)
+        SETTINGS.setValue("logs_dir", temp_dir)
         self.logs_dir = temp_dir
         self.logs_dir_label.setText(f"Logs Directory: {temp_dir}")
 
@@ -490,7 +489,7 @@ class AutoProcessing(QFrame):
         that are to be processed.
         """
 
-        temp_folder = self.settings.value("source_dir", os.getcwd())
+        temp_folder = SETTINGS.value("source_dir", os.getcwd())
         if not os.path.exists(temp_folder):
             temp_folder = os.getcwd()
 
@@ -501,7 +500,7 @@ class AutoProcessing(QFrame):
         if file_names is None or len(file_names) == 0:
             return
 
-        self.settings.setValue("source_dir", os.path.dirname(file_names[0]))
+        SETTINGS.setValue("source_dir", os.path.dirname(file_names[0]))
 
         for file_name in file_names:
             self.file_list_widget.addItem(os.path.basename(file_name))

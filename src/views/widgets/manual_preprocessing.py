@@ -22,6 +22,8 @@ from ..widgets.plot_mode import PlotMode
 
 from model.spectal_map import SpectralMap
 
+from utils.settings import SETTINGS
+
 from typing import Callable
 import numpy as np
 import os
@@ -48,8 +50,6 @@ class ManualPreprocessing(QFrame):
         self.parent = parent
 
         self.icon = QIcon("src/resources/icons/monitor.svg")
-
-        self.settings = QSettings()
 
         # Nothing set yet
         self.files_view = FilesView(format=".mat", parent=self)
@@ -652,7 +652,7 @@ class ManualPreprocessing(QFrame):
         A function to show file dialog for data file saving + save function calling.
         """
 
-        data_dir = self.settings.value("save_dir", self.files_view.data_folder)
+        data_dir = SETTINGS.value("save_dir", self.files_view.data_folder)
         if not os.path.exists(data_dir):
             data_dir = os.getcwd()
 
@@ -668,7 +668,7 @@ class ManualPreprocessing(QFrame):
 
         self.curr_data.save_matlab(dir_name, file_name=file_name)
 
-        self.settings.setValue("save_dir", dir_name)
+        SETTINGS.setValue("save_dir", dir_name)
 
         self.files_view.data_folder = dir_name
         self.update_folder(dir_name)

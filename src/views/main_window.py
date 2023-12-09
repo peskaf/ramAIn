@@ -1,6 +1,6 @@
 from PySide6.QtGui import QIcon, QFontDatabase, QScreen
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
-from PySide6.QtCore import QCoreApplication, QSettings
+from PySide6.QtCore import QCoreApplication
 
 from .widgets.menu import Menu
 from .widgets.header import Header
@@ -27,8 +27,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("  " + "RamAIn")
 
         self.setWindowIcon(QIcon(f"src/resources/icons/RamAIn_logo_R_f8bc24.svg"))
-
-        self.settings = QSettings()
 
         # how the whole app will look like
         layout = QVBoxLayout()

@@ -11,6 +11,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal, Qt, QSettings
 from PySide6.QtGui import QCursor
 
+from utils.settings import SETTINGS
+
 import os
 
 
@@ -37,11 +39,8 @@ class FilesView(QFrame):
 
         self.format = format
 
-        # settings for init folders retrieval
-        self.settings = QSettings()
-
         # folder where to look for the data files
-        self.data_folder = self.settings.value("source_dir", os.getcwd())
+        self.data_folder = SETTINGS.value("source_dir", os.getcwd())
         if not os.path.exists(self.data_folder):
             self.data_folder = os.getcwd()
 
@@ -94,7 +93,7 @@ class FilesView(QFrame):
             self.data_folder = temp_data_folder
             self.update_list()
             self.folder_changed.emit(self.data_folder)
-            self.settings.setValue("source_dir", self.data_folder)
+            SETTINGS.setValue("source_dir", self.data_folder)
 
     def update_list(self) -> None:
         """

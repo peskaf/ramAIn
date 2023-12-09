@@ -19,6 +19,8 @@ from ..widgets.collapse_button import CollapseButton
 from ..widgets.decomposition_methods import DecompositionMethods
 from ..widgets.component import Component
 
+from utils.settings import SETTINGS
+
 import os
 
 from model.spectal_map import SpectralMap
@@ -39,8 +41,6 @@ class SpectraDecomposition(QFrame):
         super().__init__(parent)
 
         self.icon = QIcon("src/resources/icons/pie.svg")
-
-        self.settings = QSettings()
 
         # files
         self.files_view = FilesView(format=".mat", parent=self)
@@ -235,7 +235,7 @@ class SpectraDecomposition(QFrame):
 
         filter = "*.txt"
 
-        data_folder = self.settings.value("export_dir", self.files_view.data_folder)
+        data_folder = SETTINGS.value("export_dir", self.files_view.data_folder)
         if not os.path.exists(data_folder):
             data_folder = os.getcwd()
 
@@ -264,7 +264,7 @@ class SpectraDecomposition(QFrame):
         regex_formats = ["*." + ext for ext in supported_formats]
         filter = ";;".join(regex_formats)
 
-        data_folder = self.settings.value("export_dir", self.files_view.data_folder)
+        data_folder = SETTINGS.value("export_dir", self.files_view.data_folder)
         if not os.path.exists(data_folder):
             data_folder = os.getcwd()
 

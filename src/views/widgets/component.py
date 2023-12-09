@@ -1,8 +1,9 @@
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget
-from PySide6.QtCore import Qt, QSettings, QEvent
+from PySide6.QtCore import Qt, QEvent
 
 from utils import colors
+from utils.settings import SETTINGS
 
 import pyqtgraph as pg
 import numpy as np
@@ -68,8 +69,6 @@ class Component(QFrame):
     ) -> None:
         super().__init__(parent)
 
-        self.settings = QSettings()
-
         # limit size of one component
         self.setMinimumHeight(175)
         self.setMaximumHeight(400)
@@ -89,7 +88,7 @@ class Component(QFrame):
 
         # set colors
         bg_color = (240, 240, 240)
-        color_map = colors.COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
+        color_map = colors.COLORMAPS[str(SETTINGS.value("spectral_map/cmap"))]
         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map)
 
         # component map properties

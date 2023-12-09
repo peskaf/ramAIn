@@ -7,9 +7,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt, QSettings
+from PySide6.QtCore import Qt
 
 from utils import colors
+from utils.settings import SETTINGS
 
 import pyqtgraph as pg
 import numpy as np
@@ -31,7 +32,6 @@ class Settings(QFrame):
         super().__init__(parent)
 
         self.icon = QIcon("src/resources/icons/settings.svg")
-        self.settings = QSettings()
 
         n_colors = colors.N_COLORS
 
@@ -81,7 +81,7 @@ class Settings(QFrame):
 
         # set init cmap based on settings
         try:
-            cmap = str(self.settings.value("spectral_map/cmap", "viridis"))
+            cmap = str(SETTINGS.value("spectral_map/cmap", "viridis"))
             getattr(self, cmap).setChecked(True)
         except:
             # default
@@ -117,7 +117,7 @@ class Settings(QFrame):
 
         sender = self.sender()
         if sender.isChecked():
-            self.settings.setValue("spectral_map/cmap", sender.text().lower())
+            SETTINGS.setValue("spectral_map/cmap", sender.text().lower())
 
     def get_string_name(self) -> str:
         """

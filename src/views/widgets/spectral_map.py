@@ -1,11 +1,12 @@
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QWidget
-from PySide6.QtCore import QRectF, QPoint, QSettings
+from PySide6.QtCore import QRectF, QPoint
 
 from ..widgets.plot_mode import PlotMode
 from ..widgets.adjustable_handles_roi import AdjustableHandlesROI
 
 from utils import colors
+from utils.settings import SETTINGS
 
 import pyqtgraph as pg
 import numpy as np
@@ -27,8 +28,6 @@ class SpectralMapGraph(QFrame):
 
         super().__init__(parent)
 
-        self.settings = QSettings()
-
         self.image_view = pg.ImageView()
         self.data = data
 
@@ -37,7 +36,7 @@ class SpectralMapGraph(QFrame):
         self.image_view.ui.roiBtn.hide()
         self.image_view.ui.menuBtn.hide()
 
-        color_map = colors.COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
+        color_map = colors.COLORMAPS[str(SETTINGS.value("spectral_map/cmap"))]
         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map)
         self.image_view.setColorMap(cmap)
         self.image_view.setImage(self.data, autoRange=False)
@@ -102,10 +101,8 @@ class SpectralMapGraph(QFrame):
             new_data (np.ndarray): New data to visualize.
         """
 
-        color_map = colors.COLORMAPS[str(self.settings.value("spectral_map/cmap"))]
-        cmap = pg.ColorMap(
-            pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map
-        )  # TODO: colomap from settings
+        color_map = colors.COLORMAPS[str(SETTINGS.value("spectral_map/cmap"))]
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, len(color_map)), color=color_map)
         self.image_view.setColorMap(cmap)
 
         self.data = new_data
@@ -294,7 +291,7 @@ class SpectralMapGraph(QFrame):
             self.scatter.setData([])
         else:
             scatter_color = colors.SCATTER_COLORMAPS[
-                str(self.settings.value("spectral_map/cmap"))
+                str(SETTINGS.value("spectral_map/cmap"))
             ]
             scatter_brush = pg.mkBrush(*(scatter_color[0]), 255)
             self.scatter = pg.ScatterPlotItem(size=3, brush=scatter_brush)

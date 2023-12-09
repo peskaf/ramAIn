@@ -21,6 +21,8 @@ from src.spectra_processing.linearization import linearization
 from src.spectra_processing.decomposition import PCA, NMF
 from src.spectra_processing.export import to_graphics, to_text
 
+from utils.settings import SETTINGS
+
 from PySide6.QtCore import Signal
 
 
@@ -219,7 +221,7 @@ class SpectralMap:
         file_name: str = "",
     ) -> None:
         # TODO
-        cmap = "viridis"  # str(settings.value("spectral_map/cmap")),
+        cmap = (str(SETTINGS.value("spectral_map/cmap")),)
         to_graphics.export_components_graphics(
             self.data,
             self.x_axis,
