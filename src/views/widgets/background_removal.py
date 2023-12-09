@@ -20,7 +20,10 @@ class BackgroundRemoval(QFrame):
 
     # custom signals
     math_morpho_toggled = Signal(bool)
+    bubblefill_toggled = Signal(bool)
     poly_deg_changed = Signal(int)
+    water_bubble_size_changed = Signal(int)
+    bubble_size_changed = Signal(int)
     ignore_water_band_toggled = Signal(bool)
     apply_clicked = Signal()
 
@@ -40,8 +43,30 @@ class BackgroundRemoval(QFrame):
         self.poly_fit_btn = QRadioButton("Poly-fit (I-ModPoly)")
         self.poly_fit_btn.setChecked(True)
 
+        self.bubblefill_btn = QRadioButton("BubbleFill")
+        self.bubblefill_btn.toggled.connect(self.emit_bubblefill_toggled)
+
         self.math_morpho_btn = QRadioButton("Mathematical Morphology")
         self.math_morpho_btn.toggled.connect(self.emit_math_morpho_toggled)
+
+        self.init_water_bubble_size = 700
+        self.init_bubble_size = 100
+
+        self.bubble_range = (1, 1000)
+
+        self.water_bubble_size = QLineEdit(
+            str(self.init_water_bubble_size), validator=validators.INT_VALIDATOR
+        )
+        self.water_bubble_size.editingFinished.connect(self.validate_bubble_size_range)
+        self.water_bubble_size.editingFinished.connect(
+            self.emit_water_bubble_size_changed
+        )
+
+        self.bubble_size = QLineEdit(
+            str(self.init_bubble_size), validator=validators.INT_VALIDATOR
+        )
+        self.bubble_size.editingFinished.connect(self.validate_bubble_size_range)
+        self.bubble_size.editingFinished.connect(self.emit_bubble_size_changed)
 
         self.init_poly_deg = 5
         # NOTE: range is inclusive on both sides
@@ -72,7 +97,12 @@ class BackgroundRemoval(QFrame):
 
         layout.addWidget(self.math_morpho_btn, 3, 0)
 
-        layout.addWidget(self.apply_button, 4, 3)
+        layout.addWidget(self.bubblefill_btn, 4, 0)
+        layout.addWidget(QLabel("Bubble Sizes (non-water | water)"), 5, 0)
+        layout.addWidget(self.water_bubble_size, 5, 1)
+        layout.addWidget(self.bubble_size, 5, 2)
+
+        layout.addWidget(self.apply_button, 6, 3)
 
         layout.setColumnStretch(2, 1)
 
@@ -87,9 +117,26 @@ class BackgroundRemoval(QFrame):
 
         # disable input into `poly_deg`
         self.poly_deg.setEnabled(not is_checked)
+        self.water_bubble_size.setEnabled(not is_checked)
+        self.bubble_size.setEnabled(not is_checked)
 
         # emit whether math_morpho button is checked
         self.math_morpho_toggled.emit(is_checked)
+
+    def emit_bubblefill_toggled(self) -> None:
+        """
+        Handler for `bubblefill_toggled` signal emitting.
+        """
+
+        is_checked = self.bubblefill_btn.isChecked()
+
+        # disable input into `poly_deg`
+        self.poly_deg.setEnabled(not is_checked)
+        self.water_bubble_size.setEnabled(is_checked)
+        self.bubble_size.setEnabled(is_checked)
+
+        # emit whether bubblefill button is checked
+        self.bubblefill_toggled.emit(is_checked)
 
     def validate_poly_deg_range(self) -> None:
         """
@@ -121,6 +168,31 @@ class BackgroundRemoval(QFrame):
         # emit whether `self.ignore_water_band` is checked right now
         self.ignore_water_band_toggled.emit(self.ignore_water_band.isChecked())
 
+    def validate_bubble_size_range(self) -> None:
+        bubbles = [self.bubble_size, self.water_bubble_size]
+
+        for bubble in bubbles:
+            bubble_size = int(bubble.text())
+            if bubble_size < self.bubble_range[0]:
+                bubble.setText(str(self.bubble_range[0]))
+            elif bubble_size > self.bubble_range[1]:
+                bubble.setText(str(self.bubble_range[1]))
+
+    def emit_water_bubble_size_changed(self) -> None:
+        """
+        Handler for `water_bubble_size_changed` signal emitting.
+        """
+
+        bubble_size = int(self.water_bubble_size.text())
+        self.water_bubble_size_changed.emit(bubble_size)
+
+    def emit_bubble_size_changed(self) -> None:
+        """
+        Handler for `bubble_size_changed` signal emitting.
+        """
+        bubble_size = int(self.bubble_size.text())
+        self.bubble_size_changed.emit(bubble_size)
+
     def get_params(self) -> tuple[int, bool]:
         """
         The function to get parameters from all inputs.
@@ -132,6 +204,8 @@ class BackgroundRemoval(QFrame):
         parameters = (
             int(self.poly_deg.text()),
             self.ignore_water_band.isChecked(),
+            int(self.bubble_size.text()),
+            int(self.water_bubble_size.text()),
         )
         return parameters
 
@@ -143,6 +217,8 @@ class BackgroundRemoval(QFrame):
         self.poly_fit_btn.setChecked(True)
         self.ignore_water_band.setChecked(True)
         self.poly_deg.setText(str(self.init_poly_deg))
+        self.water_bubble_size.setText(str(self.init_water_bubble_size))
+        self.bubble_size.setText(str(self.init_bubble_size))
 
     def get_string_name(self) -> str:
         """

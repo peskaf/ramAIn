@@ -395,15 +395,20 @@ class ManualPreprocessing(QFrame):
         """
 
         # connect inputs signals to function slots
-        self.methods.background_removal.poly_deg_changed.connect(
-            self.bgr_change_poly_on_plot
-        )
+        self.methods.background_removal.poly_deg_changed.connect(self.bgr_update_plot)
         self.methods.background_removal.ignore_water_band_toggled.connect(
+            self.bgr_update_plot
+        )
+        self.methods.background_removal.water_bubble_size_changed.connect(
+            self.bgr_update_plot
+        )
+        self.methods.background_removal.bubble_size_changed.connect(
             self.bgr_update_plot
         )
         self.methods.background_removal.math_morpho_toggled.connect(
             self.bgr_update_plot
         )
+        self.methods.background_removal.bubblefill_toggled.connect(self.bgr_update_plot)
         self.methods.background_removal.apply_clicked.connect(self.bgr_apply)
 
     def init_linearization(self) -> None:
@@ -485,7 +490,13 @@ class ManualPreprocessing(QFrame):
         """
 
         math_morpho = self.methods.background_removal.math_morpho_btn.isChecked()
-        poly_deg, ignore_water = self.methods.background_removal.get_params()
+        bubblefill = self.methods.background_removal.bubblefill_btn.isChecked()
+        (
+            poly_deg,
+            ignore_water,
+            bubble_size,
+            water_bubble_size,
+        ) = self.methods.background_removal.get_params()
         # steps for progress bar
         steps = np.multiply(*self.curr_data.data.shape[:2])
 
@@ -494,6 +505,14 @@ class ManualPreprocessing(QFrame):
                 steps,
                 self.curr_data.background_removal_math_morpho,
                 ignore_water,
+                self.update_progress,
+            )
+        elif bubblefill:
+            self.progress_bar_function(
+                steps,
+                self.curr_data.background_removal_bubblefill,
+                bubble_size,
+                water_bubble_size,
                 self.update_progress,
             )
         else:
@@ -510,21 +529,6 @@ class ManualPreprocessing(QFrame):
 
         self.update_method(self.methods.background_removal)
 
-    def bgr_change_poly_on_plot(self, degree: int) -> None:
-        """
-        A function to change (and display) a polynom on the spectral plot.
-        Is in sep. function as it is a slot for a signal.
-        """
-
-        ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
-        curr_spectrum = self.curr_data.data[
-            self.curr_plot_indices[0], self.curr_plot_indices[1], :
-        ]
-        poly_bg = self.curr_data.background_removal_imodpoly(
-            degree, ignore_water, one_spectrum=curr_spectrum
-        )
-        self.plot.plot_background(poly_bg)
-
     def bgr_update_plot(self) -> None:
         """
         A function to update a bakground line on the spectral plot.
@@ -539,9 +543,28 @@ class ManualPreprocessing(QFrame):
                 ignore_water, one_spectrum=curr_spectrum
             )
             self.plot.plot_background(mm_bg)
+        elif self.methods.background_removal.bubblefill_btn.isChecked():
+            water_bubble_size = int(
+                self.methods.background_removal.water_bubble_size.text()
+            )
+            bubble_size = int(self.methods.background_removal.bubble_size.text())
+            curr_spectrum = self.curr_data.data[
+                self.curr_plot_indices[0], self.curr_plot_indices[1], :
+            ]
+            bf_bg = self.curr_data.background_removal_bubblefill(
+                bubble_size, water_bubble_size, one_spectrum=curr_spectrum
+            )
+            self.plot.plot_background(bf_bg)
         else:
-            # emit degree of poly that is currently set in line edit -> it will trigger `bgr_change_poly_on_plot` with right params
-            self.methods.background_removal.emit_poly_deg_changed()
+            degree = int(self.methods.background_removal.poly_deg.text())
+            ignore_water = self.methods.background_removal.ignore_water_band.isChecked()
+            curr_spectrum = self.curr_data.data[
+                self.curr_plot_indices[0], self.curr_plot_indices[1], :
+            ]
+            poly_bg = self.curr_data.background_removal_imodpoly(
+                degree, ignore_water, one_spectrum=curr_spectrum
+            )
+            self.plot.plot_background(poly_bg)
 
     def smoothing_apply(self) -> None:
         """

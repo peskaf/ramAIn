@@ -16,6 +16,7 @@ from src.spectra_processing.background_removal import (
     imodpoly,
     poly,
     airpls,
+    bubblefill,
 )
 from src.spectra_processing.linearization import linearization
 from src.spectra_processing.decomposition import PCA, NMF
@@ -197,6 +198,26 @@ class SpectralMap:
             return airpls.airPLS_spectrum(one_spectrum, self.x_axis, lambda_)
         self.data = airpls.airPLS(self.data, lambda_)
 
+    def background_removal_bubblefill(
+        self,
+        bubble_size: int,
+        water_bubble_size: int,
+        signal_to_emit: Signal = None,
+        one_spectrum: Optional[np.ndarray] = None,
+    ) -> None:
+        # TODO: tune this
+        min_bubble_widths = [
+            (bubble_size if (n < 3100 or n > 3750) else water_bubble_size)
+            for n in self.x_axis
+        ]
+        if one_spectrum is not None:
+            return bubblefill.bubblefill_bg(
+                one_spectrum, self.x_axis, min_bubble_widths
+            )
+        self.data = bubblefill.bubblefill(
+            self.data, self.x_axis, min_bubble_widths, signal_to_emit=signal_to_emit
+        )
+
     def linearization(self, step: float) -> None:
         self.data, self.x_axis = linearization.linearize(self.data, self.x_axis, step)
 
@@ -220,7 +241,7 @@ class SpectralMap:
         file_tag: str = "",
         file_name: str = "",
     ) -> None:
-        cmap = (str(SETTINGS.value("spectral_map/cmap")),)
+        cmap = str(SETTINGS.value("spectral_map/cmap"))
         to_graphics.export_components_graphics(
             self.data,
             self.x_axis,

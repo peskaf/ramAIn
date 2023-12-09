@@ -7,6 +7,8 @@ import numpy as np
 from scipy.signal import savgol_filter
 from . import njit
 
+from PySide6.QtCore import Signal
+
 
 # Bubblefill
 @njit(cache=True)
@@ -180,8 +182,12 @@ def bubbleloop(
     return baseline
 
 
-def bubblefill(
-    spectrum: np.ndarray, min_bubble_widths: list = 50, fit_order: int = 1
+def bubblefill_bg(
+    spectrum: np.ndarray,
+    x_axis: np.ndarray,
+    min_bubble_widths: list = 50,
+    fit_order: int = 1,
+    signal_to_emit: Signal = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     bubblefill splits a spectrum into it's raman and baseline components.
@@ -218,10 +224,12 @@ def bubblefill(
     ---------
     Guillaume Sheehy 2021-01
     """
-    xaxis = np.arange(len(spectrum))
+
+    if signal_to_emit is not None:
+        signal_to_emit.emit()
 
     # Remove general slope
-    poly_fit = np.poly1d(np.polyfit(xaxis, spectrum, fit_order))(xaxis)
+    poly_fit = np.poly1d(np.polyfit(x_axis, spectrum, fit_order))(x_axis)
     spectrum_ = spectrum - poly_fit
 
     # Normalization
@@ -247,3 +255,24 @@ def bubblefill(
     baseline = savgol_filter(baseline, int(2 * (filter_width // 4) + 3), 3)
 
     return baseline
+
+
+def bubblefill(
+    spectral_map: np.ndarray,
+    x_axis: np.ndarray,
+    min_bubble_widths: list = 50,
+    fit_order: int = 1,
+    signal_to_emit: Signal = None,
+):
+    backgrounds = np.apply_along_axis(
+        bubblefill_bg,
+        2,
+        spectral_map,
+        x_axis,
+        min_bubble_widths,
+        fit_order,
+        signal_to_emit,
+    )
+    spectral_map -= backgrounds
+
+    return spectral_map

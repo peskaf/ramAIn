@@ -249,3 +249,12 @@ def test_savgol():
     sm.smoothing_savgol()
 
     assert not np.array_equal(sm.data, sm2.data)
+
+
+def test_bubblefill():
+    sm = SpectralMap(TEST_FILE_PATH)
+    sm2 = copy.deepcopy(sm)
+
+    sm.background_removal_bubblefill(100, 700)
+
+    assert not np.array_equal(sm.data, sm2.data)
