@@ -1,8 +1,8 @@
 # Custom
-data/
+datasets
 
 # All ipynb files -> experiments
-*.ipynb
+# *.ipynb
 
 #Generated pictures
 *.eps
