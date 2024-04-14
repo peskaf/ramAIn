@@ -3,5 +3,6 @@
 - change smoothing ICON
 - add smoothing to auto methods
 - add bubblefill to auto methods
+- add water normalization to auto methods
 - auto components number
 - batch decomposition of stitched files
