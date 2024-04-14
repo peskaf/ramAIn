@@ -100,8 +100,12 @@ class SpectralMap:
         file_tag: Optional[str] = None,
         file_name: Optional[Union[str, Path]] = None,
     ) -> None:
+        FALLBACK_EXTENSION = ".mat"
         out_file = paths.create_new_file_name(
-            out_folder_path, file_name if file_name else self.in_file, file_tag
+            out_folder_path,
+            file_name if file_name else self.in_file,
+            FALLBACK_EXTENSION,
+            file_tag,
         )
 
         try:
@@ -128,7 +132,6 @@ class SpectralMap:
         )
 
     def crop_spectral_map(self, left: int, top: int, right: int, bottom: int) -> None:
-        print(left, top, right, bottom)
         self.data = cropping.crop_map(self.data, left, top, right, bottom)
 
     def interpolate_withing_range(

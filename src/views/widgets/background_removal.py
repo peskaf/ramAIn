@@ -99,8 +99,8 @@ class BackgroundRemoval(QFrame):
 
         layout.addWidget(self.bubblefill_btn, 4, 0)
         layout.addWidget(QLabel("Bubble Sizes (non-water | water)"), 5, 0)
-        layout.addWidget(self.water_bubble_size, 5, 1)
-        layout.addWidget(self.bubble_size, 5, 2)
+        layout.addWidget(self.bubble_size, 5, 1)
+        layout.addWidget(self.water_bubble_size, 5, 2)
 
         layout.addWidget(self.apply_button, 6, 3)
 
