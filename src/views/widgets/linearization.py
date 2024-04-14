@@ -75,7 +75,7 @@ class Linearization(QFrame):
         The function to get parameters from all inputs.
 
         Returns:
-            parameters (tuple): Tuple of linarizatoin method parameters converted to correct types.
+            parameters (tuple): Tuple of linearization method parameters converted to correct types.
         """
 
         parameters = (float(self.data_step.text()),)

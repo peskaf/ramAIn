@@ -1,8 +1,9 @@
 - test auto processing
-- water normalization
 - change smoothing ICON
 - add smoothing to auto methods
 - add bubblefill to auto methods
 - add water normalization to auto methods
+- add some metadata about what was done on the component and possibly some checklist to guide the user
+- normalization of not smoothed spectra - read it from metadata and smooth it ourselves if it was not done before
 - auto components number
 - batch decomposition of stitched files

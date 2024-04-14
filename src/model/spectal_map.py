@@ -22,6 +22,7 @@ from src.spectra_processing.linearization import linearization
 from src.spectra_processing.decomposition import PCA, NMF
 from src.spectra_processing.export import to_graphics, to_text
 from src.spectra_processing.smoothing import whittaker, savgol
+from src.spectra_processing.normalization import water_normalization
 
 from src.utils.settings import SETTINGS
 
@@ -36,6 +37,7 @@ class SpectralMap:
         self.x_axis = None
         self._data = None
         self._spike_info = {}
+        self._water_info = {}
         self._components = []
         self.maxima = None
         self.averages = None
@@ -58,6 +60,7 @@ class SpectralMap:
         self.maxima = np.max(self.data, axis=2)
         self.averages = np.mean(self.data, axis=2)
         self._spike_info = {}
+        self._water_info = {}
         self._components = []
 
     def load_matlab(self) -> None:
@@ -280,6 +283,33 @@ class SpectralMap:
         if one_spectrum is not None:
             return savgol.savgol(one_spectrum, window_length, polyorder)
         self.data = savgol.savgol(self.data, window_length, polyorder)
+
+    def _calculate_water_distances(self) -> None:
+        distances = water_normalization._get_cosine_distances(self.data, self.x_axis)
+        self._water_info["distances"] = distances
+
+    def _calculate_average_water(self, threshold: int = 0.3) -> None:
+        if not self._water_info:
+            self._calculate_water_distances()
+
+        average_water, water_mask = water_normalization._get_average_water(
+            self._water_info["distances"], self.data, threshold
+        )
+
+        self._water_info["average_water"] = average_water
+        indices = np.where(water_mask == 1)
+        self._water_info["water_indices"] = np.array(list(zip(indices[0], indices[1])))
+
+    def water_normalization(self, threshold: int = 0.3) -> None:
+        if not self._water_info:
+            self._calculate_average_water(threshold)
+
+        if self._water_info["average_water"] is not None:
+            self.data = water_normalization.water_normalization(
+                self.data, self.x_axis, self._water_info["average_water"]
+            )
+        else:
+            print(f"No water spectra found, threshold ({threshold}) probably too high.")
 
 
 if __name__ == "__main__":

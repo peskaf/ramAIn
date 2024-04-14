@@ -101,6 +101,7 @@ class ManualPreprocessing(QFrame):
         self.init_bgr()
         self.init_linearization()
         self.init_smoothing()
+        self.init_normalization()
 
         self.init_file_error_widget()
 
@@ -266,12 +267,17 @@ class ManualPreprocessing(QFrame):
             # will set poly on plot according to init config of params
             self.bgr_update_plot()
 
-        # TODO: note that the plotting modes are not general enough
+        # TODO: note that the plotting modes are not general enoough, generalize them!!
         elif self.curr_method == self.methods.smoothing:
             self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)
             self.spectral_map_graph.set_mode(PlotMode.BACKGROUND_REMOVAL)
             # will set poly on plot according to init config of params
             self.smoothing_change_on_plot()
+
+        elif self.curr_method == self.methods.normalization:
+            self.plot.set_mode(PlotMode.BACKGROUND_REMOVAL)
+            self.spectral_map_graph.set_mode(PlotMode.COSMIC_RAY_REMOVAL)
+            self.normalization_change_on_plot()
 
         else:
             # default (view) on some other method
@@ -433,6 +439,12 @@ class ManualPreprocessing(QFrame):
         )
         self.methods.smoothing.savgol_toggled.connect(self.smoothing_change_on_plot)
         self.methods.smoothing.apply_clicked.connect(self.smoothing_apply)
+
+    def init_normalization(self) -> None:
+        self.methods.normalization.threshold_changed.connect(
+            self.normalization_change_on_plot
+        )
+        self.methods.normalization.apply_clicked.connect(self.normalization_apply)
 
     def cropping_apply(self) -> None:
         """
@@ -605,6 +617,28 @@ class ManualPreprocessing(QFrame):
             )
         # TODO: change to some general function
         self.plot.plot_background(smoothed)
+
+    def normalization_apply(self) -> None:
+        threshold = self.methods.normalization.get_params()
+        self.curr_data.water_normalization(threshold)
+        self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
+        self.spectral_map_graph.update_image(self.curr_data.averages)
+
+        self.update_method(self.methods.normalization)
+
+    def normalization_change_on_plot(self) -> None:
+        threshold = self.methods.normalization.get_params()
+        self.curr_data._calculate_average_water(threshold)
+        self.spectral_map_graph.scatter_spikes(
+            self.curr_data._water_info["water_indices"]
+        )
+        average_water = self.curr_data._water_info["average_water"]
+        if average_water is not None:
+            self.plot.plot_background(average_water)
+        elif self.plot.background is not None:
+            self.plot.hide_background()
+
+    # TODO: add spectral map update on normalization
 
     def _is_placeholder(self, object: object) -> bool:
         """
