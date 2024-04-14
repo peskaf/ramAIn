@@ -1,8 +1,11 @@
-- test auto processing
 - change smoothing ICON
+- get better pure water spectrum
+- more adjustable things in normalization?
+- more general plot modes (see TODOs in source code)
 - add smoothing to auto methods
 - add bubblefill to auto methods
 - add water normalization to auto methods
+- test auto processing
 - add some metadata about what was done on the component and possibly some checklist to guide the user
 - normalization of not smoothed spectra - read it from metadata and smooth it ourselves if it was not done before
 - auto components number
