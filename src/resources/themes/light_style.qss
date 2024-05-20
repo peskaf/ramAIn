@@ -282,7 +282,7 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-    image: url(./icons/chevron_down.svg);
+    image: url(./src/resources/icons/chevron_down.svg);
     width: 30px;
 }
 
