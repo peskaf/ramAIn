@@ -71,7 +71,7 @@ class Smoothing(QFrame):
         self.diff.editingFinished.connect(self.validate_diff_range)
         self.diff.editingFinished.connect(self.emit_diff_changed)
 
-        self.wl_range = (3, 9)
+        self.wl_range = (3, 20)
         self.wl = QLineEdit(
             str(self.init_window_length), validator=validators.INT_VALIDATOR
         )

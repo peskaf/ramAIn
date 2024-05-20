@@ -193,14 +193,14 @@ class AutoProcessing(QFrame):
             name="Spectral Plot Cropping - Absolute",
             icon=QIcon("src/resources/icons/cut.svg"),
             input_widget_specifiers={
-                "Start Position": InputWidgetSpecifier(
+                "Start Position (1/cm)": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     init_value=0,
                     output_type=float,
                     text_validator=validators.REAL_VALIDATOR,
                     parameter_order=0,
                 ),
-                "End Position": InputWidgetSpecifier(
+                "End Position (1/cm)": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     init_value=0,
                     output_type=float,
@@ -326,11 +326,89 @@ class AutoProcessing(QFrame):
         )
         auto_methods.append(auto_bgr_math_morpho)
 
+        auto_bgr_bubblefill = AutoMethod(
+            name="Background Removal - BubbleFill",
+            icon=QIcon("src/resources/icons/background.svg"),
+            input_widget_specifiers={
+                "Non-Water Bubble Size": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=100,
+                    range=(1, 1000),
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    output_type=int,
+                    parameter_order=0,
+                ),
+                "Water Bubble Size": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=700,
+                    range=(1, 1000),
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    output_type=int,
+                    parameter_order=1,
+                ),
+            },
+            callback=SpectralMap.background_removal_bubblefill,
+            parent=self,
+        )
+        auto_methods.append(auto_bgr_bubblefill)
+
+        auto_smt_whittaker = AutoMethod(
+            name="Smoothing - Whittaker",
+            icon=QIcon("src/resources/icons/RamAIn_logo_R_f8bc24.svg"),
+            input_widget_specifiers={
+                "Lambda": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=1600,
+                    range=(1, 2000),
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    output_type=int,
+                    parameter_order=0,
+                ),
+                "Diff": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=2,
+                    range=(1, 5),
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    output_type=int,
+                    parameter_order=1,
+                ),
+            },
+            callback=SpectralMap.smoothing_whittaker,
+            parent=self,
+        )
+        auto_methods.append(auto_smt_whittaker)
+
+        auto_smt_savgol = AutoMethod(
+            name="Smoothing - SavGol",
+            icon=QIcon("src/resources/icons/RamAIn_logo_R_f8bc24.svg"),
+            input_widget_specifiers={
+                "Window Length": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=5,
+                    range=(3, 20),
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    output_type=int,
+                    parameter_order=0,
+                ),
+                "Poly Order": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=2,
+                    range=(1, 6),
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    output_type=int,
+                    parameter_order=1,
+                ),
+            },
+            callback=SpectralMap.smoothing_savgol,
+            parent=self,
+        )
+        auto_methods.append(auto_smt_savgol)
+
         auto_linearization = AutoMethod(
-            name="Linearization",
+            name="X-axis Linearization",
             icon=QIcon("src/resources/icons/equal.svg"),
             input_widget_specifiers={
-                "Step": InputWidgetSpecifier(
+                "Step (1/cm)": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     init_value=1,
                     range=(0.1, 5),
@@ -343,6 +421,24 @@ class AutoProcessing(QFrame):
             parent=self,
         )
         auto_methods.append(auto_linearization)
+
+        auto_water_norm = AutoMethod(
+            name="Water Normalization",
+            icon=QIcon("src/resources/icons/equal.svg"),
+            input_widget_specifiers={
+                "Reference water similarity threshold": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=0.3,
+                    range=(0.1, 0.9),
+                    output_type=float,
+                    text_validator=validators.POSITIVE_REAL_VALIDATOR,
+                    parameter_order=0,
+                ),
+            },
+            callback=SpectralMap.water_normalization,
+            parent=self,
+        )
+        auto_methods.append(auto_water_norm)
 
         auto_NMF = AutoMethod(
             name="Decomposition - NMF",

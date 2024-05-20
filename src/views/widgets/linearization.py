@@ -49,7 +49,7 @@ class Linearization(QFrame):
         # put windgets into layout
         layout = QGridLayout()
 
-        layout.addWidget(QLabel("Step"), 0, 0)
+        layout.addWidget(QLabel("Step (1/cm)"), 0, 0)
         layout.addWidget(self.data_step, 0, 1)
 
         layout.addWidget(self.apply_button, 1, 3)
@@ -97,4 +97,4 @@ class Linearization(QFrame):
             widget_name (str): Name of the widget so that it can be recognized by the user.
         """
 
-        return "Linearization"
+        return "X-axis Linearization"

@@ -288,7 +288,7 @@ class SpectralMap:
         distances = water_normalization._get_cosine_distances(self.data, self.x_axis)
         self._water_info["distances"] = distances
 
-    def _calculate_average_water(self, threshold: int = 0.3) -> None:
+    def _calculate_average_water(self, threshold: float = 0.3) -> None:
         if not self._water_info:
             self._calculate_water_distances()
 
@@ -309,7 +309,9 @@ class SpectralMap:
                 self.data, self.x_axis, self._water_info["average_water"]
             )
         else:
-            print(f"No water spectra found, threshold ({threshold}) probably too high.")
+            print(
+                f"No water spectra found, threshold ({threshold}) probably too strict or spectra too noisy."
+            )
 
 
 if __name__ == "__main__":

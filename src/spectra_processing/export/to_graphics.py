@@ -1,9 +1,14 @@
 import os
 import numpy as np
 from scipy import signal
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
+
+from src.utils.paths import create_new_file_name
 
 
 def export_components_graphics(
@@ -28,30 +33,9 @@ def export_components_graphics(
     if len(components) == 0:
         raise Exception("components have not been made yet.")
 
-    if not file_name and out_dir:
-        # construct the file name
-        file_name = os.path.basename(file_name)
-        if "." in file_name:
-            file_name, _ = os.path.basename(file_name).split(".")
-        out_file = os.path.join(out_dir, file_name + file_tag + "." + file_format)
-
-        # do not overwrite on auto export -> apend ('number') to the file name instead
-        if os.path.exists(out_file):
-            i = 2
-            out_file = os.path.join(
-                out_dir, file_name + file_tag + f"({i})" + "." + file_format
-            )
-            while os.path.exists(out_file):
-                i += 1
-                out_file = os.path.join(
-                    out_dir, file_name + file_tag + f"({i})" + "." + file_format
-                )
-        file_name = out_file
-    else:
-        file_name = os.path.basename(file_name)
-        if "." in file_name:
-            file_name, _ = os.path.basename(file_name).split(".")
-        file_name = os.path.join(out_dir, file_name + file_tag + "." + file_format)
+    if not file_name:
+        file_name = create_new_file_name(out_dir, in_file, file_format, file_tag)
+        print(file_name)
 
     # matplotlib pic export
     n_components = len(components)

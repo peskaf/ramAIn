@@ -64,7 +64,7 @@ def _cosine_similarity(a, b):
 
 
 def _get_average_water(
-    distances: np.ndarray, data: np.ndarray, distance_threshold: int
+    distances: np.ndarray, data: np.ndarray, distance_threshold: float
 ):
     reshaped_data = data.reshape((-1, data.shape[-1]))
     water_spectra_mask = np.where(

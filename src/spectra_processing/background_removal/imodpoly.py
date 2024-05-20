@@ -35,7 +35,7 @@ def imodpoly_bg(
     signal_to_emit: Signal = None,
 ) -> np.ndarray:
     """
-    Implementation of I-ModPoly algorithm for bg subtraction (Zhao et al, doi: 10.1366/000370207782597003), added vaersion
+    Implementation of I-ModPoly algorithm for bg subtraction (Zhao et al, doi: 10.1366/000370207782597003), added version
     with possible water ignorance and signal emission.
 
     Parameters:
