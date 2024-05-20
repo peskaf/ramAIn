@@ -425,16 +425,6 @@ class AutoProcessing(QFrame):
         auto_water_norm = AutoMethod(
             name="Water Normalization",
             icon=QIcon("src/resources/icons/equal.svg"),
-            input_widget_specifiers={
-                "Reference water similarity threshold": InputWidgetSpecifier(
-                    widget_type=WidgetType.TEXT,
-                    init_value=0.3,
-                    range=(0.1, 0.9),
-                    output_type=float,
-                    text_validator=validators.POSITIVE_REAL_VALIDATOR,
-                    parameter_order=0,
-                ),
-            },
             callback=SpectralMap.water_normalization,
             parent=self,
         )

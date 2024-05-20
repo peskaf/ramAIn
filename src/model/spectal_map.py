@@ -284,34 +284,22 @@ class SpectralMap:
             return savgol.savgol(one_spectrum, window_length, polyorder)
         self.data = savgol.savgol(self.data, window_length, polyorder)
 
-    def _calculate_water_distances(self) -> None:
-        distances = water_normalization._get_cosine_distances(self.data, self.x_axis)
-        self._water_info["distances"] = distances
-
     def _calculate_average_water(self, threshold: float = 0.3) -> None:
-        if not self._water_info:
-            self._calculate_water_distances()
-
         average_water, water_mask = water_normalization._get_average_water(
-            self._water_info["distances"], self.data, threshold
+            self.data, self.x_axis
         )
 
         self._water_info["average_water"] = average_water
         indices = np.where(water_mask == 1)
         self._water_info["water_indices"] = np.array(list(zip(indices[0], indices[1])))
 
-    def water_normalization(self, threshold: int = 0.3) -> None:
+    def water_normalization(self) -> None:
         if not self._water_info:
-            self._calculate_average_water(threshold)
+            self._calculate_average_water()
 
-        if self._water_info["average_water"] is not None:
-            self.data = water_normalization.water_normalization(
-                self.data, self.x_axis, self._water_info["average_water"]
-            )
-        else:
-            print(
-                f"No water spectra found, threshold ({threshold}) probably too strict or spectra too noisy."
-            )
+        self.data = water_normalization.water_normalization(
+            self.data, self.x_axis, self._water_info["average_water"]
+        )
 
 
 if __name__ == "__main__":

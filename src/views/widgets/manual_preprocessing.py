@@ -441,9 +441,6 @@ class ManualPreprocessing(QFrame):
         self.methods.smoothing.apply_clicked.connect(self.smoothing_apply)
 
     def init_normalization(self) -> None:
-        self.methods.normalization.threshold_changed.connect(
-            self.normalization_change_on_plot
-        )
         self.methods.normalization.apply_clicked.connect(self.normalization_apply)
 
     def cropping_apply(self) -> None:
@@ -619,16 +616,14 @@ class ManualPreprocessing(QFrame):
         self.plot.plot_background(smoothed)
 
     def normalization_apply(self) -> None:
-        threshold = self.methods.normalization.get_params()
-        self.curr_data.water_normalization(threshold)
+        self.curr_data.water_normalization()
         self.update_plot(self.curr_plot_indices[0], self.curr_plot_indices[1])
         self.spectral_map_graph.update_image(self.curr_data.averages)
 
         self.update_method(self.methods.normalization)
 
     def normalization_change_on_plot(self) -> None:
-        threshold = self.methods.normalization.get_params()
-        self.curr_data._calculate_average_water(threshold)
+        self.curr_data._calculate_average_water()
         self.spectral_map_graph.scatter_spikes(
             self.curr_data._water_info["water_indices"]
         )
@@ -637,8 +632,6 @@ class ManualPreprocessing(QFrame):
             self.plot.plot_background(average_water)
         elif self.plot.background is not None:
             self.plot.hide_background()
-
-    # TODO: add spectral map update on normalization
 
     def _is_placeholder(self, object: object) -> bool:
         """

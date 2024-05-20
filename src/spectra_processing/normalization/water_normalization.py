@@ -1,118 +1,42 @@
 import numpy as np
-import scipy.interpolate as si
-from numpy.linalg import norm
+from sklearn.cluster import KMeans
+
+# NOTE: NEW ALGORITHM
+# On preprocessed data - that means cropped, CR removed, BG removed, smoothed
+# 1. Crop the data to the C-H band (2830-3030 cm-1)
+# 2. Cluster the data into 20 clusters
+# 3. For each cluster, calculate mean of the cropped spectra that fall into it
+# 4. Select the cluster with the lowest mean as the one containing the best water candidates
+# 5. Average the spectra in the best cluster to get the average water spectrum in our spectral map
 
 
-# On preprocessed data - that means cropped, CR removed, BG removed, smoothed (if not, we smooth it here to find the best water, TODO: try)
-# 1. Preprocess pure water spectrum - interpolate it to the same x axis as the data (align the x axes)
-# 2. Calculate differences between the spectra to get rid of the different heights
-# 3. Calculate cosine similarity between the water and the data
-# 4. Find the best matches based on the threshold
-# 5. Average the best matches to get the average water spectrum from our data
-# 6. Use this average water spectrum for normalization of the data
-#
-# Things to think about:
-# - What is the best threshold for the cosine similarity?
-# - What is the best way to average the best matches? Do we do some weighting based on the similarity?
-# - What to do if we do not find any good matches?
+def _get_average_water(data: np.ndarray, x_axis: np.ndarray):
+    N = 30
 
+    cluster_data = data.reshape(-1, data.shape[-1])
+    c_h_band = (x_axis > 2830) & (x_axis < 3030)
+    cluster_data = cluster_data[:, c_h_band]  # just band of C-H vibrations
 
-def _load_reference_spectrum() -> tuple[list, list]:
-    """
-    Load the reference spectrum for water normalization.
+    kmeans = KMeans(n_clusters=N, random_state=0).fit(cluster_data)
 
-    Returns
-    -------
-    x_axis_water : list
-        The x-axis of the reference spectrum.
-    values_water : list
-        The values of the reference spectrum.
-    """
-    # Load pure water
-    x_axis_water = []
-    values_water = []
-
-    # TODO: insert normal pure water instead of sea water
-    with open("src/resources/reference_spectra/sea_water_mean.txt") as pure_spectrum:
-        for line in pure_spectrum:
-            x, val = line.split()
-            x_axis_water.append(float(x))
-            values_water.append(float(val))
-    return x_axis_water, values_water
-
-
-def _calculate_differences(spectra):
-    differences = np.array([np.diff(spectrum) for spectrum in spectra])
-    return differences
-
-
-def _cosine_similarity(a, b):
-    if a.shape != b.shape:
-        raise ValueError("The shapes of both arrays must be the same.")
-
-    # Compute the norms of each row
-    norms_a = norm(a, axis=1)
-    norms_b = norm(b, axis=1)
-
-    # Compute the dot product of corresponding rows
-    dot_product = np.sum(a * b, axis=1)
-
-    # Calculate cosine similarity
-    similarities = dot_product / (norms_a * norms_b)
-
-    return similarities
-
-
-def _get_average_water(
-    distances: np.ndarray, data: np.ndarray, distance_threshold: float
-):
-    reshaped_data = data.reshape((-1, data.shape[-1]))
-    water_spectra_mask = np.where(
-        np.abs(distances) <= distance_threshold, 1, 0
-    ).reshape(data.shape[:-1])
-
-    if np.sum(water_spectra_mask) == 0:
-        return None, water_spectra_mask
-
-    average_water = np.mean(
-        reshaped_data[np.abs(distances) <= distance_threshold], axis=0
+    # create array of cluster data divided by cluster label - so label 0 are on row 0, label 1 on row 1 etc.
+    cluster_data = np.array(
+        [cluster_data[kmeans.labels_ == i].mean(axis=0) for i in range(N)]
     )
-    return average_water, water_spectra_mask
 
+    means = np.mean(cluster_data, axis=1)
+    id_lowest = np.argmin(means)
 
-def _get_cosine_distances(spectral_map: np.ndarray, x_axis: np.ndarray):
-    data = spectral_map.reshape((-1, spectral_map.shape[-1]))
+    # get indices of spectra in cluster woth lowest mean
+    idx_lowest = np.where(kmeans.labels_ == id_lowest)[0]
+    water_candidates = data.reshape(-1, data.shape[-1])[idx_lowest]
+    mean_water = water_candidates.mean(axis=0)
 
-    # Load reference spectrum
-    x_axis_water, values_water = _load_reference_spectrum()
-
-    # Interpolate the pure water and get values in the datapoints we had in the original data (berofe detrending)
-    # Align the water spectrum with the input spectrum
-    spectrum_spline = si.CubicSpline(
-        x_axis_water, values_water, axis=2, extrapolate=False
+    water_spectra_mask = np.where(kmeans.labels_ == id_lowest, 1, 0).reshape(
+        data.shape[:-1]
     )
-    aligned_values_water = spectrum_spline(x_axis)
 
-    # Find the index of the first and the last non-NaN value
-    nans = np.where(~np.isnan(aligned_values_water))[0]
-    first_non_nan_index = nans[0]
-    last_non_nan_index = nans[-1]
-
-    x_axis = x_axis[first_non_nan_index : last_non_nan_index + 1]
-    aligned_values_water = aligned_values_water[
-        first_non_nan_index : last_non_nan_index + 1
-    ]
-    data = data[:, first_non_nan_index : last_non_nan_index + 1]
-
-    # Calculate the differences so that we get rid of the different height of the spectra
-    differences_spectra = _calculate_differences(data)
-    differences_water = _calculate_differences(aligned_values_water.reshape((1, -1)))
-    distances = 1 - _cosine_similarity(
-        np.tile(differences_water[0], [differences_spectra.shape[0], 1]),
-        differences_spectra,
-    )  # NOTE:  1 - to get a distance
-
-    return distances
+    return mean_water, water_spectra_mask
 
 
 def water_normalization(
