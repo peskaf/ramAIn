@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['main.py'],
+    ['src/app.py'],
     pathex=[],
     binaries=[],
     datas=[('icons', 'icons'), ('themes', 'themes'), ('fonts', 'fonts'), ('RamAIn.ico', '.')],
