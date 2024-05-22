@@ -5,10 +5,10 @@ block_cipher = None
 
 
 a = Analysis(
-    ['src/app.py'],
+    ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('icons', 'icons'), ('themes', 'themes'), ('fonts', 'fonts'), ('RamAIn.ico', '.')],
+    datas=[('ramain/resources/icons', 'ramain/resources/icons'), ('ramain/resources/themes', 'ramain/resources/themes'), ('ramain/resources/fonts', 'ramain/resources/fonts'), ('RamAIn.ico', '.')],
     hiddenimports=['sklearn.neighbors._partition_nodes', 'matplotlib.backends.backend_ps', 'matplotlib.backends.backend_svg', 'matplotlib.backends.backend_pdf'],
     hookspath=[],
     hooksconfig={},
@@ -27,6 +27,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name='RamAIn',
+    icon='RamAIn.ico',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -47,4 +48,6 @@ coll = COLLECT(
     upx=True,
     upx_exclude=[],
     name='RamAIn',
+    # Here we remove the internal directory structure
+    root='.',
 )
