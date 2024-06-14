@@ -377,3 +377,20 @@ def export_stitched_maps_graphics(
             for j in range(N_COMPS):
                 f.write(f"{conc[i][j]:.4f}\t")
             f.write("\n")
+
+    # export txt components
+
+    SEP = "\t"
+    components_rows = np.array([nmf_components[i] for i in range(N_COMPS)])
+    components_columns = components_rows.T
+    data_columns = np.concatenate(
+        (unified_x_axis[:, np.newaxis], components_columns), axis=1
+    )
+
+    with open(out_dir + "/components.txt", "w+") as f:
+        for row in data_columns:
+            for col_idx, column in enumerate(row):
+                f.write(f"{column:.7e}")
+                if col_idx < len(row) - 1:
+                    f.write(SEP)
+            f.write("\n")
