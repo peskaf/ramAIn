@@ -307,7 +307,7 @@ class SpectralMap:
 
 if __name__ == "__main__":
     data_path = "/home/filip/ramAIn/data/Gefionella.mat"
-    data_path_test = "/home/filip/ramAIn/src/tests/test_data.mat"
+    data_path_test = "/home/filip/ramAIn/ramain/tests/test_data.mat"
     sm = SpectralMap(data_path)
     import matplotlib.pyplot as plt
 

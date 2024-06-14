@@ -160,4 +160,5 @@ class AutoMethod(QFrame):
             f"{name.lower().replace(' ', '_')}: {value}"
             for name, value in zip(parameter_names, parameters)
         )
+
         return str_parameters

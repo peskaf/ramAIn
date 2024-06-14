@@ -27,6 +27,10 @@ from ramain.model.spectal_map import SpectralMap
 from ramain.utils import validators
 from ramain.utils.settings import SETTINGS
 
+
+from ramain.spectra_processing.decomposition.stitched_NMF import stitched_NMF
+from ramain.spectra_processing.export.to_graphics import export_stitched_maps_graphics
+
 import os
 import datetime
 
@@ -466,6 +470,36 @@ class AutoProcessing(QFrame):
         )
         auto_methods.append(auto_PCA)
 
+        auto_stitched_decomposition_export = AutoMethod(
+            name="Stitched Decomposition & Export",
+            icon=QIcon("ramain/resources/icons/pie.svg"),
+            input_widget_specifiers={
+                "Number of Components": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    init_value=5,
+                    range=(2, 10),
+                    output_type=int,
+                    text_validator=validators.POSITIVE_INT_VALIDATOR,
+                    parameter_order=0,
+                ),
+                "Experiment Name": InputWidgetSpecifier(
+                    widget_type=WidgetType.TEXT,
+                    output_type=str,
+                    init_value="",
+                    parameter_order=1,
+                ),
+                "Directory": InputWidgetSpecifier(
+                    widget_type=WidgetType.DIRECTORY_SELECTION,
+                    output_type=str,
+                    dir_registry_value="export_dir",
+                    parameter_order=2,
+                ),
+            },
+            callback=None,
+            parent=self,
+        )
+        auto_methods.append(auto_stitched_decomposition_export)
+
         auto_save = AutoMethod(
             name="Save Data",
             icon=QIcon("ramain/resources/icons/save.svg"),
@@ -473,6 +507,7 @@ class AutoProcessing(QFrame):
                 "Files Tag": InputWidgetSpecifier(
                     widget_type=WidgetType.TEXT,
                     output_type=str,
+                    init_value="",
                     parameter_order=1,
                 ),
                 "Directory": InputWidgetSpecifier(
@@ -806,38 +841,151 @@ class PipelineWorker(QThread):
         with open(logs_file, "w", encoding="utf-8") as logs:
             files_count = len(self.auto_proceesing_widget.file_list)
             steps_count = self.auto_proceesing_widget.pipeline_list.count()
-
-            for i, file_name in enumerate(self.auto_proceesing_widget.file_list, 1):
-                print(f"[FILE {i}/{files_count}]: {file_name}", file=logs)
+            # TODO: upravit
+            if (
+                self.auto_proceesing_widget.pipeline_list.item(steps_count - 1)
+                .text()
+                .split("-")[0]
+                .strip()
+                == "Stitched Decomposition & Export"
+            ):
+                processed_data = []
                 try:
-                    curr_data = SpectralMap(file_name)
-                    for item_index in range(steps_count):
-                        curr_function = self.auto_proceesing_widget.pipeline_list.item(
-                            item_index
-                        ).function
-                        curr_step_text = self.auto_proceesing_widget.pipeline_list.item(
-                            item_index
-                        ).text()
-                        curr_params = self.auto_proceesing_widget.pipeline_list.item(
-                            item_index
-                        ).params
-                        print(
-                            f"[STEP {item_index + 1}/{steps_count}]: {curr_step_text}; function: {curr_function.__name__}",
-                            file=logs,
-                        )
+                    for i, file_name in enumerate(
+                        self.auto_proceesing_widget.file_list, 1
+                    ):
+                        print(f"[FILE {i}/{files_count}]: {file_name}", file=logs)
+                        curr_data = SpectralMap(file_name)
+                        for item_index in range(steps_count - 1):
+                            curr_function = (
+                                self.auto_proceesing_widget.pipeline_list.item(
+                                    item_index
+                                ).function
+                            )
+                            curr_step_text = (
+                                self.auto_proceesing_widget.pipeline_list.item(
+                                    item_index
+                                ).text()
+                            )
+                            if (
+                                curr_step_text.split("-")[0].strip()
+                                == "Stitched Decomposition & Export"
+                            ):
+                                raise Exception(
+                                    "Stitched Decomposition & Export has to be last in the pipeline."
+                                )
 
-                        # function call
-                        curr_function(curr_data, *curr_params)
+                            curr_params = (
+                                self.auto_proceesing_widget.pipeline_list.item(
+                                    item_index
+                                ).params
+                            )
+                            print(
+                                f"[STEP {item_index + 1}/{steps_count}]: {curr_step_text}; function: {curr_function.__name__}",
+                                file=logs,
+                            )
 
-                        print("[SUCCESS]", file=logs)
-                        self.progress_update.emit(
-                            (i - 1) * self.auto_proceesing_widget.pipeline_list.count()
-                            + item_index
-                            + 1
-                        )
+                            # function call
+                            curr_function(curr_data, *curr_params)
+
+                            print("[SUCCESS]", file=logs)
+                            self.progress_update.emit(
+                                (i - 1)
+                                * self.auto_proceesing_widget.pipeline_list.count()
+                                + item_index
+                                + 1
+                            )
+                        processed_data.append(curr_data)
+
+                    n_comps = int(
+                        self.auto_proceesing_widget.pipeline_list.item(
+                            steps_count - 1
+                        ).params[0]
+                    )
+                    in_files = self.auto_proceesing_widget.file_list
+                    file_name = self.auto_proceesing_widget.pipeline_list.item(
+                        steps_count - 1
+                    ).params[1]
+                    out_dir = self.auto_proceesing_widget.pipeline_list.item(
+                        steps_count - 1
+                    ).params[2]
+
+                    print(
+                        f"[FINAL STEP]: stitched decomposition and export",
+                        file=logs,
+                    )
+
+                    nmf_transformed_data, nmf_components, unified_x_axis = stitched_NMF(
+                        processed_data,
+                        n_components=n_comps,
+                    )
+
+                    # TODO: export; item into the auto list and TEST!!! PCA will be added later
+                    export_stitched_maps_graphics(
+                        processed_data,
+                        nmf_transformed_data,
+                        nmf_components,
+                        unified_x_axis,
+                        file_name,
+                        in_files=in_files,
+                        out_dir=out_dir,
+                    )
+
+                    print("[SUCCESS]", file=logs)
+                    # self.progress_update.emit(
+                    #     (i - 1) * self.auto_proceesing_widget.pipeline_list.count()
+                    #     + item_index
+                    #     + 1
+                    # )
 
                 except Exception as e:
                     print(f"[ERROR]: {e}", file=logs)
                 print(file=logs)
+
+            else:
+                for i, file_name in enumerate(self.auto_proceesing_widget.file_list, 1):
+                    print(f"[FILE {i}/{files_count}]: {file_name}", file=logs)
+                    try:
+                        curr_data = SpectralMap(file_name)
+                        for item_index in range(steps_count):
+                            curr_function = (
+                                self.auto_proceesing_widget.pipeline_list.item(
+                                    item_index
+                                ).function
+                            )
+                            curr_step_text = (
+                                self.auto_proceesing_widget.pipeline_list.item(
+                                    item_index
+                                ).text()
+                            )
+                            if curr_step_text == "Stitched Decomposition & Export":
+                                raise Exception(
+                                    "Stitched Decomposition & Export has to be last in the pipeline."
+                                )
+
+                            curr_params = (
+                                self.auto_proceesing_widget.pipeline_list.item(
+                                    item_index
+                                ).params
+                            )
+                            print(
+                                f"[STEP {item_index + 1}/{steps_count}]: {curr_step_text}; function: {curr_function.__name__}",
+                                file=logs,
+                            )
+
+                            # function call
+                            curr_function(curr_data, *curr_params)
+
+                            print("[SUCCESS]", file=logs)
+                            self.progress_update.emit(
+                                (i - 1)
+                                * self.auto_proceesing_widget.pipeline_list.count()
+                                + item_index
+                                + 1
+                            )
+
+                    except Exception as e:
+                        print(f"[ERROR]: {e}", file=logs)
+                    print(file=logs)
 
         self.destroy()

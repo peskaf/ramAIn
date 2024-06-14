@@ -48,6 +48,4 @@ coll = COLLECT(
     upx=True,
     upx_exclude=[],
     name='RamAIn',
-    # Here we remove the internal directory structure
-    root='.',
 )
