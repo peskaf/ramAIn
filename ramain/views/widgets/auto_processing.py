@@ -33,6 +33,7 @@ from ramain.spectra_processing.export.to_graphics import export_stitched_maps_gr
 
 import os
 import datetime
+import traceback
 
 
 class FunctionItem(QListWidgetItem):
@@ -939,7 +940,10 @@ class PipelineWorker(QThread):
                     # )
 
                 except Exception as e:
+                    em = traceback.format_exc()
                     print(f"[ERROR]: {e}", file=logs)
+                    print(em, file=logs)
+
                 print(file=logs)
 
             else:
@@ -985,7 +989,10 @@ class PipelineWorker(QThread):
                             )
 
                     except Exception as e:
+                        em = traceback.format_exc()
                         print(f"[ERROR]: {e}", file=logs)
+                        print(em, file=logs)
+
                     print(file=logs)
 
         self.destroy()

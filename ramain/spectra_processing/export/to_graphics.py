@@ -192,7 +192,7 @@ def export_stitched_maps_graphics(
     maps_groups = [
         maps[i : i + 5] for i in range(0, len(maps), 5) if len(maps[i : i + 5]) > 0
     ]
-    for k, maps in enumerate(maps_groups):
+    for k, maps_ in enumerate(maps_groups):
         pdf_filename = create_new_file_name(out_dir, file_name, "pdf", f"_{k + 1}")
         pdf = PdfPages(pdf_filename)
         # Create a figure
@@ -201,12 +201,12 @@ def export_stitched_maps_graphics(
         # Define GridSpec
         gs = GridSpec(
             N_COMPS + placeholders_to_add,
-            len(maps) + 1,
-            width_ratios=[1] * len(maps) + [2],
+            len(maps_) + 1,
+            width_ratios=[1] * len(maps_) + [2],
         )
 
         # Add titles above each column
-        for j in range(len(maps)):
+        for j in range(len(maps_)):
             ax = fig.add_subplot(gs[0, j])
             ax.set_title(f"File {j + 1}", fontsize=15)
             ax.axis("off")  # Hide axis for title cells
@@ -225,7 +225,7 @@ def export_stitched_maps_graphics(
             )
             ax.axis("off")  # Hide axis for row label cells
 
-            for j, map in enumerate(maps):
+            for j, map in enumerate(maps_):
                 ax = fig.add_subplot(gs[i, j])
                 img = map[:, :, i]
                 ax.imshow(img)
@@ -238,7 +238,7 @@ def export_stitched_maps_graphics(
         for i in range(placeholders_to_add):
             ax = fig.add_subplot(gs[N_COMPS + i, 0])
             ax.axis("off")  # Hide axis for placeholder cells
-            for j, map in enumerate(maps):
+            for j, map in enumerate(maps_):
                 ax = fig.add_subplot(gs[N_COMPS + i, j])
                 # make img just white placeholder
                 img = np.ones_like(map[:, :, 0])
@@ -248,9 +248,6 @@ def export_stitched_maps_graphics(
             ax.axis("off")  # Hide axis for component spectrum cells
 
         plt.tight_layout()
-        plt.subplots_adjust(
-            wspace=0.1, hspace=0.1, top=0.9, left=0.1
-        )  # Adjust these values to minimize space
 
         pdf.savefig()  # Save the current figure to the PDF
         pdf.close()
@@ -308,7 +305,9 @@ def export_stitched_maps_graphics(
 
         # Plot the histogram of relative concentrations
         ax_hist = fig_bar.add_subplot(gs_bar[i, 2])
-        hist, bins, _ = ax_hist.hist(pixel_conc[i])
+        hist, bins, _ = ax_hist.hist(
+            pixel_conc[i], bins=int(np.ceil(1 + 3.3 * np.log10(len(dataset))))
+        )  # number of bins according to the Sturges rule
         if i == 0:
             ax_hist.set_title("Concentration Frequency")
         ax_hist.set_ylabel("Frequency", fontsize=8)
